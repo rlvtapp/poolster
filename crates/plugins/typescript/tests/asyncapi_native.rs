@@ -28,7 +28,7 @@ fn kafka_models_and_functions_regenerate_with_native_document() {
         first.get("client/events.ts"),
         second.get("client/events.ts")
     );
-    let source = first.get("client/events.ts").unwrap();
+    let source = first.iter().map(|(_, s)| s).collect::<Vec<_>>().join("\n");
     assert!(source.contains("export function sendOrder"));
     assert!(source.contains("export function receiveOrder"));
     assert!(source.contains("\"quantity\": number"));
@@ -131,9 +131,8 @@ fn kafka_output_accepts_replacement_input_provider() {
         .generate_native()
         .unwrap();
     assert!(
-        tree.get("client/events.ts")
-            .unwrap()
-            .contains("export function custom_sendOrder")
+        tree.iter()
+            .any(|(_, source)| source.contains("export function custom_sendOrder"))
     );
 }
 
@@ -282,4 +281,55 @@ fn explicit_message_blocks_compose_without_replacing_whole_contract() {
             .contains("messaging.headers")
     );
     assert!(tree.get("client/events.ts").unwrap().contains("sendOrder"));
+}
+
+#[test]
+#[ignore = "requires pinned POOLSTER_KAFKA_NODE_MODULES; no broker required"]
+fn split_kafka_package_compiles_and_functions_preserve_envelopes() {
+    let modules = std::env::var("POOLSTER_KAFKA_NODE_MODULES").unwrap();
+    let directory = tempfile::tempdir().unwrap();
+    let fixture = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../inputs/asyncapi/tests/fixtures/kafka-json.yaml");
+    let tree = generate(&fixture);
+    assert!(tree.get("client/events/models/sendOrder.ts").is_some());
+    assert!(tree.get("client/events/operations/sendOrder.ts").is_some());
+    for (path, source) in tree.iter() {
+        assert!(
+            source.len() < 128 * 1024,
+            "{} exceeds source budget",
+            path.display()
+        );
+    }
+    tree.write_to(directory.path()).unwrap();
+    std::os::unix::fs::symlink(modules, directory.path().join("client/node_modules")).unwrap();
+    let output = Command::new("node")
+        .args(["node_modules/typescript/bin/tsc", "-p", "tsconfig.json"])
+        .current_dir(directory.path().join("client"))
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    std::fs::write(directory.path().join("client/probe.mjs"), r#"
+import { sendOrder, receiveOrder } from './dist/index.js';
+let sent, received;
+const client = { send: async (definition, message) => {sent={definition,message};return []}, consume: async (definition,handler,options) => {received={definition,options};await handler({payload:{id:'1',quantity:2}},{topic:'poolster-orders'});return {}} };
+await sendOrder(client,{payload:{id:'1',quantity:2},headers:{trace:'t'}});
+if(sent.message.headers.trace !== 't' || sent.definition.topic !== 'poolster-orders')throw Error('send changed');
+let count=0;await receiveOrder(client,async(message)=>{if(message.payload.quantity!==2)throw Error('payload');count++});
+if(count!==1 || received.definition.groupId!=='poolster-alpha2-orders')throw Error('consume changed');
+"#).unwrap();
+    let output = Command::new("node")
+        .arg("probe.mjs")
+        .current_dir(directory.path().join("client"))
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
 }

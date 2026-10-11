@@ -10,6 +10,17 @@ pub(crate) fn build(options: &Generate, input: &NativeInputConfig) -> Result<Pro
                       plugin: Option<&PluginConfig>,
                       package_config: Option<&PackageConfig>|
      -> Result<()> {
+        if plugin.is_some_and(|plugin| plugin.name == "shared-models") {
+            let old = std::mem::replace(&mut profiles, ProfileSet::new("."));
+            let common = Common {
+                package_version: Some(version.unwrap_or(&options.version).to_owned()),
+                source_quality: package_config.and_then(|package| package.source_quality.clone()),
+                ..Default::default()
+            };
+            profiles =
+                shared_models::append(old, input, registry.clone(), language, path, name, common)?;
+            return Ok(());
+        }
         let explicit_style = plugin
             .and_then(|p| p.style.as_deref())
             .or(package_config.and_then(|p| p.client_style.as_deref()));
@@ -62,7 +73,7 @@ pub(crate) fn build(options: &Generate, input: &NativeInputConfig) -> Result<Pro
                 plugin,
                 package_config,
             )?
-        } else if input.format == "graphql" {
+        } else if input.format == "graphql" && language != "typescript" {
             graphql_sdk::append(
                 old,
                 input,
@@ -165,7 +176,14 @@ pub(crate) fn build(options: &Generate, input: &NativeInputConfig) -> Result<Pro
                 package.plugins.iter().find(|p| {
                     matches!(
                         p.name.as_str(),
-                        "graphql" | "sdk" | "workflow" | "asyncapi" | "grpc" | "cli" | "collection"
+                        "graphql"
+                            | "sdk"
+                            | "workflow"
+                            | "asyncapi"
+                            | "grpc"
+                            | "cli"
+                            | "collection"
+                            | "shared-models"
                     )
                 }),
                 Some(package),

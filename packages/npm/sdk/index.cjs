@@ -175,7 +175,13 @@ function compile(input, artifacts, compiler) {
   });
 }
 
+function modelsOutputCompatible(input, p) {
+  return input.plugin?.kind === 'native-input' && ['graphql','asyncapi'].includes(input.plugin.format)
+    && ['typescript','rust','go','python','php','java','csharp','ruby','swift','elixir'].includes(p.language);
+}
+
 function graphqlOutputCompatible(input, p) {
+  if (p.mode === 'models') return modelsOutputCompatible(input, p);
   const sdk = ['typescript','rust','go','python','php','java','csharp','ruby','swift','elixir'];
   return (input.incremental ? sdk : [...sdk,'symfony','postman','rust-cli','typescript-cli']).includes(p.language)
     && (!input.incremental || !p.plugins?.length);
@@ -246,19 +252,24 @@ async function generate(config, options = {}) {
     const skipped = [];
     if (config.input.plugin) {
       const loaded = await loadInput(config.input);
-      if (!loaded.api && config.input.plugin.format === 'graphql' && packages.length) {
-        const compatible = packages.filter((p) => graphqlOutputCompatible(config.input, p));
-        for (const p of packages.filter((p) => !graphqlOutputCompatible(config.input, p))) {
-          const entry = { path: p.path, language: p.language, reason: 'GraphQL output does not yet support this language' };
-          skipped.push(entry);
-          console.warn(`Poolster: skipping ${p.path}: ${entry.reason}`);
+      const format = config.input.plugin.format;
+      const modelPackages = packages.filter(p => p.mode === 'models');
+      if (!loaded.api && packages.length && (format === 'graphql' || (format === 'asyncapi' && modelPackages.length))) {
+        const compatibleModels = modelPackages.filter(p => modelsOutputCompatible(config.input,p));
+        const compatibleSdks = format === 'graphql' ? packages.filter(p => p.mode !== 'models' && graphqlOutputCompatible(config.input,p)) : [];
+        const compatible = new Set([...compatibleModels,...compatibleSdks]);
+        for (const p of packages.filter(p => !compatible.has(p))) {
+          const entry = { path:p.path, language:p.language, reason:`${format} output does not yet support this language or generation mode` };
+          skipped.push(entry); console.warn(`Poolster: skipping ${p.path}: ${entry.reason}`);
         }
-        graphqlFiles = compatible.length ? JSON.parse(await native().generateGraphql(JSON.stringify({
-          source: path.resolve(config.input.path), provider: config.input.plugin.provider,
-          operationFiles: (config.input.operations ?? []).map((file) => path.resolve(file)),
-          importRoots: (config.input.importRoots ?? []).map(p => path.resolve(p)), incremental: config.input.incremental ?? false,
-          scalars: config.input.scalars ?? {}, rustScalars: config.input.rustScalars ?? {}, subscriptions: config.input.subscriptions ?? false, packages: compatible,
+        const request = { source:path.resolve(config.input.path), provider:config.input.plugin.provider,
+          operationFiles:(config.input.operations ?? []).map(file=>path.resolve(file)),
+          importRoots:(config.input.importRoots ?? []).map(root=>path.resolve(root)) };
+        const modelFiles = compatibleModels.length ? JSON.parse(await native().generateModels(JSON.stringify({ ...request, format, packages:compatibleModels }))) : [];
+        const sdkFiles = compatibleSdks.length ? JSON.parse(await native().generateGraphql(JSON.stringify({ ...request,
+          incremental:config.input.incremental ?? false, scalars:config.input.scalars ?? {}, rustScalars:config.input.rustScalars ?? {}, subscriptions:config.input.subscriptions ?? false, packages:compatibleSdks,
         }))) : [];
+        graphqlFiles = [...modelFiles,...sdkFiles];
       }
       if (!loaded.api && graphqlFiles === undefined && (packages.length || nativeAddons.length)) {
         throw new Error(`Input ${config.input.plugin.format} did not publish poolster.http-api, which the selected SDK plugins require`);
@@ -325,4 +336,4 @@ function createPoolster(config) {
   return { plan: () => plan(config), generate: (options) => generate(config, options), inspectInput: () => inspectInput(config.input) };
 }
 
-module.exports = { plan, formatPlan, defineConfig, definePlugin, defineInputPlugin, defineContract, providerHandle, requireContract, availableNativePlugins, availableInputPlugins, inspectInput, loadConfig, createPoolster, generate };
+module.exports = { sdkPackage, plan, formatPlan, defineConfig, definePlugin, defineInputPlugin, defineContract, providerHandle, requireContract, availableNativePlugins, availableInputPlugins, inspectInput, loadConfig, createPoolster, generate };

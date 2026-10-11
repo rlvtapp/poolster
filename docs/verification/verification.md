@@ -534,3 +534,50 @@ Final entrypoint checks: CLI **128 passed, 9 ignored**; rebuilt npm SDK
 with warnings denied. Formatting, whitespace and changed documentation links pass.
 Integration validation gaps and updated unsupported-output fixtures are recorded
 in the test record. Changes are unreleased.
+
+## Shared model packages and AsyncAPI organization — 11 October 2026
+
+Models-only generation uses complete native/rich schema blocks without constructing an
+HTTP API or GraphQL operations contract. GraphQL input objects and AsyncAPI payload,
+header and key schemas generate standalone packages across ten language outputs through
+Rust, CLI recipes and the JavaScript SDK. TypeScript Kafka output now splits models and
+operations into bounded files with an `events.ts` facade. This is not full AsyncAPI support;
+see the [models guide](../reference/outputs/shared-models.md) and
+[support matrix](../plugin-support-matrix.md#shared-model-packages).
+
+The complete ordinary workspace checks finished with **952 passed, 0 failed and
+186 ignored**. The run was split into facade tests, CLI tests, the remaining workspace
+executables and doc-tests; remaining executables ran with four bounded workers after
+`cargo test --no-run --message-format=json`. Each ran from its package directory with
+an individual result log. Doc-tests had no executable examples in this configuration.
+Ignored tests remain ignored in this total, including native toolchain/broker checks.
+The 205-spec HTTP corpus was not rerun in this batch; maintained output snapshots and
+HTTP selection/block compatibility tests passed unchanged.
+
+The initial workspace attempt exposed an existing TypeScript GraphQL CLI dispatch bug;
+its routing was corrected and the complete CLI checks passed **134**, with **9 ignored**.
+Three existing PHP GraphQL tests initially failed because PHP was absent from PATH.
+Rerunning that executable with the pinned PHP 8.2 runner passed **33**, with **18 ignored**;
+this corrected result is included in the workspace total above.
+
+Additional focused checks overlap the ordinary tests and are not added to that total:
+
+- Five compiled-language shared-model suites: **20 passed, 0 ignored** with
+  `--include-ignored`, including generated compilation/runtime and malformed nulls.
+  A Java root-list error probe caught an unchecked validation exception; the decoder
+  now reports a Jackson mapping exception and the native checks passed again.
+- Python/PHP/Ruby/Elixir focused suites: **21 passed**, including four explicitly
+  enabled generated-package runtime tests, provider substitution and regeneration.
+- CLI models-only checks: **3 passed**, covering all ten outputs for schema-only
+  GraphQL and broker-free AsyncAPI, retained constraints and option rejection.
+- Refreshed JavaScript native addon: **6 models checks passed** after the final Java
+  fix. Full npm suite: **85 passed, 1 skipped**; the skipped local GraphQL runtime
+  test was separately enabled and passed.
+- TypeScript shared-model and Kafka delegate/large-layout checks passed. Delegate
+  execution does not establish real-broker behavior; the Kafka broker test remains
+  a separate ignored integration check in this batch.
+
+Final workspace all-target Clippy with warnings denied, formatting, diff checks and
+source-size audit passed: **729 authored files, 0 size violations**. Changes are unreleased.
+The next event implementation step is consumption of `GeneratedModels<Language>` by
+broker generators, rather than an independent message-model emission path.

@@ -8,3 +8,7 @@ pub use poolster_core::native::events::{
 /// Independently consumable message models published by the input provider.
 /// The authoritative native document and executable whole contract remain separate.
 pub type MessageBlocks = poolster_core::blocks::Blocks<EventMessage>;
+
+/// Lossless shared schema model shapes; independent of broker operation generation.
+pub use poolster_core::models::SchemaModelBlock;
+pub type SharedSchemaBlocks = poolster_core::blocks::Blocks<SchemaModelBlock>;

@@ -10,8 +10,12 @@ pub(super) struct NamedTypes {
 
 impl NamedTypes {
     pub(super) fn from_api(api: &Api) -> Self {
+        Self::from_schemas(&api.schemas)
+    }
+
+    pub(super) fn from_schemas(schemas: &[Schema]) -> Self {
         let mut types = Self::default();
-        for schema in &api.schemas {
+        for schema in schemas {
             let name = type_name(&schema.name);
             match schema.value.kind {
                 SchemaKind::Object { .. } => {

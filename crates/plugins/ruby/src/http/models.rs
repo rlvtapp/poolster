@@ -1,6 +1,6 @@
 use super::*;
 
-pub(crate) fn render_models(api: &Api, module: &str) -> String {
+pub(crate) fn render_model_runtime(module: &str) -> String {
     let mut out = format!("{NOTICE}require \"json\"\n\nmodule {module}\n  module Models\n");
     out.push_str(r#"    # Lazy aliases avoid evaluating forward constants or Ruby's unsupported class union operator.
     def self.wire_alias(shape)
@@ -38,6 +38,11 @@ pub(crate) fn render_models(api: &Api, module: &str) -> String {
     end
 
 "#);
+    out
+}
+
+pub(crate) fn render_models(api: &Api, module: &str) -> String {
+    let mut out = render_model_runtime(module);
     for schema in &api.schemas {
         out.push_str(&render_model(api, schema));
     }
@@ -80,6 +85,15 @@ pub(crate) fn ruby_decode_shape(value: &SchemaValue) -> String {
 }
 
 pub(crate) fn render_model(api: &Api, schema: &Schema) -> String {
+    render_data_model(schema, |value| {
+        response_validation::write_only(api, value, &mut Default::default())
+    })
+}
+
+pub(crate) fn render_data_model(
+    schema: &Schema,
+    write_only: impl Fn(&SchemaValue) -> bool,
+) -> String {
     let name = pascal_case(&schema.name);
     let mut out = String::new();
     match &schema.value.kind {
@@ -199,9 +213,7 @@ pub(crate) fn render_model(api: &Api, schema: &Schema) -> String {
             }
             for field in fields {
                 let id = ruby_field_identifier(fields, field);
-                let condition = if field.required
-                    && !response_validation::write_only(api, &field.value, &mut Default::default())
-                {
+                let condition = if field.required && !write_only(&field.value) {
                     String::new()
                 } else {
                     format!(

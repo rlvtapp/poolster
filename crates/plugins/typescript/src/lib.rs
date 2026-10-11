@@ -78,3 +78,6 @@ mod openapi32;
 
 #[cfg(test)]
 mod auxiliary_tests;
+
+mod shared_models;
+pub use shared_models::shared_models;

@@ -12,6 +12,7 @@ pub mod common {
         ContractReference, ModelBlock,
     };
     pub use crate::engine::Contract;
+    pub use crate::models::{GeneratedModels, ModelPlan, ModelSymbol, SchemaModelBlock};
     pub use crate::native::{ModelField, ModelKind, ModelType};
 }
 /// HTTP models, operations, media and security contracts.

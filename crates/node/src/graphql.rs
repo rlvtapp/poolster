@@ -44,6 +44,9 @@ fn generate(request: &str) -> AnyResult<String> {
     let registry = Arc::new(default_registry()?);
     let mut profiles = ProfileSet::new(".");
     for mut package in std::mem::take(&mut request.packages) {
+        if package.mode != sdk_package::PackageMode::Sdk {
+            bail!("GraphQL SDK entry point requires mode sdk; use generateModels for mode models");
+        }
         output_options::apply(&mut package, "graphql")?;
         let subscriptions = package.subscriptions.unwrap_or(request.subscriptions);
         if ![

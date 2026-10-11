@@ -70,3 +70,6 @@ mod openapi32_native_tests;
 
 mod graphql;
 pub use graphql::{Graphql, GraphqlClient, GraphqlStyle, graphql, graphql_incremental};
+
+mod shared_models;
+pub use shared_models::shared_models;

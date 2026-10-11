@@ -58,7 +58,7 @@ capabilities and release checklists.
 | OpenAPI → existing languages | Existing compiler and adapter | Existing SDK pipelines preserved | Existing target-specific limits still apply |
 | GraphQL → all ten SDK languages | SDL / local introspection JSON, full-file imports and operation documents | Selected clients; opt-in distinct SSE, directional scalar callbacks, experimental multipart 20220824 | WebSockets/reconnect, selective imports, newer incremental variants, dynamic fields and other native output contracts |
 | Protobuf → Go gRPC | Proto2/proto3 descriptors, imports and RPC metadata | Official messages, clients and server interfaces; unary and all streaming directions | Editions, broader official fixture coverage and additional output languages |
-| AsyncAPI → TypeScript | 2.6/3.0/3.1 native document and message blocks | 3.0/3.1 JSON messages and Kafka producer/consumer | Types-only output, broader schemas/bindings, security and other brokers |
+| AsyncAPI → TypeScript | 2.6/3.0/3.1 native document and message blocks | 3.0/3.1 JSON messages and Kafka producer/consumer | Shared-model consumption by event generators, broader schemas/bindings, security and other brokers |
 | Arazzo → TypeScript | Native document and explicit local source resolution | Sequential HTTP runners with local workflow dependencies | Actions/retries, richer expressions/criteria and additional source types |
 | Cap’n Proto → Rust | Official compiler request and capability/node blocks | Not implemented | Official capnpc Rust generation, capnp-rpc interfaces and local capability tests |
 
@@ -230,13 +230,21 @@ traits, multiple messages, recursive/composed schemas and unsupported schema
 keywords/bindings are rejected. AsyncAPI 2.6 is inspectable and exposes available
 message blocks but has no executable Kafka lowering. Message blocks can be loaded
 without broker configuration; incomplete projections include diagnostics. A
-broker-independent types-only generator remains open.
+broker-independent models-only package is available across the ten SDK languages
+through `shared-models`, within each language's supported model subset. It consumes
+exposed rich model blocks and generates no producer, consumer or broker transport.
+See [models-only usage](../outputs/shared-models.md) and the
+[support matrix](../../plugin-support-matrix.md#shared-model-packages).
 
 The generated package was compiled and exercised against a real local
 Kafka-compatible **Redpanda 25.3.11** broker with a pinned image digest. Tests cover
 send/receive, keys, headers, invalid incoming/outgoing messages, provider replacement,
 downstream symbols and regeneration. See the [broker reproduction guide](../../../crates/plugins/typescript/tests/fixtures/KAFKA.md).
 This establishes that tested Kafka subset, not every Kafka deployment or AsyncAPI feature.
+Broker-independent model-package tests are separate: focused Python/PHP/Ruby/Elixir
+checks passed 21 tests, including four explicitly executed native decoder tests.
+They exercise recursive references, presence/nullability and unsupported-feature
+diagnostics; they do not establish Kafka transport support for those languages.
 
 ## Arazzo → TypeScript workflow runners
 
@@ -290,7 +298,7 @@ have usable, tested subsets described above.
 
 The frozen pre-output-migration HTTP corpus is **complete: 205 APIs × 10 languages,
 2,050 effective passes** for generation, native compilation or syntax checks and
-regeneration after recorded infrastructure retries. The migrated workspace passed
+regeneration after recorded infrastructure retries. Earlier output-migration verification passed
 **816 tests**, with **143 ignored**. PHP syntax lint reported deprecation warnings
 in 140 contracts; lint does not establish endpoint runtime behavior.
 
@@ -299,8 +307,12 @@ These are the remaining implementation and release gaps:
 - [ ] **CAPNP-1:** Pin official capnp/capnpc and capnp-rpc; generate Rust messages
   and capability clients/server interfaces while preserving IDs, ordinals, unions,
   defaults and imports. Compile and execute against a local capability server.
-- [ ] **EVENT-1:** Add broker-independent AsyncAPI TypeScript message output from
-  exposed blocks; define strict/partial collection policy and compile it without a broker.
+- [x] **EVENT-1:** Broker-independent AsyncAPI models-only packages from exposed
+  rich schema blocks for all ten languages, within their documented model subsets.
+  Complete collections are required; empty complete collections remain valid.
+- [ ] **EVENT-SHARED:** Make event generators consume `GeneratedModels<Language>`
+  instead of maintaining an independent message-model emission path. Verify stable
+  names, headers, keys and payload references across combined model/event packages.
 - [ ] **EVENT-2:** Extend event schemas, correlation IDs and bindings; add explicit
   security support and failure tests before advertising them. Other brokers need
   their own tested transport adapter.

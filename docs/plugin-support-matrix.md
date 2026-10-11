@@ -1,6 +1,6 @@
 # Poolster plugin support matrix
 
-Audited **10 October 2026**, against the unreleased alpha.2 implementation in this checkout.
+Audited **11 October 2026**, against the unreleased alpha.2 implementation in this checkout.
 Manifests still use `0.5.0-alpha.1`; the additions below are unreleased alpha.2
 work. This matrix describes implemented generation, not parser availability.
 The [generated SDK specification](specifications/generated-sdk.md) defines target
@@ -14,8 +14,7 @@ the documented GraphQL subset, rather than every existing HTTP plugin option.
 See the [integration guide](reference/outputs/graphql-integrations.md) for API and limitations.
 
 GraphQL clients are implemented for all ten SDK languages: TypeScript, Rust, Go,
-Python, PHP, Java, C#, Ruby, Swift and Elixir. The deprecated `dotnet` target aliases
-C#. All use the existing language plugin packages through Rust, CLI and npm entry points.
+Python, PHP, Java, C#, Ruby, Swift and Elixir. All use the existing language plugin packages through Rust, CLI and npm entry points.
 All ten SDKs provide opt-in distinct-connection SSE subscriptions, direction-specific
 runtime scalar callbacks and experimental multipart deferSpec=20220824 incremental
 delivery. TypeScript incremental generation is raw only; scalar value boundaries
@@ -45,7 +44,6 @@ limitations still apply. GraphQL is a separate contract even when its transport 
 | Python | HTTP SDK; synchronous GraphQL client | ✅ | ✅ | — | — | — | — |
 | Java | Java HTTP SDK; GraphQL client | ✅ | ✅ | — | — | — | — |
 | C# | C# HTTP SDK; GraphQL client | ✅ | ✅ | — | — | — | — |
-| .NET | Deprecated C# target alias | ✅ | ✅ | — | — | — | — |
 | PHP | PHP HTTP SDK; GraphQL client | ✅ | ✅ | — | — | — | — |
 | Symfony | HTTP integration; PHP GraphQL SDK, HttpClient transport and bundle | ✅ | ✅ | — | — | — | — |
 | Ruby | Ruby HTTP SDK; GraphQL client with RBS | ✅ | ✅ | — | — | — | — |
@@ -71,11 +69,61 @@ scalar mappings support primitive wire types. Cypress mutation helpers require
 explicit enablement. Input parsing alone does not establish companion support.
 A Kafka package contains message types **and** producer/consumer code. Generation
 writes files without contacting a broker; a broker is needed for runtime use and
-integration tests. There is no standalone broker-independent AsyncAPI types-only
-output yet, although input message blocks are available to custom plugins.
+integration tests. Broker-independent models-only packages are also available; their
+coverage is separate from event transports, as described below.
 
 See [output migration coverage](verification/output-contract-migration.md) for typed HTTP
 selection, block consumption, finalization and compatibility boundaries.
+
+## Shared model packages
+
+All ten language packages expose `shared_models` through Rust, the CLI `shared-models`
+recipe plugin and JavaScript `mode: 'models'`. GraphQL schema input objects and AsyncAPI
+payload, header and key shapes can generate packages without operation documents or a
+broker connection. See [models-only usage](reference/outputs/shared-models.md).
+
+| Output | Common model subset | Additional boundaries |
+| --- | --- | --- |
+| TypeScript | Objects, references, scalar fields, lists, presence and nullability | Structural types; no runtime schema validator |
+| Rust, Swift | Same common subset | Scalar/list root aliases and closed string enums; nullable named roots, literals, unions, intersections and unsupported defaults are diagnosed |
+| Go, C# | Same common subset | Same native alias/enum subset; also reject typed additional-property bags |
+| Java | Same common subset | Same native alias/enum subset; also rejects additional-property objects and records over 200 fields |
+| Python | Same common subset | String, integer, boolean and null literals/enums; floating/complex literals, defaults, unions, intersections and negation are rejected |
+| PHP | Same common subset | Homogeneous string/integer backed enums; literals, defaults, unions, intersections and negation are rejected |
+| Ruby, Elixir | Same common subset | Enums, literals, defaults, unions, intersections and negation are rejected |
+
+Constraints and extension data remain in `.poolster/model-contract.json`; retaining
+those schemas does not mean every serializer enforces every JSON Schema constraint.
+Blocks carry stable entity IDs and parent contract revisions. Names are resolved before
+emission, independently of plugin execution order. Complete empty collections are valid;
+partial collections and unresolved model references are rejected.
+
+Python, PHP, Ruby and Elixir object decoders check required fields, nullability,
+primitive kinds, lists and named references before decoding. These checks do not
+establish full JSON Schema validation or validate every direct model constructor.
+Focused models-only checks passed **21 tests** across those four backends, including
+four native runtime tests for recursive references, omission versus explicit null and
+malformed nonnullable nulls. Those native tests are ignored by default unless their
+language toolchains are available; they were explicitly executed. This count is
+separate from the historical HTTP corpus and full-workspace test totals.
+
+Rust, Go, Java, C# and Swift passed **20 focused tests: 0 failed and 0 ignored** with
+`--include-ignored`. All five compiled and executed generated neutral and rich null-only
+model packages, checking recursive references, required/optional nullability, scalar/list
+root aliases and closed enum wire values. Provider substitution and unsupported literal
+diagnostics passed for every backend. Their native tests are ignored in the default suite
+and were explicitly executed with local toolchains and cached dependencies. Serializer
+checks do not establish general JSON Schema runtime validation; constraints remain in
+the semantic manifest. Go and Swift direct-construction APIs still have limited controls
+for optional nullable field presence. See the [detailed boundaries](reference/outputs/shared-models.md#boundaries).
+
+This does **not** add event transports to all ten languages. TypeScript's existing Kafka
+JSON producer/consumer is the bundled event transport. Its generated models/operations
+are split into files with an `events.ts` facade. The next event step is to consume the
+shared generated-model contract, then add explicit broker/language capabilities. More
+brokers, security/authentication, dynamic channels, traits, replies and broader schema
+coverage remain follow-up work. Local delegate checks are distinct from broker-backed
+integration tests.
 
 ## GraphQL capability chart
 
@@ -92,7 +140,7 @@ use distinct-connection SSE. These columns describe separate opt-in capabilities
 | PHP SDK | ✅ | ✅ | ✅ | ✅ |
 | Symfony bundle | ✅ | — | ✅ PHP container configuration | — |
 | Java SDK | ✅ | ✅ | ✅ | ✅ |
-| C# SDK / dotnet alias | ✅ | ✅ | ✅ | ✅ |
+| C# SDK | ✅ | ✅ | ✅ | ✅ |
 | Ruby SDK | ✅ | ✅ | ✅ | ✅ |
 | Swift SDK | ✅ | ✅ | ✅ | ✅ |
 | Elixir SDK | ✅ | ✅ | ✅ | ✅ |
@@ -223,7 +271,7 @@ heuristic invents resource groups.
 | Python | Any | Selected typed dictionary alternatives | Static TypedDict annotations |
 | PHP | mixed / JSON values | Requires selected typename | Generated model decoding/validation |
 | Java | JsonNode | Requires selected typename | Generated record decoding/validation |
-| C# / dotnet | JsonElement | Requires selected nonnull typename | Required presence; nonnull values are not revalidated |
+| C# | JsonElement | Requires selected nonnull typename | Required presence; nonnull values are not revalidated |
 | Ruby | Untyped JSON | Selected variants | Generated model validation and RBS signatures |
 | Swift | GraphqlJSON | Requires selected nonnull typename | Codable plus presence/null checks |
 | Elixir | JSON terms | Requires selected typename | Generated struct/scalar decoding/validation |

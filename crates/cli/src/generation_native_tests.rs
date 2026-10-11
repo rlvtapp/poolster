@@ -1,4 +1,6 @@
 use super::*;
+#[path = "generation_native_tests/shared_models.rs"]
+mod shared_models;
 
 fn recipe(root: &Path, packages: serde_json::Value) -> PathBuf {
     std::fs::write(root.join("schema.graphql"), "type Query { hello: String! }").unwrap();

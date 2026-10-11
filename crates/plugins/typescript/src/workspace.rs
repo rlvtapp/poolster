@@ -61,6 +61,7 @@ pub struct Workspace {
     pub(crate) native_transports: BTreeMap<PathBuf, crate::sdk::SdkTransport>,
     symbols: BTreeMap<(PathBuf, String), String>,
     package_files: BTreeMap<PathBuf, String>,
+    default_package_files: BTreeMap<PathBuf, String>,
     dependencies: BTreeMap<String, String>,
     exports: std::collections::BTreeSet<String>,
     namespace_exports: BTreeMap<String, String>,
@@ -155,6 +156,20 @@ impl Workspace {
     /// Register a package assembly file, such as a community provider's manifest.
     /// Identical declarations may be shared; conflicting contents are rejected.
     /// Finalization adds registered dependencies and emits through the owned emitter.
+    /// Metadata fallback for composable plugins; explicit package owners always win.
+    pub fn default_package_file(&mut self, file: GeneratedFile) -> Result<()> {
+        if let Some(previous) = self.default_package_files.get(&file.path) {
+            anyhow::ensure!(
+                previous == &file.contents,
+                "conflicting package defaults for {}",
+                file.path.display()
+            );
+        } else {
+            self.default_package_files.insert(file.path, file.contents);
+        }
+        Ok(())
+    }
+
     pub fn package_file(&mut self, file: GeneratedFile) -> Result<()> {
         if self.package_files.get(&file.path) == Some(&file.contents) {
             return Ok(());
@@ -171,7 +186,8 @@ impl Workspace {
 }
 
 pub(crate) fn finalize(cx: &mut FinalizeContext<'_, TypeScript>) -> Result<()> {
-    let mut files = std::mem::take(&mut cx.workspace.package_files);
+    let mut files = std::mem::take(&mut cx.workspace.default_package_files);
+    files.extend(std::mem::take(&mut cx.workspace.package_files));
     for (field, declarations) in [
         ("dependencies", &cx.workspace.dependencies),
         ("devDependencies", &cx.workspace.dev_dependencies),
@@ -229,4 +245,38 @@ fn register_dependency(
     }
     declarations.insert(name, range);
     Ok(())
+}
+
+#[cfg(test)]
+mod package_default_tests {
+    use super::*;
+    #[test]
+    fn defaults_conflicts_are_diagnostic_and_explicit_metadata_wins() {
+        for reverse in [false, true] {
+            let mut workspace = Workspace::default();
+            let default = GeneratedFile::new("package.json", "default").unwrap();
+            let explicit = GeneratedFile::new("package.json", "explicit").unwrap();
+            if reverse {
+                workspace.package_file(explicit.clone()).unwrap();
+                workspace.default_package_file(default.clone()).unwrap();
+            } else {
+                workspace.default_package_file(default.clone()).unwrap();
+                workspace.package_file(explicit.clone()).unwrap();
+            }
+            workspace.default_package_file(default).unwrap();
+            assert!(
+                workspace
+                    .default_package_file(GeneratedFile::new("package.json", "different").unwrap())
+                    .unwrap_err()
+                    .to_string()
+                    .contains("conflicting package defaults")
+            );
+            let mut final_files = workspace.default_package_files;
+            final_files.extend(workspace.package_files);
+            assert_eq!(
+                final_files[std::path::Path::new("package.json")],
+                "explicit"
+            );
+        }
+    }
 }

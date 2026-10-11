@@ -45,3 +45,6 @@ pub use oauth::{OAuth, oauth};
 mod graphql;
 pub use graphql::{Graphql, GraphqlClient, GraphqlStyle, graphql};
 pub use graphql::{GraphqlIncremental, graphql_incremental};
+
+mod shared_models;
+pub use shared_models::shared_models;

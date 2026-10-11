@@ -32,6 +32,7 @@ pub(crate) struct ModelRenderOptions {
 }
 
 mod assembly;
+pub(crate) use assembly::{collect_references, reference_notice};
 
 /// Typed schema formatting and transformation choices for generated models.
 #[derive(Clone, Debug, PartialEq, Eq)]

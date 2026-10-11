@@ -19,6 +19,7 @@ Use these pages to look up details after a quickstart.
 - [GraphQL TypeScript](outputs/graphql-typescript.md), [Rust](outputs/graphql-rust.md), [Go](outputs/graphql-go.md), [Python](outputs/graphql-python.md), [PHP](outputs/graphql-php.md), [Java](outputs/graphql-java.md), [C#](outputs/graphql-csharp.md), [Ruby](outputs/graphql-ruby.md), [Swift](outputs/graphql-swift.md), [Elixir](outputs/graphql-elixir.md), [integrations](outputs/graphql-integrations.md) and [advanced capabilities](outputs/graphql-capabilities.md)
 - [Symfony GraphQL bundles](outputs/graphql-symfony.md)
 - [GraphQL Postman and generated CLIs](outputs/graphql-tools.md)
+- [Models-only packages](outputs/shared-models.md)
 - [HTTP client behavior](outputs/generated-sdks.md)
 - [Customization](regeneration/sdk-customization.md) and [source builds](regeneration/source-customization.md)
 

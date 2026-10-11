@@ -3,6 +3,7 @@
 pub mod graphql;
 mod graphql_addons;
 pub mod materialize;
+pub mod models;
 mod output_options;
 mod sdk_package;
 use sdk_package::{SdkPackage, package_common, validate_options};
@@ -52,6 +53,9 @@ fn napi_anyhow(error: anyhow::Error) -> Error {
 fn profiles(packages: Vec<SdkPackage>) -> AnyResult<ProfileSet> {
     let mut profiles = ProfileSet::new(".");
     for mut package in packages {
+        if package.mode != sdk_package::PackageMode::Sdk {
+            bail!("models mode requires native GraphQL or AsyncAPI input");
+        }
         output_options::apply(&mut package, "http")?;
         if package.subscriptions.is_some() {
             bail!("subscriptions applies only to GraphQL output");

@@ -1,7 +1,9 @@
 //! AsyncAPI inputs retain their original version and native protocol model.
 pub mod blocks;
 pub mod contracts;
+pub mod shared_models;
 pub use blocks::{EventMessageBlocks, event_messages, lower_message_blocks};
+pub use shared_models::{SharedModelBlocks, shared_model_blocks};
 mod lowering;
 use anyhow::{Context, Result, bail};
 pub use lowering::lower as lower_operations;

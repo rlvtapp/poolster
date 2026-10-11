@@ -77,3 +77,6 @@ pub use graphql::{
     Graphql, GraphqlClient, GraphqlStyle, graphql, graphql_incremental, graphql_package_namespace,
     render_graphql_package,
 };
+
+mod shared_models;
+pub use shared_models::shared_models;

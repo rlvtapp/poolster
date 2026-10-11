@@ -78,3 +78,6 @@ mod graphql;
 pub use graphql::{
     Graphql, GraphqlClient, GraphqlIncremental, GraphqlStyle, graphql, graphql_incremental,
 };
+
+mod shared_models;
+pub use shared_models::shared_models;

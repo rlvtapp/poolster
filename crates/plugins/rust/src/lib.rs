@@ -79,3 +79,6 @@ mod multipart_tests;
 
 #[cfg(test)]
 mod source_layout_tests;
+
+mod shared_models;
+pub use shared_models::shared_models;

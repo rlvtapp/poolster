@@ -45,3 +45,6 @@ mod tests;
 
 mod webhooks;
 pub use webhooks::{Webhooks, webhooks};
+
+mod shared_models;
+pub use shared_models::shared_models;

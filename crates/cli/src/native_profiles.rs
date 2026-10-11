@@ -3,6 +3,7 @@ use super::*;
 mod build;
 mod graphql_sdk;
 mod incremental;
+mod shared_models;
 pub(super) use build::build;
 use poolster_core::{
     engine::Contract,
@@ -43,6 +44,9 @@ pub(super) fn language_compatible(format: &str, language: &str) -> bool {
         || pipeline(format).is_some_and(|(target, _)| language == target)
 }
 pub(super) fn compatible(format: &str, package: &PackageConfig) -> bool {
+    if shared_models::compatible(format, package) {
+        return true;
+    }
     if format == "graphql" && ["rust-cli", "typescript-cli"].contains(&package.language.as_str()) {
         return package.plugins.len() == 1
             && matches!(package.plugins[0].name.as_str(), "cli" | "graphql");
@@ -110,6 +114,9 @@ pub(super) fn input_language_compatible(input: &NativeInputConfig, language: &st
             && ["postman", "rust-cli", "typescript-cli", "symfony"].contains(&language))
 }
 pub(super) fn input_compatible(input: &NativeInputConfig, package: &PackageConfig) -> bool {
+    if shared_models::compatible(&input.format, package) {
+        return !input.options.graphql_incremental;
+    }
     compatible(&input.format, package)
         && input_language_compatible(input, &package.language)
         && (!input.options.graphql_incremental || package.plugins.len() == 1)
@@ -150,6 +157,10 @@ pub(super) fn validate_recipe(document: &serde_json::Value, config: &ProjectConf
         .zip(&config.packages)
     {
         if !input_compatible(input, package) {
+            continue;
+        }
+        if shared_models::compatible(&input.format, package) {
+            shared_models::validate_options(raw, package)?;
             continue;
         }
         for key in ["layout", "idempotency", "middleware", "api_reference"] {

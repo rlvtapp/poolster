@@ -91,6 +91,8 @@ export type SourceQuality =
 
 export interface SdkPackageOptions {
   language: SdkLanguage;
+  /** Generate a protocol SDK (default), or standalone models from native GraphQL/AsyncAPI blocks. */
+  mode?: 'sdk' | 'models';
   sourceQuality?: SourceQuality;
   /** GraphQL collection/CLI endpoint; CLI command binary name. */
   endpoint?: string;
@@ -248,3 +250,6 @@ export interface JavaScriptPlan {
 }
 export function plan(config: PoolsterConfig): JavaScriptPlan;
 export function formatPlan(plan: JavaScriptPlan): string;
+
+/** Validate and normalize a native SDK/model package configuration. */
+export function sdkPackage(options: SdkPackageOptions): SdkPackageOptions & { path: string };

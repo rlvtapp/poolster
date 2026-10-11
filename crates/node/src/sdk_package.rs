@@ -5,6 +5,8 @@ use super::*;
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(super) struct SdkPackage {
     #[serde(default)]
+    pub(super) mode: PackageMode,
+    #[serde(default)]
     pub(super) source_quality: Option<poolster_core::SourceQuality>,
     pub(super) language: String,
     #[serde(default)]
@@ -94,6 +96,40 @@ pub(super) fn validate_options(package: &SdkPackage) -> AnyResult<()> {
     }
     if package.language != "typescript" && !package.plugins.is_empty() {
         bail!("registered native auxiliaries currently require a TypeScript package");
+    }
+    Ok(())
+}
+
+#[derive(Clone, Copy, Default, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub(super) enum PackageMode {
+    #[default]
+    Sdk,
+    Models,
+}
+pub(super) fn validate_models(package: &SdkPackage) -> AnyResult<()> {
+    if package.mode != PackageMode::Models {
+        bail!("generateModels requires mode models");
+    }
+    if package.path.trim().is_empty() {
+        bail!("models package path must not be empty");
+    }
+    if package.style.is_some()
+        || package.transport.is_some()
+        || package.client_name.is_some()
+        || package.raw.is_some()
+        || package.subscriptions.is_some()
+        || package.jobs.is_some()
+        || package.endpoint.is_some()
+        || package.command_name.is_some()
+        || !package.scalars.is_empty()
+        || !package.groups.is_empty()
+        || !package.contracts.is_empty()
+        || !package.plugins.is_empty()
+    {
+        bail!(
+            "models mode supports only language, path, name, version and sourceQuality; SDK styles, transports, scalar mappings, groups and auxiliaries require mode sdk"
+        );
     }
     Ok(())
 }

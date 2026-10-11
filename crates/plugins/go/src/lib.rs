@@ -75,3 +75,6 @@ pub use webhooks::{Webhooks, webhooks};
 
 mod oauth;
 pub use oauth::{OAuth, oauth};
+
+mod shared_models;
+pub use shared_models::shared_models;

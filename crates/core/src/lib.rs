@@ -17,6 +17,7 @@ pub mod idempotency;
 pub mod input;
 pub mod manifest;
 pub mod mocking;
+pub mod models;
 pub mod native;
 pub mod openapi32;
 pub mod pagination;

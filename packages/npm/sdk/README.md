@@ -23,6 +23,35 @@ await generate(config);
 Build the generated package, then import its compiled exports from JavaScript
 or TypeScript. The optional `poolster` CLI is a separate npm package.
 
+## Models without a client
+
+Set `mode: 'models'` on a language plugin to emit standalone data models from a
+native GraphQL or AsyncAPI input. All ten SDK languages have a model output.
+GraphQL uses schema and selection-specific operation model blocks; AsyncAPI uses
+message payload/header/key schemas and needs no broker configuration.
+
+```js
+import { generate } from '@relevate/poolster';
+import { inputGraphql, pluginTypeScript } from '@relevate/poolster/plugins';
+
+await generate({
+  input: {
+    path: './schema.graphql',
+    plugin: inputGraphql(),
+    operations: ['./read-user.graphql'],
+  },
+  output: './generated',
+  plugins: [pluginTypeScript({ mode: 'models', path: 'models' })],
+});
+```
+
+Omitting `mode` keeps SDK generation. Model packages support `language`, `path`,
+`name`, `version` and `sourceQuality`; SDK styles, transports, scalar mappings,
+groups and auxiliary plugins require SDK mode. You can generate a GraphQL model
+package and client package together by giving them different paths. Overlapping
+files produce an ownership error. JSON Schema constraints are retained in model
+schema manifests; declarations alone do not validate runtime values.
+
 ## Documentation
 
 | Task | Guide |

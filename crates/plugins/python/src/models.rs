@@ -10,10 +10,14 @@ pub(super) fn render_pyproject(package_name: &str, version: &str) -> String {
 }
 
 pub(super) fn render_models_init(api: &Api) -> String {
+    render_models_init_for_count(api.schemas.len())
+}
+
+pub(super) fn render_models_init_for_count(count: usize) -> String {
     let mut output = format!(
         "{NOTICE}\nfrom __future__ import annotations\n\nfrom dataclasses import MISSING as _MISSING, fields as _fields, is_dataclass as _is_dataclass\nfrom typing import Any as _Any\n\n\ndef _to_wire(value: _Any) -> _Any:\n    \"\"\"Convert generated dataclasses into JSON-compatible values.\"\"\"\n    if _is_dataclass(value) and not isinstance(value, type):\n        result = {{}}\n        present = next((getattr(value, item.name) for item in _fields(value) if item.metadata.get(\"present_fields\")), None)\n        for item in _fields(value):\n            current = getattr(value, item.name)\n            if item.metadata.get(\"additional_properties\"):\n                result.update(_to_wire(current))\n        for item in _fields(value):\n            current = getattr(value, item.name)\n            if not item.metadata.get(\"internal\") and not item.metadata.get(\"additional_properties\") and (current is not None or (present is not None and item.metadata.get(\"wire_name\", item.name) in present) or (item.default is _MISSING and item.default_factory is _MISSING)):\n                result[item.metadata.get(\"wire_name\", item.name)] = _to_wire(current)\n        return result\n    if isinstance(value, list):\n        return [_to_wire(item) for item in value]\n    if isinstance(value, dict):\n        return {{key: _to_wire(item) for key, item in value.items()}}\n    return value\n\n"
     );
-    for index in 0..api.schemas.len().div_ceil(100) {
+    for index in 0..count.div_ceil(100) {
         let _ = writeln!(output, "from .chunks.exports_{index:03} import *");
     }
     output

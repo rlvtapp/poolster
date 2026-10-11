@@ -91,11 +91,37 @@ pub struct SymbolRequests {
     requests: BTreeMap<SymbolKey, SymbolRequest>,
     forbidden: BTreeMap<(String, String), BTreeSet<String>>,
     rules: BTreeMap<String, SymbolRules>,
+    suffixes: BTreeMap<String, String>,
     resolved: Option<ResolvedSymbols>,
 }
 impl SymbolRequests {
     pub fn new() -> Self {
         Self::default()
+    }
+    /// Choose a suffix separator compatible with the target's identifier rules.
+    /// The default remains `_`; neutral model outputs use `Model` so renderers
+    /// cannot collapse `Foo_2` into an independently reserved `Foo2`.
+    pub fn suffix_separator(
+        &mut self,
+        target: impl Into<String>,
+        separator: impl Into<String>,
+    ) -> Result<()> {
+        self.planning()?;
+        let target = target.into();
+        validate_target(&target)?;
+        let separator = separator.into();
+        ensure!(
+            separator
+                .chars()
+                .all(|ch| ch.is_ascii_alphanumeric() || ch == '_'),
+            "symbol suffix separator must contain identifier characters"
+        );
+        ensure!(
+            !self.requests.keys().any(|key| key.target == target),
+            "suffix rules must be configured before reservations for {target}"
+        );
+        self.suffixes.insert(target, separator);
+        Ok(())
     }
     pub fn target_rules(&mut self, target: impl Into<String>, rules: SymbolRules) -> Result<()> {
         self.planning()?;
@@ -198,7 +224,7 @@ impl SymbolRequests {
             };
             let mut used: BTreeSet<String> = self
                 .forbidden
-                .get(&(target, module_name))
+                .get(&(target.clone(), module_name))
                 .into_iter()
                 .flatten()
                 .map(|name| folded(name))
@@ -225,7 +251,12 @@ impl SymbolRequests {
             for (key, request) in pending {
                 let mut ordinal = 2u64;
                 loop {
-                    let candidate = format!("{}_{ordinal}", request.preferred);
+                    let separator = self
+                        .suffixes
+                        .get(&target)
+                        .map(String::as_str)
+                        .unwrap_or("_");
+                    let candidate = format!("{}{separator}{ordinal}", request.preferred);
                     let candidate_key = folded(&candidate);
                     if !preferred.contains(&candidate_key) && used.insert(candidate_key) {
                         result.symbols.insert(

@@ -292,6 +292,20 @@ impl<L: Language> Hooks<L> {
     ) -> Self {
         self.on_block(provider, handler)
     }
+    /// Rich model shapes exposed without dropping constraints or dictionaries.
+    pub fn on_schema_model(
+        self,
+        provider: Option<Handle<Blocks<crate::models::SchemaModelBlock>>>,
+        handler: impl Fn(
+            &BuildingBlock<crate::models::SchemaModelBlock>,
+            &mut HookContext<'_, '_, L>,
+        ) -> Result<()>
+        + Send
+        + Sync
+        + 'static,
+    ) -> Self {
+        self.on_block(provider, handler)
+    }
     pub fn on_message(
         self,
         provider: Option<Handle<Blocks<crate::native::events::EventMessage>>>,
