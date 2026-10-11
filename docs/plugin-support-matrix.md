@@ -1,6 +1,9 @@
 # Poolster plugin support matrix
 
 Audited **11 October 2026**, against the unreleased alpha.2 implementation in this checkout.
+
+For runtime behavior and raw/flat/idiomatic examples, see the
+[per-language capability pages](reference/languages/README.md).
 Manifests still use `0.5.0-alpha.1`; the additions below are unreleased alpha.2
 work. This matrix describes implemented generation, not parser availability.
 The [generated SDK specification](specifications/generated-sdk.md) defines target

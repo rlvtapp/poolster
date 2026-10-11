@@ -116,11 +116,15 @@ idempotency key; PATCH is no longer assumed safe merely because of its method. C
 headers apply to their declared operation rather than globally enabling replay. Existing
 retry configuration still controls whether and how often calls retry.
 
-Ruby and Swift generate keys but do not add an automatic retry loop.
+Ruby and Swift generate keys and have configurable retry loops. Both default to one
+attempt, so automatic replay requires opting in to more attempts. They apply
+method/idempotency safety gates and bounded server delay headers; see the
+[Ruby](../reference/languages/ruby.md) and [Swift](../reference/languages/swift.md)
+capability pages.
 
-TypeScript, Go, Python, Rust, PHP, Elixir, Java, and C# recognize server
+TypeScript, Go, Python, Rust, PHP, Elixir, Java, C#, Ruby, and Swift recognize server
 `retry-after-ms` delays alongside `Retry-After`, bounded by their configured maximum
-delay. Rust and Java also accept HTTP-date `Retry-After` values. Key generation happens
+delay. Rust, Java, Ruby and Swift also accept HTTP-date `Retry-After` values. Key generation happens
 before the retry loop, including when the server requests a delay.
 
 Rust SDK manifests include UUID v4 support only when automatic keys are needed.

@@ -6,7 +6,7 @@
 | Use a client | [TypeScript](#typescript-install-call-and-inspect-http-results), [Python](#python-native-models-and-optional-async-io), [Go](#go-context-deadlines-and-native-http-configuration) |
 | Find another language's client | [Entry points](#find-the-entry-point-in-every-language) |
 | Iterate or stream | [Pagination and streaming](#pagination-and-streaming-depend-on-the-contract) |
-| Check supported behavior | [Runtime coverage](#know-the-runtime-coverage-you-distribute) |
+| Check supported behavior | [Per-language contract/features audit](../languages/README.md) and [runtime coverage](#know-the-runtime-coverage-you-distribute) |
 
 A generated SDK is a normal package in its language ecosystem: install it, import its
 public client, configure your API origin and call an operation from your contract. Any

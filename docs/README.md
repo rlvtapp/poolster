@@ -26,5 +26,6 @@ The docs describe this checkout. GraphQL additions are **unreleased**; published
 `0.5.0-alpha.1` packages do not contain every feature shown here.
 
 [Generated SDK specification](specifications/generated-sdk.md) ·
+[Per-language features and API examples](reference/languages/README.md) ·
 [Support matrix](plugin-support-matrix.md) · [API and CLI reference](reference/README.md) ·
 [Examples](../examples/README.md) · [Verification](verification/verification.md)

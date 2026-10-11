@@ -23,8 +23,9 @@ Namespace follows the Composer package name. Construct the generated variables m
 `GraphqlResponse` preserves data, errors and extensions. Inspect partial data before
 calling `requireData()`, which rejects GraphQL application errors. Transport failures
 and malformed responses fail separately. PHP HTTP streams are the default transport;
-an injectable callable can adapt PSR-18 or Symfony HttpClient. A dedicated Symfony
-GraphQL dependency-injection generator is not implemented.
+an injectable callable can adapt PSR-18 or Symfony HttpClient. A dedicated [Symfony GraphQL bundle generator](graphql-symfony.md) is also available
+for query/mutation dependency injection; its transport capability boundary differs
+from the standalone PHP generator.
 
 `Presence::missing()` differs from `Presence::of(null)`. Selected nested objects,
 lists and input models retain nullability; abstract variants require a selected

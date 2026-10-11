@@ -13,6 +13,8 @@ Use these pages to look up details after a quickstart.
 
 ## Generated packages
 
+- [Per-language capabilities](languages/README.md): contract features, retry/idempotency, API style examples and generated files
+
 - [Language plugin implementation specification](../specifications/language-plugins.md): internal modules, shared code and contract boundaries
 - [Generated SDK specification](../specifications/generated-sdk.md): capabilities, styles, layout, naming and formatting requirements
 - [Support matrix](../plugin-support-matrix.md) and [GraphQL package layouts](outputs/graphql-layout.md)
