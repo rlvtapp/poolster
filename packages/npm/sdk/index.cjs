@@ -254,9 +254,9 @@ async function generate(config, options = {}) {
       const loaded = await loadInput(config.input);
       const format = config.input.plugin.format;
       const modelPackages = packages.filter(p => p.mode === 'models');
-      if (!loaded.api && packages.length && (format === 'graphql' || (format === 'asyncapi' && modelPackages.length))) {
+      if (!loaded.api && packages.length && ['graphql','asyncapi'].includes(format)) {
         const compatibleModels = modelPackages.filter(p => modelsOutputCompatible(config.input,p));
-        const compatibleSdks = format === 'graphql' ? packages.filter(p => p.mode !== 'models' && graphqlOutputCompatible(config.input,p)) : [];
+        const compatibleSdks = packages.filter(p => p.mode !== 'models' && (format === 'graphql' ? graphqlOutputCompatible(config.input,p) : ['typescript','go','rust'].includes(p.language)));
         const compatible = new Set([...compatibleModels,...compatibleSdks]);
         for (const p of packages.filter(p => !compatible.has(p))) {
           const entry = { path:p.path, language:p.language, reason:`${format} output does not yet support this language or generation mode` };
@@ -266,9 +266,20 @@ async function generate(config, options = {}) {
           operationFiles:(config.input.operations ?? []).map(file=>path.resolve(file)),
           importRoots:(config.input.importRoots ?? []).map(root=>path.resolve(root)) };
         const modelFiles = compatibleModels.length ? JSON.parse(await native().generateModels(JSON.stringify({ ...request, format, packages:compatibleModels }))) : [];
-        const sdkFiles = compatibleSdks.length ? JSON.parse(await native().generateGraphql(JSON.stringify({ ...request,
-          incremental:config.input.incremental ?? false, scalars:config.input.scalars ?? {}, rustScalars:config.input.rustScalars ?? {}, subscriptions:config.input.subscriptions ?? false, packages:compatibleSdks,
-        }))) : [];
+        let sdkFiles = [];
+        if (compatibleSdks.length) {
+          if (format === 'asyncapi') {
+            sdkFiles = JSON.parse(await native().generateEvents(JSON.stringify({
+              source:request.source, provider:request.provider, broker:config.input.broker, packages:compatibleSdks,
+            })));
+          } else {
+            sdkFiles = JSON.parse(await native().generateGraphql(JSON.stringify({ ...request,
+              incremental:config.input.incremental ?? false, scalars:config.input.scalars ?? {},
+              rustScalars:config.input.rustScalars ?? {}, subscriptions:config.input.subscriptions ?? false,
+              packages:compatibleSdks,
+            })));
+          }
+        }
         graphqlFiles = [...modelFiles,...sdkFiles];
       }
       if (!loaded.api && graphqlFiles === undefined && (packages.length || nativeAddons.length)) {

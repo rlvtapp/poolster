@@ -38,6 +38,12 @@ function defineConfig(config) {
     if (config.input.incremental != null && typeof config.input.incremental !== 'boolean') throw new TypeError('GraphQL incremental must be boolean');
     if (config.input.subscriptions != null && typeof config.input.subscriptions !== 'boolean') throw new TypeError('GraphQL subscriptions must be boolean');
   }
+  if (config.input.plugin?.format === 'asyncapi') {
+    for (const key of ['operations','importRoots','incremental','subscriptions','scalars','rustScalars']) {
+      if (config.input[key] !== undefined) throw new TypeError(`AsyncAPI input does not support ${key}; configure broker for event SDKs`);
+    }
+  }
+  if (config.input.broker != null && (config.input.plugin?.format !== 'asyncapi' || typeof config.input.broker !== 'object' || Array.isArray(config.input.broker))) throw new TypeError('broker requires an AsyncAPI input and broker configuration object');
   if (!config.input.plugin && (typeof config.name !== 'string' || !config.name.trim())) throw new TypeError('name is required');
   if (!config.input.plugin && (typeof config.version !== 'string' || !config.version.trim())) throw new TypeError('version is required');
   const destination = typeof config.output === 'string' ? config.output : config.output?.path;

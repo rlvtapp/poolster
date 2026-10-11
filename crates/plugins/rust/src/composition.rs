@@ -75,6 +75,8 @@ impl Contract for Client {
 }
 #[derive(Default)]
 pub struct Workspace {
+    pub(crate) shared_model_package: bool,
+    pub(crate) event_package: bool,
     pub(crate) graphql_package: Option<crate::graphql::NativePackage>,
     pub(crate) http_api: Option<poolster_core::Api>,
     pub(crate) operation_tests: bool,
@@ -88,6 +90,9 @@ pub struct Workspace {
 }
 impl Workspace {
     pub fn finalize(cx: &mut FinalizeContext<'_, Rust>) -> Result<()> {
+        if cx.workspace.shared_model_package || cx.workspace.event_package {
+            return crate::events::assembly::finalize(cx);
+        }
         if let Some(package) = cx.workspace.graphql_package.take() {
             return package.finalize(cx);
         }

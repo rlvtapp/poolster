@@ -1,0 +1,130 @@
+use super::*;
+use serde::{Serialize, de::DeserializeOwned};
+use serde_json::Value;
+
+pub struct Definition {
+    client_id: Option<String>,
+    topic: String,
+    payload: jsonschema::Validator,
+    headers: Option<jsonschema::Validator>,
+    key: Option<jsonschema::Validator>,
+}
+impl Definition {
+    pub fn new(
+        topic: &str,
+        payload: &str,
+        headers: Option<&str>,
+        key: Option<&str>,
+    ) -> Result<Self, Error> {
+        fn validator(schema: &str) -> Result<jsonschema::Validator, Error> {
+            let schema: Value = serde_json::from_str(schema)?;
+            jsonschema::draft7::options()
+                .should_validate_formats(true)
+                .build(&schema)
+                .map_err(|e| Error::Schema(e.to_string()))
+        }
+        Ok(Self {
+            client_id: None,
+            topic: topic.into(),
+            payload: validator(payload)?,
+            headers: headers.map(validator).transpose()?,
+            key: key.map(validator).transpose()?,
+        })
+    }
+    pub fn with_client_id(mut self, client_id: Option<&str>) -> Self {
+        self.client_id = client_id.map(str::to_owned);
+        self
+    }
+    fn validate(&self, payload: &Value, headers: &Value, key: Option<&Value>) -> Result<(), Error> {
+        self.payload
+            .validate(payload)
+            .map_err(|e| Error::Schema(format!("payload: {e}")))?;
+        if let Some(schema) = &self.headers {
+            schema
+                .validate(headers)
+                .map_err(|e| Error::Schema(format!("headers: {e}")))?;
+        }
+        if let (Some(schema), Some(key)) = (&self.key, key) {
+            schema
+                .validate(key)
+                .map_err(|e| Error::Schema(format!("key: {e}")))?;
+        }
+        if key.is_some() && self.key.is_none() {
+            return Err(Error::Invalid("message key is not declared".into()));
+        }
+        Ok(())
+    }
+}
+pub async fn publish<T: Publisher, P: Serialize, H: Serialize, K: Serialize>(
+    client: &T,
+    definition: &Definition,
+    message: &KafkaMessage<P, H, K>,
+) -> Result<Delivery, Error> {
+    let payload = serde_json::to_value(&message.payload)?;
+    let headers = serde_json::to_value(&message.headers)?;
+    let key = message.key.as_ref().map(serde_json::to_value).transpose()?;
+    definition.validate(&payload, &headers, key.as_ref())?;
+    let headers = headers
+        .as_object()
+        .ok_or_else(|| Error::Invalid("headers must be an object".into()))?
+        .iter()
+        .map(|(name, value)| {
+            Ok((
+                name.clone(),
+                value
+                    .as_str()
+                    .ok_or_else(|| Error::Invalid("header values must be strings".into()))?
+                    .to_owned(),
+            ))
+        })
+        .collect::<Result<_, Error>>()?;
+    let key = key
+        .map(|v| {
+            v.as_str()
+                .map(|s| s.as_bytes().to_vec())
+                .ok_or_else(|| Error::Invalid("key must be a string".into()))
+        })
+        .transpose()?;
+    client
+        .publish(RawMessage {
+            client_id: definition.client_id.clone(),
+            topic: definition.topic.clone(),
+            payload: serde_json::to_vec(&payload)?,
+            headers,
+            key,
+        })
+        .await
+}
+pub async fn receive<
+    T: Subscriber,
+    P: DeserializeOwned,
+    H: DeserializeOwned,
+    K: DeserializeOwned,
+>(
+    subscription: &T,
+    definition: &Definition,
+) -> Result<ReceivedMessage<P, H, K>, Error> {
+    let (raw, metadata) = subscription.receive().await?;
+    if raw.topic != definition.topic || metadata.topic != definition.topic {
+        return Err(Error::Invalid("unexpected message topic".into()));
+    }
+    let payload: Value = serde_json::from_slice(&raw.payload)?;
+    let headers = serde_json::to_value(raw.headers)?;
+    let key = raw
+        .key
+        .map(|v| {
+            String::from_utf8(v)
+                .map(Value::String)
+                .map_err(|e| Error::Invalid(e.to_string()))
+        })
+        .transpose()?;
+    definition.validate(&payload, &headers, key.as_ref())?;
+    Ok(ReceivedMessage {
+        message: KafkaMessage {
+            payload: serde_json::from_value(payload)?,
+            headers: serde_json::from_value(headers)?,
+            key: key.map(serde_json::from_value).transpose()?,
+        },
+        metadata,
+    })
+}

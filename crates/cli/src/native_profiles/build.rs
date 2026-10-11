@@ -86,6 +86,8 @@ pub(crate) fn build(options: &Generate, input: &NativeInputConfig) -> Result<Pro
                 raw,
                 style,
             )?
+        } else if input.format == "asyncapi" {
+            events::append(old, input, registry.clone(), language, path, name, common)?
         } else if input.format == "protobuf" {
             let output = plugin
                 .map(|plugin| NativeOutputConfig {

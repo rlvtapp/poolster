@@ -124,17 +124,7 @@ fn emit(
     }
     cx.files
         .emit(GeneratedFile::new("src/models/mod.rs", index)?)?;
-    cx.files.emit(GeneratedFile::new(
-        "src/lib.rs",
-        "pub mod models;\npub use models::*;\n",
-    )?)?;
-    let package = cx
-        .settings
-        .package_name
-        .as_deref()
-        .unwrap_or("poolster-models");
-    let version = cx.common.package_version.as_deref().unwrap_or("0.0.0");
-    cx.files.emit(GeneratedFile::new("Cargo.toml", format!("[package]\nname = {package:?}\nversion = {version:?}\nedition = \"2024\"\n\n[dependencies]\nserde = {{ version = \"1\", features = [\"derive\"] }}\nserde_json = \"1\"\n"))?)?;
+    cx.workspace.shared_model_package = true;
     Ok(symbols)
 }
 fn box_references(value: &mut SchemaValue) {

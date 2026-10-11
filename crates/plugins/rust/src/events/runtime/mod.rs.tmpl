@@ -1,0 +1,64 @@
+//! Typed JSON Kafka messages with explicit acknowledgement.
+mod codec;
+mod kafka;
+pub use codec::{Definition, publish, receive};
+pub use kafka::{KafkaClient, Subscription};
+use std::{collections::BTreeMap, future::Future, pin::Pin};
+
+#[derive(Debug)]
+pub enum Error {
+    Json(String),
+    Schema(String),
+    Broker(String),
+    Invalid(String),
+}
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+impl std::error::Error for Error {}
+impl From<serde_json::Error> for Error {
+    fn from(e: serde_json::Error) -> Self {
+        Self::Json(e.to_string())
+    }
+}
+#[derive(Debug, Clone)]
+pub struct KafkaMessage<P, H = BTreeMap<String, String>, K = String> {
+    pub payload: P,
+    pub headers: H,
+    pub key: Option<K>,
+}
+#[derive(Debug, Clone)]
+pub struct RawMessage {
+    /// Operation-specific Kafka producer identity, when configured.
+    pub client_id: Option<String>,
+    pub topic: String,
+    pub payload: Vec<u8>,
+    pub headers: BTreeMap<String, String>,
+    pub key: Option<Vec<u8>>,
+}
+#[derive(Debug, Clone)]
+pub struct MessageMetadata {
+    pub topic: String,
+    pub partition: i32,
+    pub offset: i64,
+}
+#[derive(Debug, Clone)]
+pub struct Delivery {
+    pub partition: i32,
+    pub offset: i64,
+}
+#[derive(Debug)]
+pub struct ReceivedMessage<P, H, K> {
+    pub message: KafkaMessage<P, H, K>,
+    pub metadata: MessageMetadata,
+}
+pub type EventFuture<'a, T> = Pin<Box<dyn Future<Output = Result<T, Error>> + Send + 'a>>;
+pub trait Publisher: Send + Sync {
+    fn publish(&self, message: RawMessage) -> EventFuture<'_, Delivery>;
+}
+pub trait Subscriber: Send + Sync {
+    fn receive(&self) -> EventFuture<'_, (RawMessage, MessageMetadata)>;
+    fn ack(&self, metadata: &MessageMetadata) -> Result<(), Error>;
+}

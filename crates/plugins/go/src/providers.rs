@@ -41,6 +41,8 @@ impl Contract for Client {
 #[derive(Default)]
 pub struct Workspace {
     pub(crate) http_api: Option<poolster_core::Api>,
+    pub(crate) native_module: Option<String>,
+    pub(crate) native_dependencies: std::collections::BTreeMap<String, String>,
     pub(crate) models: bool,
     pub(crate) operations: bool,
     pub(crate) resources: bool,
@@ -48,6 +50,21 @@ pub struct Workspace {
 }
 impl Workspace {
     pub fn finalize(cx: &mut FinalizeContext<'_, Go>) -> Result<()> {
+        if let Some(module) = &cx.workspace.native_module {
+            anyhow::ensure!(
+                !cx.workspace.models && !cx.workspace.operations,
+                "Go native model/event and HTTP packages require distinct package paths"
+            );
+            let mut manifest = format!("module {module}\n\ngo 1.23\n");
+            if !cx.workspace.native_dependencies.is_empty() {
+                manifest.push_str("\nrequire (\n");
+                for (name, version) in &cx.workspace.native_dependencies {
+                    manifest.push_str(&format!("    {name} {version}\n"));
+                }
+                manifest.push_str(")\n");
+            }
+            cx.files.emit(GeneratedFile::new("go.mod", manifest)?)?;
+        }
         let selected_api = cx.workspace.http_api.clone();
         let api = selected_api.as_ref().unwrap_or(cx.api);
         if !cx.workspace.models && !cx.workspace.operations {

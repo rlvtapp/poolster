@@ -10,3 +10,8 @@ pub mod http {
 pub mod graphql {
     pub use crate::graphql::GraphqlClient;
 }
+
+/// Native Kafka operation symbols and transport capability.
+pub mod events {
+    pub use crate::events::{KafkaClient, KafkaOperationSymbols};
+}

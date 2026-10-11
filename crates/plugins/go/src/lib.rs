@@ -23,6 +23,8 @@ pub mod graphql;
 pub use graphql::{
     Graphql, GraphqlClient, GraphqlScalarMapping, GraphqlStyle, graphql, graphql_incremental,
 };
+pub mod events;
+pub use events::{AsyncApi, KafkaClient, asyncapi};
 pub mod grpc;
 pub use grpc::{Grpc, GrpcToolchain, grpc};
 

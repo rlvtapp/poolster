@@ -39,8 +39,8 @@ limitations still apply. GraphQL is a separate contract even when its transport 
 | React Query | TypeScript query/mutation hooks | ✅ | ✅ | — | — | — | — |
 | Vue Query | TypeScript query/mutation hooks | ✅ | ✅ | — | — | — | — |
 | SWR | TypeScript query/mutation hooks | ✅ | ✅ | — | — | — | — |
-| Go | HTTP SDK; GraphQL client; official Protobuf messages and gRPC clients/server interfaces | ✅ | ✅ | ✅ | — | — | — |
-| Rust | HTTP SDK; selection-specific GraphQL client | ✅ | ✅ | — | — | — | — |
+| Go | HTTP/GraphQL SDK; Protobuf gRPC; Kafka JSON client | ✅ | ✅ | ✅ | ✅ | — | — |
+| Rust | HTTP/GraphQL SDK; Kafka JSON client | ✅ | ✅ | — | ✅ | — | — |
 | Python | HTTP SDK; synchronous GraphQL client | ✅ | ✅ | — | — | — | — |
 | Java | Java HTTP SDK; GraphQL client | ✅ | ✅ | — | — | — | — |
 | C# | C# HTTP SDK; GraphQL client | ✅ | ✅ | — | — | — | — |
@@ -117,13 +117,35 @@ checks do not establish general JSON Schema runtime validation; constraints rema
 the semantic manifest. Go and Swift direct-construction APIs still have limited controls
 for optional nullable field presence. See the [detailed boundaries](reference/outputs/shared-models.md#boundaries).
 
-This does **not** add event transports to all ten languages. TypeScript's existing Kafka
-JSON producer/consumer is the bundled event transport. Its generated models/operations
-are split into files with an `events.ts` facade. The next event step is to consume the
-shared generated-model contract, then add explicit broker/language capabilities. More
-brokers, security/authentication, dynamic channels, traits, replies and broader schema
-coverage remain follow-up work. Local delegate checks are distinct from broker-backed
-integration tests.
+Event transports are implemented for **TypeScript, Go and Rust**, separately from
+models-only coverage. CLI and JS event generation assemble event-derived shared models;
+Rust plugin authors select them with `asyncapi(provider).using_models(models.handle())`.
+Stable message IDs bind payload/header/key roles, and stale contract revisions are rejected.
+The direct TypeScript factory retains its legacy standalone rendering path for compatibility.
+
+All three have generated compilation/runtime and real local Kafka round-trip checks.
+TypeScript uses KafkaJS 2.2.4/AJV 8.17.1, Go franz-go 1.18.1/jsonschema v5.3.1,
+and Rust rust-rdkafka 0.38.0/jsonschema 0.33.0. The broker is pinned Redpanda 25.3.11.
+Generation does not contact a broker. Tests provision unique topics; clients do not
+provision broker infrastructure. See [Kafka usage](reference/outputs/kafka.md).
+
+The supported transport subset is plaintext Kafka, static topics, one JSON message per
+operation and nonnullable UTF-8 string keys. Go requires closed string-header objects;
+Rust accepts supported open string-header objects, with runtime values validated.
+Supported schema keywords/model shapes vary by target. Go uses the supported draft-07
+vocabulary, rejects external schema references, and retains the shared-model shape
+limits above. Its runtime rejects duplicate/null headers, invalid UTF-8 and tombstones.
+Go disables automatic commits and synchronously commits after successful handlers;
+decoding, handler or commit errors stop consumption. This is at-least-once processing,
+with no generated invalid-message skip or dead-letter policy. Rust requires explicit
+acknowledgement. Native documents and model manifests remain available. Go's facade,
+runtime, operations and models occupy separate files in one `models` package; the
+configured name sets its module path. See [Go package details](reference/outputs/kafka.md#go-package-details).
+
+More brokers, declared security/authentication, dynamic channels, traits, replies,
+broader schema coverage and event transports for the other seven languages remain work.
+This is not full AsyncAPI support. Broker/delegate/native tests overlap ordinary suites
+and are reported separately in the [verification log](verification/verification.md).
 
 ## GraphQL capability chart
 
@@ -161,7 +183,7 @@ multiplexing, reconnect/replay or newer ID-based incremental dialect is claimed.
 | OpenAPI | ✅ | HTTP output plugins above |
 | GraphQL SDL / local introspection JSON + operation documents | ✅ | All ten SDK languages through Rust API, CLI and npm entry points |
 | Protobuf proto2/proto3 | ✅ | Go messages and gRPC clients/server interfaces |
-| AsyncAPI 2.6 / 3.0 / 3.1 | ✅ | TypeScript Kafka for the supported 3.0/3.1 subset |
+| AsyncAPI 2.6 / 3.0 / 3.1 | ✅ | TS/Go/Rust Kafka for the supported 3.0/3.1 subsets; ten-language models-only subsets |
 | Arazzo 1.0.0 / 1.0.1 / 1.1.0 | ✅ | TypeScript sequential runners with resolved local OpenAPI sources |
 | Cap’n Proto | ✅ | — |
 
@@ -197,6 +219,14 @@ report. An all-skipped run leaves existing files untouched. Invalid input and
 unsupported features in an otherwise supported pipeline still fail explicitly.
 
 ## Verification and release checks
+
+Kafka shared-model batch: **966 workspace tests passed, 0 failed, 192 ignored**.
+Generated-package compilation and local Kafka runtime checks passed for TypeScript, Go
+and Rust. Strict workspace Clippy, formatting and the source-layout audit passed.
+The full npm run passed 88 tests with 2 gated skips; after the final fixes, the refreshed
+addon passed 10 focused checks and the explicitly enabled Kafka broker test. Ignored
+tests and overlapping explicit runs are not added to workspace totals. See the
+[scoped verification record](verification-results/kafka-shared-models-2026-10-11.json).
 
 Symfony GraphQL follow-up: **4 Symfony checks passed**, including compiled container
 and local-server execution; PHP/CLI regressions **158 passed, 0 failed, 26 ignored**;

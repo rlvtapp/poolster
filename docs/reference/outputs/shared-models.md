@@ -110,3 +110,7 @@ wire types; retaining constraints in the manifest does not enforce every JSON Sc
 constraint at runtime. Go and Swift currently preserve optional nullable field presence
 through decoding; their direct-construction APIs do not yet offer complete presence
 controls for every model.
+
+TypeScript, Go and Rust Kafka event clients can consume these shared models through
+`using_models`. CLI and JavaScript SDK AsyncAPI generation compose them automatically.
+See [Kafka clients](kafka.md) for the supported transport subset and examples.

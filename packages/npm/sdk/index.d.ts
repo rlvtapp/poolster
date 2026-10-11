@@ -199,6 +199,8 @@ export interface NativeInputConfig {
   /** Supported Rust wire types; independent of TypeScript scalar mappings. */
   rustScalars?: Record<string, GraphqlScalarMapping>;
   subscriptions?: boolean;
+  /** Explicit Kafka connection configuration for AsyncAPI event SDK generation. */
+  broker?: { kind: 'kafka'; brokers: string[]; client_id?: string };
 }
 
 export interface PoolsterConfig {

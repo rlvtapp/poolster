@@ -1,0 +1,146 @@
+use poolster_kafka_client::events::runtime::{Definition, EventFuture, publish, receive};
+use poolster_kafka_client::events::*;
+use std::{collections::BTreeMap, sync::Mutex};
+struct Delegate {
+    value: Mutex<Option<RawMessage>>,
+}
+impl Publisher for Delegate {
+    fn publish(&self, message: RawMessage) -> EventFuture<'_, Delivery> {
+        Box::pin(async move {
+            *self.value.lock().unwrap() = Some(message);
+            Ok(Delivery {
+                partition: 0,
+                offset: 0,
+            })
+        })
+    }
+}
+impl Subscriber for Delegate {
+    fn receive(&self) -> EventFuture<'_, (RawMessage, MessageMetadata)> {
+        Box::pin(async move {
+            let raw = self.value.lock().unwrap().take().unwrap();
+            let metadata = MessageMetadata {
+                topic: raw.topic.clone(),
+                partition: 0,
+                offset: 0,
+            };
+            Ok((raw, metadata))
+        })
+    }
+    fn ack(&self, _: &MessageMetadata) -> Result<(), Error> {
+        Ok(())
+    }
+}
+#[tokio::test]
+async fn delegate_schema_and_malformed_json() {
+    let client = Delegate {
+        value: Mutex::new(None),
+    };
+    let definition=Definition::new("test",r#"{"type":"object","properties":{"name":{"type":"string","minLength":2},"requiredNull":{"type":["string","null"]},"note":{"type":["string","null"]},"count":{"type":"integer","minimum":1}},"required":["name","requiredNull"],"additionalProperties":false}"#,Some(r#"{"type":"object","properties":{"trace":{"type":"string"}},"required":["trace"],"additionalProperties":false}"#),Some(r#"{"type":"string","minLength":2}"#)).unwrap();
+    let message = KafkaMessage {
+        payload: serde_json::json!({"name":"Joe","requiredNull":null}),
+        headers: BTreeMap::from([("trace".to_owned(), "id".to_owned())]),
+        key: Some("key".to_owned()),
+    };
+    publish(&client, &definition, &message).await.unwrap();
+    let received: ReceivedMessage<serde_json::Value, BTreeMap<String, String>, String> =
+        receive(&client, &definition).await.unwrap();
+    assert_eq!(received.message.payload, message.payload);
+    for payload in [
+        serde_json::json!({"name":"Joe"}),
+        serde_json::json!({"name":null,"requiredNull":null}),
+        serde_json::json!({"name":"J","requiredNull":null}),
+        serde_json::json!({"name":"Joe","requiredNull":null,"count":0}),
+    ] {
+        let bad = KafkaMessage {
+            payload,
+            headers: message.headers.clone(),
+            key: Some("key".to_owned()),
+        };
+        assert!(publish(&client, &definition, &bad).await.is_err());
+    }
+    for (payload, headers, key) in [
+        (
+            serde_json::json!({"name":"Joe"}),
+            message.headers.clone(),
+            b"key".to_vec(),
+        ),
+        (message.payload.clone(), BTreeMap::new(), b"key".to_vec()),
+        (
+            message.payload.clone(),
+            message.headers.clone(),
+            b"k".to_vec(),
+        ),
+    ] {
+        *client.value.lock().unwrap() = Some(RawMessage {
+            client_id: None,
+            topic: "test".into(),
+            payload: serde_json::to_vec(&payload).unwrap(),
+            headers,
+            key: Some(key),
+        });
+        let bad: Result<
+            ReceivedMessage<serde_json::Value, BTreeMap<String, String>, String>,
+            Error,
+        > = receive(&client, &definition).await;
+        assert!(matches!(bad, Err(Error::Schema(_))));
+    }
+    *client.value.lock().unwrap() = Some(RawMessage {
+        client_id: None,
+        topic: "test".into(),
+        payload: b"{".to_vec(),
+        headers: message.headers,
+        key: Some(b"key".to_vec()),
+    });
+    let bad: Result<ReceivedMessage<serde_json::Value, BTreeMap<String, String>, String>, Error> =
+        receive(&client, &definition).await;
+    assert!(matches!(bad, Err(Error::Json(_))));
+}
+#[tokio::test]
+async fn generated_operation_propagates_client_id() {
+    let client = Delegate {
+        value: Mutex::new(None),
+    };
+    let message = SendNoticeMessage {
+        payload: "delegate".into(),
+        headers: poolster_kafka_client::models::NoticeHeaders { trace: "id".into() },
+        key: Some("key".into()),
+    };
+    send_notice(&client, &message).await.unwrap();
+    assert_eq!(
+        client
+            .value
+            .lock()
+            .unwrap()
+            .as_ref()
+            .unwrap()
+            .client_id
+            .as_deref(),
+        Some("poolster-rust-operation")
+    );
+}
+#[tokio::test]
+async fn local_broker_round_trip() {
+    let client = KafkaClient::new().unwrap();
+    let message = SendNoticeMessage {
+        payload: "hello Kafka".into(),
+        headers: poolster_kafka_client::models::NoticeHeaders {
+            trace: "trace-id".into(),
+        },
+        key: Some("message-id".into()),
+    };
+    client.send_notice(&message).await.unwrap();
+    let subscription = client.subscribe_receive_notice().unwrap();
+    let received = tokio::time::timeout(
+        std::time::Duration::from_secs(30),
+        subscription.receive_notice(),
+    )
+    .await
+    .unwrap()
+    .unwrap();
+    assert_eq!(received.message.payload, "hello Kafka");
+    assert_eq!(received.message.headers.trace, "trace-id");
+    assert_eq!(received.message.key.as_deref(), Some("message-id"));
+    subscription.ack(&received.metadata).unwrap();
+    client.close().unwrap();
+}

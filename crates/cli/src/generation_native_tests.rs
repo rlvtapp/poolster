@@ -242,3 +242,35 @@ fn graphql_other_language_packages_generate_and_regenerate_through_recipe() {
     }
     generate_from_config(&path, ColorChoice::Never, true, false).unwrap();
 }
+
+#[test]
+fn kafka_recipe_shares_models_for_typescript_go_and_rust_and_regenerates() {
+    let root = tempfile::tempdir().unwrap();
+    std::fs::write(
+        root.path().join("messages.yaml"),
+        include_str!("../../inputs/asyncapi/tests/fixtures/kafka-json.yaml"),
+    )
+    .unwrap();
+    let packages = ["typescript", "go", "rust"].map(|language| serde_json::json!({"language":language,"path":language,"plugins":[{"name":"asyncapi"}]}));
+    let recipe = serde_json::json!({"input":{"format":"asyncapi","path":"messages.yaml"},"output":{"path":"generated"},"packages":packages});
+    let path = root.path().join("poolster.json");
+    std::fs::write(&path, serde_json::to_vec(&recipe).unwrap()).unwrap();
+    generate_from_config(&path, ColorChoice::Never, false, false).unwrap();
+    for language in ["typescript", "go", "rust"] {
+        let folder = root.path().join("generated").join(language);
+        let manifest: serde_json::Value = serde_json::from_slice(
+            &std::fs::read(folder.join(".poolster/model-contract.json")).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            manifest["parent"]["contract"],
+            "poolster.event-operations.v1"
+        );
+        assert_eq!(manifest["schemas"].as_array().unwrap().len(), 3);
+        assert!(
+            folder.join("asyncapi.json").exists(),
+            "{language} retains native document"
+        );
+    }
+    generate_from_config(&path, ColorChoice::Never, true, false).unwrap();
+}

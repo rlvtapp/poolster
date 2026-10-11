@@ -9,6 +9,14 @@ import {
   type EachMessagePayload,
 } from "kafkajs";
 import { Ajv, type ValidateFunction } from "ajv";
+const utf8 = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+function decodeUtf8(bytes: Uint8Array, field: string): string {
+  try {
+    return utf8.decode(bytes);
+  } catch (cause) {
+    throw new TypeError(`Kafka message ${field} contains invalid UTF-8`, { cause });
+  }
+}
 export interface KafkaOperation {
   topic: string;
   groupId?: string;
@@ -124,11 +132,13 @@ export class KafkaClient {
             for (const [name, value] of Object.entries(metadata.message.headers ?? {})) {
               if (Array.isArray(value) || value === undefined)
                 throw new TypeError("Kafka duplicate/undefined headers are unsupported");
-              headers[name] = typeof value === "string" ? value : value.toString("utf8");
+              headers[name] = typeof value === "string" ? value : decodeUtf8(value, `header ${name}`);
             }
             decoded = {
-              payload: JSON.parse(metadata.message.value.toString("utf8")) as T,
-              key: metadata.message.key?.toString("utf8"),
+              payload: JSON.parse(decodeUtf8(metadata.message.value, "payload")) as T,
+              key: metadata.message.key == null
+                ? undefined
+                : decodeUtf8(metadata.message.key, "key"),
               headers: headers as H,
             };
             this.check(operation, decoded);

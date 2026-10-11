@@ -1,0 +1,191 @@
+use super::*;
+use rdkafka::{
+    ClientConfig, Message, Offset, TopicPartitionList,
+    consumer::{CommitMode, Consumer, StreamConsumer},
+    message::{Header, Headers, OwnedHeaders},
+    producer::{FutureProducer, FutureRecord, Producer},
+};
+use std::time::Duration;
+
+pub struct KafkaClient {
+    producer: FutureProducer,
+    producers: std::sync::Mutex<BTreeMap<String, FutureProducer>>,
+    brokers: String,
+    client_id: String,
+}
+pub struct Subscription {
+    consumer: StreamConsumer,
+    topic: String,
+}
+impl KafkaClient {
+    pub fn new() -> Result<Self, Error> {
+        Self::with_brokers(__BROKERS__, __CLIENT_ID__)
+    }
+    pub fn with_brokers(brokers: &str, client_id: &str) -> Result<Self, Error> {
+        let producer = Self::make_producer(brokers, client_id)?;
+        Ok(Self {
+            producer,
+            producers: std::sync::Mutex::new(BTreeMap::new()),
+            brokers: brokers.into(),
+            client_id: client_id.into(),
+        })
+    }
+    fn make_producer(brokers: &str, client_id: &str) -> Result<FutureProducer, Error> {
+        ClientConfig::new()
+            .set("bootstrap.servers", brokers)
+            .set("client.id", client_id)
+            .set("message.timeout.ms", "5000")
+            .create()
+            .map_err(|e: rdkafka::error::KafkaError| Error::Broker(e.to_string()))
+    }
+    fn producer_for(&self, client_id: Option<&str>) -> Result<FutureProducer, Error> {
+        let Some(client_id) = client_id.filter(|id| *id != self.client_id) else {
+            return Ok(self.producer.clone());
+        };
+        let mut producers = self
+            .producers
+            .lock()
+            .map_err(|_| Error::Invalid("producer cache poisoned".into()))?;
+        if let Some(producer) = producers.get(client_id) {
+            return Ok(producer.clone());
+        }
+        let producer = Self::make_producer(&self.brokers, client_id)?;
+        producers.insert(client_id.into(), producer.clone());
+        Ok(producer)
+    }
+    pub fn subscribe(
+        &self,
+        topic: &str,
+        group: Option<&str>,
+        client_id: Option<&str>,
+    ) -> Result<Subscription, Error> {
+        let default_group = format!("{}-{topic}", self.client_id);
+        let consumer: StreamConsumer = ClientConfig::new()
+            .set("bootstrap.servers", &self.brokers)
+            .set("client.id", client_id.unwrap_or(&self.client_id))
+            .set("group.id", group.unwrap_or(&default_group))
+            .set("enable.auto.commit", "false")
+            .set("enable.auto.offset.store", "false")
+            .set("auto.offset.reset", "earliest")
+            .create()
+            .map_err(|e| Error::Broker(e.to_string()))?;
+        consumer
+            .subscribe(&[topic])
+            .map_err(|e| Error::Broker(e.to_string()))?;
+        Ok(Subscription {
+            consumer,
+            topic: topic.into(),
+        })
+    }
+    pub fn close(&self) -> Result<(), Error> {
+        self.producer
+            .flush(Duration::from_secs(5))
+            .map_err(|e| Error::Broker(e.to_string()))?;
+        for producer in self
+            .producers
+            .lock()
+            .map_err(|_| Error::Invalid("producer cache poisoned".into()))?
+            .values()
+        {
+            producer
+                .flush(Duration::from_secs(5))
+                .map_err(|e| Error::Broker(e.to_string()))?;
+        }
+        Ok(())
+    }
+}
+impl Publisher for KafkaClient {
+    fn publish(&self, message: RawMessage) -> EventFuture<'_, Delivery> {
+        Box::pin(async move {
+            let producer = self.producer_for(message.client_id.as_deref())?;
+            let mut headers = OwnedHeaders::new();
+            for (key, value) in &message.headers {
+                headers = headers.insert(Header {
+                    key,
+                    value: Some(value.as_str()),
+                });
+            }
+            let mut record = FutureRecord::<[u8], [u8]>::to(&message.topic)
+                .payload(&message.payload)
+                .headers(headers);
+            if let Some(key) = &message.key {
+                record = record.key(key);
+            }
+            let delivery = producer
+                .send(record, Duration::from_secs(5))
+                .await
+                .map_err(|(e, _)| Error::Broker(e.to_string()))?;
+            Ok(Delivery {
+                partition: delivery.partition,
+                offset: delivery.offset,
+            })
+        })
+    }
+}
+impl Subscriber for Subscription {
+    fn receive(&self) -> EventFuture<'_, (RawMessage, MessageMetadata)> {
+        Box::pin(async move {
+            let message = self
+                .consumer
+                .recv()
+                .await
+                .map_err(|e| Error::Broker(e.to_string()))?;
+            let payload = message
+                .payload()
+                .ok_or_else(|| Error::Invalid("Kafka tombstones are unsupported".into()))?
+                .to_vec();
+            let mut headers = BTreeMap::new();
+            if let Some(values) = message.headers() {
+                for header in values.iter() {
+                    let bytes = header.value.ok_or_else(|| {
+                        Error::Invalid("null Kafka headers are unsupported".into())
+                    })?;
+                    let value =
+                        std::str::from_utf8(bytes).map_err(|e| Error::Invalid(e.to_string()))?;
+                    if headers
+                        .insert(header.key.to_owned(), value.to_owned())
+                        .is_some()
+                    {
+                        return Err(Error::Invalid(
+                            "duplicate Kafka headers are unsupported".into(),
+                        ));
+                    }
+                }
+            }
+            let metadata = MessageMetadata {
+                topic: message.topic().into(),
+                partition: message.partition(),
+                offset: message.offset(),
+            };
+            let raw = RawMessage {
+                client_id: None,
+                topic: metadata.topic.clone(),
+                payload,
+                headers,
+                key: message.key().map(Vec::from),
+            };
+            Ok((raw, metadata))
+        })
+    }
+    fn ack(&self, metadata: &MessageMetadata) -> Result<(), Error> {
+        if metadata.topic != self.topic || metadata.partition < 0 || metadata.offset < 0 {
+            return Err(Error::Invalid("invalid acknowledgement metadata".into()));
+        }
+        let offset = metadata
+            .offset
+            .checked_add(1)
+            .ok_or_else(|| Error::Invalid("offset overflow".into()))?;
+        let mut offsets = TopicPartitionList::new();
+        offsets
+            .add_partition_offset(&metadata.topic, metadata.partition, Offset::Offset(offset))
+            .map_err(|e| Error::Broker(e.to_string()))?;
+        self.consumer
+            .commit(&offsets, CommitMode::Sync)
+            .map_err(|e| Error::Broker(e.to_string()))
+    }
+}
+impl Subscription {
+    pub fn ack(&self, metadata: &MessageMetadata) -> Result<(), Error> {
+        Subscriber::ack(self, metadata)
+    }
+}

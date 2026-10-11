@@ -24,6 +24,19 @@ assert.equal(require('kafkajs/package.json').version,'2.2.4');assert.equal(requi
   assert.deepEqual(result.message.payload,{id:'42',quantity:3,note:null});assert.equal(result.message.key,'order-42');assert.equal(result.message.headers.trace,'trace-1');assert.equal(result.metadata.topic,topic);
   const raw=kafka.producer();await raw.connect();try {await raw.send({topic,messages:[{value:JSON.stringify({id:'bad',quantity:-1}),headers:{trace:'t'}}]});}finally{await raw.disconnect();}
   const error=await Promise.race([invalid,timeout]);assert.equal(error.name,'KafkaSchemaError');
+  const malformed = [
+   ['payload', {value:Buffer.concat([Buffer.from('{"id":"'),Buffer.from([0xff]),Buffer.from('","quantity":1}')]),headers:{trace:'t'}}],
+   ['key', {value:JSON.stringify({id:'valid',quantity:1}),key:Buffer.from([0xc0,0xaf]),headers:{trace:'t'}}],
+   ['header trace', {value:JSON.stringify({id:'valid',quantity:1}),headers:{trace:Buffer.from([0xe2,0x82])}}],
+  ];
+  const malformedProducer=kafka.producer();await malformedProducer.connect();
+  try {for(const [field,message] of malformed){
+   const invalidUtf8=new Promise(resolve=>resolveInvalid=resolve);
+   await malformedProducer.send({topic,messages:[message]});
+   const decodeError=await Promise.race([invalidUtf8,timeout]);
+   assert.equal(decodeError.name,'TypeError');
+   assert.match(decodeError.message,new RegExp(`${field} contains invalid UTF-8`));
+  }}finally{await malformedProducer.disconnect();}
   console.log('Generated Kafka package strict compilation + real broker roundtrip + invalid incoming/outgoing messages passed');
  }finally {clearTimeout(timer);await client.disconnect();await admin.disconnect();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

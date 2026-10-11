@@ -190,10 +190,7 @@ fn emit(cx: &mut PluginContext<'_, Go>, plan: &ModelPlan) -> Result<BTreeMap<Str
         .package_name
         .as_deref()
         .unwrap_or("example.com/poolster-models");
-    cx.files.emit(GeneratedFile::new(
-        "go.mod",
-        format!("module {package}\n\ngo 1.23\n"),
-    )?)?;
+    cx.workspace.native_module = Some(package.to_owned());
     Ok(symbols)
 }
 

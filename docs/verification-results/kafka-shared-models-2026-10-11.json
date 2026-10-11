@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-11",
+  "scope": "Kafka shared-model composition and TypeScript/Go/Rust event clients",
+  "workspace": {
+    "fresh_compilation": "cargo test --workspace --offline --locked --no-run --message-format=json",
+    "execution": "101 freshly compiled test executables; four parallel workers; each executed from its crate directory",
+    "passed": 966,
+    "failed": 0,
+    "ignored": 192,
+    "php_runner": "local pinned PHP runner"
+  },
+  "checks": {
+    "workspace_clippy": "cargo clippy --workspace --all-targets --offline --locked -- -D warnings: passed",
+    "format": "cargo fmt --all -- --check: passed",
+    "source_layout": {
+      "authored_files": 740,
+      "violations": 0
+    },
+    "doc_tests": "passed; 24 groups, zero runnable tests; poolster-node cdylib does not support doc tests",
+    "npm_full": {
+      "passed": 88,
+      "failed": 0,
+      "skipped": 2,
+      "timing": "Before final UTF-8/provenance/client-ID fixes; latest addon rebuilt and focused checks rerun"
+    },
+    "npm_latest_focused": {
+      "passed": 10,
+      "failed": 0,
+      "skipped": 1
+    },
+    "npm_latest_explicit_kafka": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "explicit_native": {
+    "typescript": "generated TypeScript compilation, delegate validation, local Kafka round trip and invalid UTF-8 payload/key/header checks passed",
+    "go": "5 event tests and 4 shared-model tests passed, including generated compilation and local broker behavior",
+    "rust": "5 event tests, 3 generated delegate/broker integration tests, 1 native producer-ID/cache/ack test and 4 shared-model regressions passed"
+  },
+  "broker": {
+    "image": "docker.redpanda.com/redpandadata/redpanda:v25.3.11@sha256:48345e234472429b87cb4737fe11938ee8009774f818c9b6d8456aa2784f9c29",
+    "address": "127.0.0.1:29092"
+  },
+  "corrected_during_batch": [
+    "CLI event profile return-type compilation error corrected before final build",
+    "Rust diagnostic assertion corrected to inspect full error chain",
+    "Rust broker fixture provisioned topic before earliest subscription",
+    "TypeScript malformed UTF-8 now rejected rather than replacement-decoded",
+    "Rust send-operation clientId now honored",
+    "Published event revisions treated as opaque rather than requiring content hashes"
+  ],
+  "boundaries": [
+    "Ignored tests are not counted as passes; explicit native runs overlap ordinary tests and are not added to workspace totals",
+    "No full 205-spec HTTP corpus rerun in this batch; workspace HTTP compatibility and snapshot tests passed",
+    "No full AsyncAPI compliance claim: static plaintext Kafka/JSON subset only",
+    "Other seven event-language transports, security, additional brokers and broader AsyncAPI bindings remain follow-up work",
+    "No release publication performed"
+  ]
+}

@@ -1,0 +1,11 @@
+# Generated Rust Kafka SDK
+
+This package contains typed JSON payload, header and key models, operation functions, and an `rdkafka` producer/consumer. Build with Rust, a C/C++ toolchain and CMake; the pinned `rdkafka` dependency builds its bundled librdkafka. Broker addresses are configured by the event input. `KafkaClient::with_brokers` overrides them at runtime.
+
+Send operations are available as flat functions and methods on `KafkaClient`. Receive operations have `KafkaClient::subscribe_<operation>()` and `Subscription::<operation>()`. Provision topics before subscribing. The default consumer group is `<client-id>-<topic>`; explicit operation group/client bindings override it. Send client bindings select a producer cached by client ID; `close()` flushes all cached producers.
+
+A receive returns `ReceivedMessage { message, metadata }`. Call `subscription.ack(&received.metadata)` only after application handling succeeds. Auto commit and auto offset storage are disabled. Schema or decoding failures return errors and do not commit offsets. Committing a later offset also commits preceding messages in that partition: applications must process each partition in order or manage acknowledgement ordering.
+
+Payloads use resolved JSON Schema Draft 7 and are validated before publishing and after receiving. Headers are UTF-8 strings and keys are optional UTF-8 strings. Schema constraints are validated at runtime. Only plaintext Kafka, static topics and supported JSON shapes/bindings are accepted; TLS/SASL, schema registry, tombstones, duplicate/null/binary headers, unresolved references, unions/compositions, defaults/literals and nullable root models are unsupported. Generation rejects unsupported schema keywords/formats and broker bindings.
+
+`Publisher` and `Subscriber` delegate traits allow isolated application tests or replacement transports. Their data is still checked by the generated operation codec. There is no automatic retry, dead-letter routing, transaction or exactly-once processing guarantee.

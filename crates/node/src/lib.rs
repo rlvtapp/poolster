@@ -1,5 +1,6 @@
 //! Node-API boundary for Poolster's normalized contract and safe output tree.
 
+pub mod events;
 pub mod graphql;
 mod graphql_addons;
 pub mod materialize;

@@ -1,0 +1,34 @@
+#[cfg(test)]
+mod binding_tests {
+    use super::*;
+    fn name<C: rdkafka::client::ClientContext>(client: &rdkafka::client::Client<C>) -> String {
+        // librdkafka owns this NUL-terminated name for the lifetime of client.
+        unsafe { std::ffi::CStr::from_ptr(rdkafka::bindings::rd_kafka_name(client.native_ptr())) }
+            .to_str()
+            .unwrap()
+            .to_owned()
+    }
+    #[tokio::test]
+    async fn native_client_bindings_and_ack_topic_are_preserved() {
+        let client = KafkaClient::new().unwrap();
+        let first = client.producer_for(Some("bound-sender")).unwrap();
+        let second = client.producer_for(Some("bound-sender")).unwrap();
+        assert!(name(first.client()).starts_with("bound-sender#producer-"));
+        assert_eq!(first.client().native_ptr(), second.client().native_ptr());
+        assert_eq!(client.producers.lock().unwrap().len(), 1);
+        let subscription = client
+            .subscribe(
+                "native-binding-topic",
+                Some("native-binding-group"),
+                Some("bound-consumer"),
+            )
+            .unwrap();
+        assert!(name(subscription.consumer.client()).starts_with("bound-consumer#consumer-"));
+        let bad = MessageMetadata {
+            topic: "different-topic".into(),
+            partition: 0,
+            offset: 0,
+        };
+        assert!(matches!(subscription.ack(&bad), Err(Error::Invalid(_))));
+    }
+}
