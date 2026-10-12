@@ -1,22 +1,19 @@
 name: CI
-
 on:
-  workflow_dispatch:
-  pull_request:
+  workflow_dispatch: null
+  pull_request: null
   push:
-    branches: [main, "0.5.0"]
-
+    branches:
+      - main
+      - 0.5.0
 permissions:
   contents: read
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
   kafka:
     uses: ./.github/workflows/kafka-conformance.yml
-
   checks:
     name: Source, integration and release checks
     runs-on: ubuntu-latest
@@ -28,7 +25,7 @@ jobs:
           node-version: 22
       - uses: actions/setup-python@v7
         with:
-          python-version: '3.12'
+          python-version: "3.12"
       - name: Check authored source size ratchet
         run: python scripts/layout-audit.py --check-source-size
       - name: Test CI integration templates
@@ -52,11 +49,27 @@ jobs:
           python scripts/publish-crates.py --plan --tag "v$(cat version.txt)"
           npm install --prefix "$RUNNER_TEMP/poolster-release-check" --ignore-scripts --no-audit --no-fund release-please@17.6.0
           NODE_PATH="$RUNNER_TEMP/poolster-release-check/node_modules" node --test scripts/release-config.test.cjs
-
-  workspace:
-    name: Build generator and generate SDK fixtures
+  rust-checks:
+    name: Rust formatting and warning-denied lint
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: rust-checks
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - name: Check formatting
+        run: cargo fmt --all --check
+      - name: Lint all workspace targets
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+  rust-tests:
+    name: Rust workspace tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
@@ -75,7 +88,7 @@ jobs:
           node-version: 22
       - uses: actions/setup-python@v7
         with:
-          python-version: '3.12'
+          python-version: "3.12"
       - name: Install recipe schema validation dependency
         run: python -m pip install --disable-pip-version-check 'jsonschema==4.23.0'
       - name: Build OpenAPI compiler for CLI integration tests
@@ -83,17 +96,115 @@ jobs:
         run: go build -o ../target/debug/poolster-openapi .
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: "8.2"
           tools: none
-      - name: Verify Rust workspace
-        run: |
-          cargo fmt --all --check
-          cargo clippy --workspace --all-targets --locked -- -D warnings
-          cargo test --workspace --locked
-          cargo test -p poolster-cli combined_optional_recipe_validates_actual_json_schema -- --ignored
-          cargo test -p poolster-cli eject::tests::rebuilt_ejected_renderer_consumes_custom_source -- --ignored
-          cargo test -p poolster-cli --test local_references -- --ignored
-          cargo test -p poolster-cli --test migration -- --ignored
+      - name: Run full workspace suite
+        run: cargo test --workspace --locked
+  cli-integration:
+    name: CLI schema, references and migration
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ github.job }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: openapi/go.mod
+          cache-dependency-path: openapi/go.sum
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install recipe schema validation dependency
+        run: python -m pip install --disable-pip-version-check 'jsonschema==4.23.0'
+      - name: Build OpenAPI compiler for CLI integration tests
+        working-directory: openapi
+        run: go build -o ../target/debug/poolster-openapi .
+      - name: Validate recipe schema
+        run: cargo test -p poolster-cli combined_optional_recipe_validates_actual_json_schema -- --ignored
+      - name: Resolve local references
+        run: cargo test -p poolster-cli --test local_references -- --ignored
+      - name: Verify migration
+        run: cargo test -p poolster-cli --test migration -- --ignored
+  ejection:
+    name: Rebuild and execute ejected CLI
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ github.job }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: openapi/go.mod
+          cache-dependency-path: openapi/go.sum
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install recipe schema validation dependency
+        run: python -m pip install --disable-pip-version-check 'jsonschema==4.23.0'
+      - name: Build OpenAPI compiler for CLI integration tests
+        working-directory: openapi
+        run: go build -o ../target/debug/poolster-openapi .
+      - name: Verify editable renderer rebuild
+        run: cargo test -p poolster-cli eject::tests::rebuilt_ejected_renderer_consumes_custom_source -- --ignored
+  openapi:
+    name: OpenAPI compiler tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: openapi/go.mod
+          cache-dependency-path: openapi/go.sum
+      - name: Test embedded OpenAPI compiler
+        working-directory: openapi
+        run: go test ./...
+  workspace:
+    name: Build generator and export SDK fixtures
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ github.job }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: openapi/go.mod
+          cache-dependency-path: openapi/go.sum
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install recipe schema validation dependency
+        run: python -m pip install --disable-pip-version-check 'jsonschema==4.23.0'
+      - name: Build OpenAPI compiler for CLI integration tests
+        working-directory: openapi
+        run: go build -o ../target/debug/poolster-openapi .
       - name: Verify language output structure and regeneration
         run: |
           python scripts/test-layout-audit.py
@@ -106,94 +217,24 @@ jobs:
           name: language-output-audit
           path: ${{ runner.temp }}/poolster-language-output/report.json
           if-no-files-found: ignore
-      - name: Verify generated TypeScript middleware, GraphQL and response decoding
-        run: |
-          npm install --prefix "$RUNNER_TEMP/poolster-ts-runtime" --no-audit --no-fund typescript@5.9.3 axios@1.20.0 graphql@16.14.2
-          export POOLSTER_TSC_JS="$RUNNER_TEMP/poolster-ts-runtime/node_modules/typescript/lib/tsc.js"
-          export POOLSTER_GRAPHQL_JS="$RUNNER_TEMP/poolster-ts-runtime/node_modules/graphql/index.js"
-          cargo test -p poolster-plugin-typescript --test graphql_native -- --include-ignored
-          export POOLSTER_AXIOS_NODE_MODULES="$RUNNER_TEMP/poolster-ts-runtime/node_modules"
-          export POOLSTER_TS_AXIOS_NODE_MODULES="$RUNNER_TEMP/poolster-ts-runtime/node_modules"
-          cargo test -p poolster-plugin-typescript generated_middleware_fetch_and_axios_execute -- --ignored
-          cargo test -p poolster-plugin-typescript generated_idempotency_fetch_and_axios_execute -- --ignored
-          cargo test -p poolster-plugin-typescript bundled_middleware_is_enabled_without_customer_registration -- --ignored
-          cargo test -p poolster-plugin-typescript generated_lossless_fetch_axios_and_sse_round_trip -- --ignored
-          cargo test -p poolster-plugin-typescript generated_page_pagination_executes_defaults_and_selectors -- --ignored
-          cargo test -p poolster-plugin-typescript native_generated_fetch_and_axios_operation_tests_execute -- --ignored
-          cargo test -p poolster-plugin-typescript native_standard_webhook_vectors_execute -- --ignored
-          cargo test -p poolster-plugin-typescript native_oauth_singleflight_replay_cancellation_and_redaction -- --ignored
-          cargo test -p poolster-plugin-typescript native_fetch_and_axios_per_call -- --ignored
-          cargo test -p poolster-plugin-typescript native_whole_query_and_json_sequences -- --ignored
-          cargo test -p poolster-plugin-typescript native_open_enum_types_accept_future_values_and_preserve_wire -- --ignored
-          cargo test -p poolster-cli --test openapi32 -- --ignored
-      - name: Verify framework factories and split auxiliary/CLI modules
-        env:
-          CYPRESS_INSTALL_BINARY: '0'
-        run: |
-          npm install --prefix "$RUNNER_TEMP/poolster-ts-framework" --no-audit --no-fund typescript@5.9.3 @types/node@22.20.5 commander@13.1.0 react@19.3.0 @types/react@19.3.0 vue@3.5.43 @tanstack/react-query@5.104.1 @tanstack/vue-query@5.104.1 swr@2.5.1 zod@3.25.76 @faker-js/faker@9.9.0 msw@2.15.0 cypress@15.21.1
-          export POOLSTER_TSC_JS="$RUNNER_TEMP/poolster-ts-framework/node_modules/typescript/lib/tsc.js"
-          export POOLSTER_TS_NODE_MODULES="$RUNNER_TEMP/poolster-ts-framework/node_modules"
-          export POOLSTER_TS_CLI_NODE_MODULES="$POOLSTER_TS_NODE_MODULES"
-          cargo test -p poolster-plugin-typescript query_factories_cache_callbacks_and_abort_execute_natively -- --ignored
-          cargo test -p poolster-plugin-typescript namespaced_and_auxiliary_consumers_compile_and_validate_selected_models -- --ignored
-          cargo test -p poolster-plugin-typescript custom_transport_and_relocated_query_consumer_compile -- --ignored
-          cargo test -p poolster-plugin-typescript-cli split_commands_compile_and_show_last_chunk_in_help -- --ignored
-          cargo test -p poolster-plugin-rust-cli split_commands_compile_and_show_last_chunk_in_help -- --ignored
-      - name: Verify generated Postman exports against the official schema
-        run: cargo test -p poolster-plugin-postman validates_actual_official_draft04_schema -- --ignored
-      - name: Verify exported collections with Newman against a local mock
-        run: |
-          npm ci --prefix packages/internal/postman-execute --ignore-scripts --no-audit --no-fund
-          node --test packages/internal/postman-execute/test/*.test.mjs
-          cargo test -p poolster-plugin-postman generated_collection_executes_with_newman_local_mock -- --ignored
-      - name: Verify generated Terraform lifecycle with native Framework state
-        run: |
-          cargo test -p poolster-plugin-terraform generated_provider_executes_native_framework_lifecycle -- --ignored
-          cargo test -p poolster-plugin-terraform generated_nested_provider_executes_native_framework_lifecycle -- --ignored
-          cargo test -p poolster-plugin-terraform generated_composite_provider_executes_native_framework_lifecycle -- --ignored
-          cargo test -p poolster-plugin-terraform generated_polling_provider_executes_native_framework_lifecycle -- --ignored
-      - uses: hashicorp/setup-terraform@v4
+      - name: Export compiled generator binaries
+        uses: actions/upload-artifact@v7
         with:
-          terraform_version: '1.13.4'
-          terraform_wrapper: false
-      - name: Verify Terraform CLI lifecycle against a local mock API
-        run: |
-          cargo test -p poolster-plugin-terraform terraform_cli_local_mock_lifecycle -- --ignored
-          cargo test -p poolster-plugin-terraform terraform_cli_polling_local_mock_lifecycle -- --ignored
-      - name: Verify standalone typed plugin authoring example
-        run: |
-          cargo test --manifest-path examples/custom-plugin/Cargo.toml --locked
-          cargo run --manifest-path examples/custom-plugin/Cargo.toml --locked -- "$RUNNER_TEMP/custom-plugin-output"
-      - name: Test embedded OpenAPI compiler
-        working-directory: openapi
-        run: go test ./...
-      - name: Run generated SDK contract suite
-        run: cargo test -p poolster --features all-plugins --test sdk_to_mock_contract -- --ignored
-      - name: Verify local delivery generation drift and previews
-        run: node packages/internal/sdk-delivery-test/delivery.mjs --mode local --binary "$GITHUB_WORKSPACE/target/debug/poolster"
+          name: generator-binaries
+          path: |-
+            target/debug/poolster
+            target/debug/poolster-openapi
+          retention-days: 1
       - name: Export shared native runtime contract fixture
         env:
           POOLSTER_RUNTIME_EXPORT: ${{ runner.temp }}/runtime-contract-fixture
         run: cargo test -p poolster --test runtime_conformance --locked
-      - name: Verify installed TypeScript ESM package and consumer types
-        env:
-          POOLSTER_PACKAGE_FIXTURE: ${{ runner.temp }}/runtime-contract-fixture/sdk/typescript
-          POOLSTER_TSC_JS: ${{ runner.temp }}/poolster-ts-runtime/node_modules/typescript/lib/tsc.js
-        run: node --test packages/internal/runtime-contract/package-consumer.test.mjs
       - uses: actions/upload-artifact@v7
         with:
           name: runtime-contract-fixture
           path: ${{ runner.temp }}/runtime-contract-fixture
           include-hidden-files: true
           retention-days: 1
-      - name: Verify portable API artifacts
-        run: |
-          target/debug/poolster generate --config examples/api-artifacts/poolster.json
-          POOLSTER_COLLECTION=examples/api-artifacts/generated/postman/widgets.postman_collection.json POOLSTER_ENVIRONMENT=examples/api-artifacts/generated/postman/widgets.postman_environment.json python packages/internal/postman-check/check.py
-          (cd examples/api-artifacts/generated/terraform && go mod tidy && go test ./... && go build ./...)
-          target/debug/poolster generate --config examples/api-artifacts/poolster.json --check --format json
-      - name: Verify release examples
-        run: python scripts/check-release-examples.py
       - name: Generate checksum-pinned public contracts for every SDK target
         env:
           POOLSTER_BINARY: ${{ github.workspace }}/target/debug/poolster
@@ -206,18 +247,61 @@ jobs:
           include-hidden-files: true
           retention-days: 1
       - name: Generate cross-language SDK fixture once
-        run: >-
-          target/debug/poolster generate crates/cli/tests/fixtures/pets.yaml
-          --output "$RUNNER_TEMP/generated-sdk-fixture"
-          --language rust,typescript,go,python,php,java,csharp,elixir,ruby,swift
-          --name "CI Pets" --sdk-version 1.0.0 --color never
+        run: target/debug/poolster generate crates/cli/tests/fixtures/pets.yaml --output "$RUNNER_TEMP/generated-sdk-fixture" --language rust,typescript,go,python,php,java,csharp,elixir,ruby,swift --name "CI Pets" --sdk-version 1.0.0 --color never
       - uses: actions/upload-artifact@v7
         with:
           name: generated-sdk-fixture
           path: ${{ runner.temp }}/generated-sdk-fixture
           include-hidden-files: true
           retention-days: 1
-
+  native-runtime:
+    uses: ./.github/workflows/native-conformance.yml
+  delivery:
+    name: Delivery, API artifacts and release examples
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: workspace
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: openapi/go.mod
+          cache-dependency-path: openapi/go.sum
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install recipe schema validation dependency
+        run: python -m pip install --disable-pip-version-check 'jsonschema==4.23.0'
+      - uses: actions/download-artifact@v8
+        with:
+          name: generator-binaries
+          path: target/debug
+      - name: Restore executable permissions
+        run: chmod +x target/debug/poolster target/debug/poolster-openapi
+      - uses: actions/download-artifact@v8
+        with:
+          name: runtime-contract-fixture
+          path: ${{ runner.temp }}/runtime-contract-fixture
+      - name: Install pinned TypeScript compiler
+        run: npm install --prefix "$RUNNER_TEMP/poolster-ts-runtime" --ignore-scripts --no-audit --no-fund typescript@5.9.3
+      - name: Verify local delivery generation drift and previews
+        run: node packages/internal/sdk-delivery-test/delivery.mjs --mode local --binary "$GITHUB_WORKSPACE/target/debug/poolster"
+      - name: Verify installed TypeScript ESM package and consumer types
+        env:
+          POOLSTER_PACKAGE_FIXTURE: ${{ runner.temp }}/runtime-contract-fixture/sdk/typescript
+          POOLSTER_TSC_JS: ${{ runner.temp }}/poolster-ts-runtime/node_modules/typescript/lib/tsc.js
+        run: node --test packages/internal/runtime-contract/package-consumer.test.mjs
+      - name: Verify portable API artifacts
+        run: |
+          target/debug/poolster generate --config examples/api-artifacts/poolster.json
+          POOLSTER_COLLECTION=examples/api-artifacts/generated/postman/widgets.postman_collection.json POOLSTER_ENVIRONMENT=examples/api-artifacts/generated/postman/widgets.postman_environment.json python packages/internal/postman-check/check.py
+          (cd examples/api-artifacts/generated/terraform && go mod tidy && go test ./... && go build ./...)
+          target/debug/poolster generate --config examples/api-artifacts/poolster.json --check --format json
+      - name: Verify release examples
+        run: python scripts/check-release-examples.py
   generated-sdk:
     name: Validate generated ${{ matrix.language }} SDK
     needs: workspace
@@ -290,34 +374,34 @@ jobs:
       - uses: actions/setup-go@v7
         if: matrix.language == 'Go' || matrix.language == 'Swift'
         with:
-          go-version: '1.25.7'
+          go-version: 1.25.7
       - uses: actions/setup-python@v7
         if: matrix.language == 'Python'
         with:
-          python-version: '3.12'
+          python-version: "3.12"
       - uses: shivammathur/setup-php@v2
         if: matrix.language == 'PHP'
         with:
-          php-version: '8.2'
+          php-version: "8.2"
           tools: composer:v2
       - uses: actions/setup-java@v6
         if: matrix.language == 'Java'
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
       - uses: actions/setup-dotnet@v6
         if: matrix.language == 'C#'
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: 8.0.x
       - uses: erlef/setup-beam@v1
         if: matrix.language == 'Elixir'
         with:
-          otp-version: '27.0'
-          elixir-version: '1.17.3'
+          otp-version: "27.0"
+          elixir-version: 1.17.3
       - uses: ruby/setup-ruby@v1
         if: matrix.language == 'Ruby'
         with:
-          ruby-version: '3.3'
+          ruby-version: "3.3"
       - name: Initialize Hex for the generated Elixir runtime probe
         if: matrix.language == 'Elixir'
         run: mix local.hex --force && mix local.rebar --force
@@ -423,11 +507,10 @@ jobs:
           cargo test -p poolster-plugin-rust native_multipart_buffered_parts_preserve_bytes_and_safe_retries -- --ignored
       - name: Execute generated public operations against shared runtime scenarios
         run: node packages/internal/runtime-contract/runner.mjs "${{ matrix.path }}" "$RUNNER_TEMP/runtime-contract-fixture/sdk/${{ matrix.path }}"
-
-  node-sdk:
-    name: Validate Node SDK on Node 18 and 22
+  node-build:
+    name: Build shared Node addon
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
@@ -442,27 +525,67 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 22
-      - name: Install pinned GraphQL runtime probe dependencies
-        run: |
-          npm install --prefix "$RUNNER_TEMP/poolster-node-graphql" --ignore-scripts --no-audit --no-fund typescript@5.9.3 graphql@16.14.2
-          echo "POOLSTER_GRAPHQL_TEST_NODE_MODULES=$RUNNER_TEMP/poolster-node-graphql/node_modules" >> "$GITHUB_ENV"
       - run: node packages/npm/generate-plugins.mjs --check
       - run: node packages/npm/sdk/scripts/build-native.mjs
       - run: go build -o ../target/debug/poolster-openapi .
         working-directory: openapi
+      - name: Upload addon and compiler
+        uses: actions/upload-artifact@v7
+        with:
+          name: node-sdk-native
+          path: |-
+            packages/npm/sdk/native/poolster_node.node
+            target/debug/poolster-openapi
+          retention-days: 1
+  node-sdk:
+    name: Node SDK / Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: node-build
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - 18
+          - 22
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: openapi/go.mod
+          cache-dependency-path: openapi/go.sum
       - uses: actions/setup-node@v7
         with:
-          node-version: 18
-      - run: npm test --prefix packages/npm/sdk
-      - uses: actions/setup-node@v7
+          node-version: ${{ matrix.node }}
+      - uses: actions/download-artifact@v8
         with:
-          node-version: 22
-      - run: npm test --prefix packages/npm/sdk
-
+          name: node-sdk-native
+          path: .
+      - name: Restore compiler executable permission
+        run: chmod +x target/debug/poolster-openapi
+      - name: Install pinned GraphQL runtime probe dependencies
+        run: |
+          npm install --prefix "$RUNNER_TEMP/poolster-node-graphql" --ignore-scripts --no-audit --no-fund typescript@5.9.3 graphql@16.14.2
+          echo "POOLSTER_GRAPHQL_TEST_NODE_MODULES=$RUNNER_TEMP/poolster-node-graphql/node_modules" >> "$GITHUB_ENV"
+      - name: Execute SDK tests
+        run: npm test --prefix packages/npm/sdk
   passed:
     name: CI passed
     if: always()
-    needs: [checks, workspace, generated-sdk, node-sdk, kafka]
+    needs:
+      - kafka
+      - checks
+      - rust-checks
+      - rust-tests
+      - cli-integration
+      - ejection
+      - openapi
+      - workspace
+      - native-runtime
+      - delivery
+      - generated-sdk
+      - node-build
+      - node-sdk
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

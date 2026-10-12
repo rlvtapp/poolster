@@ -54,6 +54,42 @@ release from GitHub.
 Do not add a root action metadata file to this monorepo
 solely for Marketplace discovery.
 
+## Poolster repository checks
+
+The repository CI runs independent suites in parallel. Rust lint, the full Rust
+suite, CLI schema/reference/migration checks, the ejected CLI rebuild, and the
+OpenAPI compiler each have their own job. Native TypeScript HTTP/GraphQL,
+frameworks, Postman, Terraform, SDK mock contracts, and the plugin example run
+as six independent jobs in `native-conformance.yml`. Kafka keeps its separate
+six-language broker matrix.
+
+Fixture generation does not wait for those test suites. It builds the generator,
+checks output structure and regeneration, and exports the generated SDK, public
+contract, and runtime fixtures. The ten-language SDK compilation/runtime matrix
+and delivery checks start when those artifacts are ready.
+
+The Node addon and OpenAPI compiler are built once, then shared with separate
+Node 18 and Node 22 test jobs. Downloaded executables have their executable bits
+restored before use. Every job remains required by the final **CI passed** gate;
+parallel execution does not remove tests or accept skipped/failed jobs.
+
+```mermaid
+flowchart LR
+  start[Commit] --> rust[Rust lint and tests]
+  start --> cli[CLI checks and ejected rebuild]
+  start --> native[Six native conformance jobs]
+  start --> kafka[Six Kafka broker jobs]
+  start --> go[OpenAPI compiler tests]
+  start --> source[Source and release checks]
+  start --> fixtures[Build generator and export fixtures]
+  fixtures --> sdk[Ten SDK language jobs]
+  fixtures --> delivery[Delivery and artifact checks]
+  start --> addon[Build Node addon once]
+  addon --> node18[Node 18 tests]
+  addon --> node22[Node 22 tests]
+  rust & cli & native & kafka & go & source & sdk & delivery & node18 & node22 --> gate[CI passed]
+```
+
 ## Publishing Poolster's npm packages
 
 `.github/workflows/npm-publish.yml` is the release workflow. Pushing a version

@@ -1,0 +1,113 @@
+name: Native generated-package conformance
+on:
+  workflow_call: {}
+permissions:
+  contents: read
+jobs:
+  runtime:
+    name: Native / ${{ matrix.suite }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        suite:
+          - typescript
+          - frameworks
+          - postman
+          - terraform
+          - sdk-contracts
+          - plugin-example
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: native-${{ matrix.suite }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: openapi/go.mod
+          cache-dependency-path: openapi/go.sum
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install recipe schema validation dependency
+        run: python -m pip install --disable-pip-version-check 'jsonschema==4.23.0'
+      - name: Build OpenAPI compiler for CLI integration tests
+        working-directory: openapi
+        run: go build -o ../target/debug/poolster-openapi .
+      - name: Verify generated TypeScript middleware, GraphQL and response decoding
+        run: |
+          npm install --prefix "$RUNNER_TEMP/poolster-ts-runtime" --no-audit --no-fund typescript@5.9.3 axios@1.20.0 graphql@16.14.2
+          export POOLSTER_TSC_JS="$RUNNER_TEMP/poolster-ts-runtime/node_modules/typescript/lib/tsc.js"
+          export POOLSTER_GRAPHQL_JS="$RUNNER_TEMP/poolster-ts-runtime/node_modules/graphql/index.js"
+          cargo test -p poolster-plugin-typescript --test graphql_native -- --include-ignored
+          export POOLSTER_AXIOS_NODE_MODULES="$RUNNER_TEMP/poolster-ts-runtime/node_modules"
+          export POOLSTER_TS_AXIOS_NODE_MODULES="$RUNNER_TEMP/poolster-ts-runtime/node_modules"
+          cargo test -p poolster-plugin-typescript generated_middleware_fetch_and_axios_execute -- --ignored
+          cargo test -p poolster-plugin-typescript generated_idempotency_fetch_and_axios_execute -- --ignored
+          cargo test -p poolster-plugin-typescript bundled_middleware_is_enabled_without_customer_registration -- --ignored
+          cargo test -p poolster-plugin-typescript generated_lossless_fetch_axios_and_sse_round_trip -- --ignored
+          cargo test -p poolster-plugin-typescript generated_page_pagination_executes_defaults_and_selectors -- --ignored
+          cargo test -p poolster-plugin-typescript native_generated_fetch_and_axios_operation_tests_execute -- --ignored
+          cargo test -p poolster-plugin-typescript native_standard_webhook_vectors_execute -- --ignored
+          cargo test -p poolster-plugin-typescript native_oauth_singleflight_replay_cancellation_and_redaction -- --ignored
+          cargo test -p poolster-plugin-typescript native_fetch_and_axios_per_call -- --ignored
+          cargo test -p poolster-plugin-typescript native_whole_query_and_json_sequences -- --ignored
+          cargo test -p poolster-plugin-typescript native_open_enum_types_accept_future_values_and_preserve_wire -- --ignored
+          cargo test -p poolster-cli --test openapi32 -- --ignored
+        if: matrix.suite == 'typescript'
+      - name: Verify framework factories and split auxiliary/CLI modules
+        env:
+          CYPRESS_INSTALL_BINARY: "0"
+        run: |
+          npm install --prefix "$RUNNER_TEMP/poolster-ts-framework" --no-audit --no-fund typescript@5.9.3 @types/node@22.20.5 commander@13.1.0 react@19.3.0 @types/react@19.3.0 vue@3.5.43 @tanstack/react-query@5.104.1 @tanstack/vue-query@5.104.1 swr@2.5.1 zod@3.25.76 @faker-js/faker@9.9.0 msw@2.15.0 cypress@15.21.1
+          export POOLSTER_TSC_JS="$RUNNER_TEMP/poolster-ts-framework/node_modules/typescript/lib/tsc.js"
+          export POOLSTER_TS_NODE_MODULES="$RUNNER_TEMP/poolster-ts-framework/node_modules"
+          export POOLSTER_TS_CLI_NODE_MODULES="$POOLSTER_TS_NODE_MODULES"
+          cargo test -p poolster-plugin-typescript query_factories_cache_callbacks_and_abort_execute_natively -- --ignored
+          cargo test -p poolster-plugin-typescript namespaced_and_auxiliary_consumers_compile_and_validate_selected_models -- --ignored
+          cargo test -p poolster-plugin-typescript custom_transport_and_relocated_query_consumer_compile -- --ignored
+          cargo test -p poolster-plugin-typescript-cli split_commands_compile_and_show_last_chunk_in_help -- --ignored
+          cargo test -p poolster-plugin-rust-cli split_commands_compile_and_show_last_chunk_in_help -- --ignored
+        if: matrix.suite == 'frameworks'
+      - name: Verify generated Postman exports against the official schema
+        run: cargo test -p poolster-plugin-postman validates_actual_official_draft04_schema -- --ignored
+        if: matrix.suite == 'postman'
+      - name: Verify exported collections with Newman against a local mock
+        run: |
+          npm ci --prefix packages/internal/postman-execute --ignore-scripts --no-audit --no-fund
+          node --test packages/internal/postman-execute/test/*.test.mjs
+          cargo test -p poolster-plugin-postman generated_collection_executes_with_newman_local_mock -- --ignored
+        if: matrix.suite == 'postman'
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.13.4
+          terraform_wrapper: false
+        if: matrix.suite == 'terraform'
+      - name: Verify generated Terraform lifecycle with native Framework state
+        run: |
+          cargo test -p poolster-plugin-terraform generated_provider_executes_native_framework_lifecycle -- --ignored
+          cargo test -p poolster-plugin-terraform generated_nested_provider_executes_native_framework_lifecycle -- --ignored
+          cargo test -p poolster-plugin-terraform generated_composite_provider_executes_native_framework_lifecycle -- --ignored
+          cargo test -p poolster-plugin-terraform generated_polling_provider_executes_native_framework_lifecycle -- --ignored
+        if: matrix.suite == 'terraform'
+      - name: Verify Terraform CLI lifecycle against a local mock API
+        run: |
+          cargo test -p poolster-plugin-terraform terraform_cli_local_mock_lifecycle -- --ignored
+          cargo test -p poolster-plugin-terraform terraform_cli_polling_local_mock_lifecycle -- --ignored
+        if: matrix.suite == 'terraform'
+      - name: Run generated SDK contract suite
+        run: cargo test -p poolster --features all-plugins --test sdk_to_mock_contract -- --ignored
+        if: matrix.suite == 'sdk-contracts'
+      - name: Verify standalone typed plugin authoring example
+        run: |
+          cargo test --manifest-path examples/custom-plugin/Cargo.toml --locked
+          cargo run --manifest-path examples/custom-plugin/Cargo.toml --locked -- "$RUNNER_TEMP/custom-plugin-output"
+        if: matrix.suite == 'plugin-example'
