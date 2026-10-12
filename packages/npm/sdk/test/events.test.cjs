@@ -8,14 +8,14 @@ const bundle=require('../../plugins-all/index.cjs');
 const {temporary}=require('../test-support/helpers.cjs');
 const fixture=path.resolve(__dirname,'../../../../crates/inputs/asyncapi/tests/fixtures/kafka-json.yaml');
 async function setup(t){const dir=await temporary(t);return {input:{path:fixture,plugin:bundle.inputAsyncApi()},output:path.join(dir,'out')};}
-test('AsyncAPI Kafka SDK packages reuse shared models in TS Go Rust Python Java and CSharp and regenerate',async(t)=>{
- const config=await setup(t);config.input.broker={kind:'kafka',brokers:['127.0.0.1:39092'],client_id:'all-six-js-client'};config.plugins=[bundle.pluginTypeScript(),bundle.pluginGo(),bundle.pluginRust(),bundle.pluginPython(),bundle.pluginJava(),bundle.pluginCSharp()];
+test('AsyncAPI Kafka SDK packages reuse shared models in all ten languages and Symfony and regenerate',async(t)=>{
+ const config=await setup(t);config.input.broker={kind:'kafka',brokers:['127.0.0.1:39092'],client_id:'all-ten-js-client'};config.plugins=[bundle.pluginTypeScript(),bundle.pluginGo(),bundle.pluginRust(),bundle.pluginPython(),bundle.pluginJava(),bundle.pluginCSharp(),bundle.pluginPhp(),bundle.pluginRuby(),bundle.pluginSwift(),bundle.pluginElixir(),{kind:"native-sdk",name:"symfony",package:{language:"symfony",path:"symfony",mode:"sdk"}}];
  const first=await generate(config);assert.deepEqual(first.skipped,[]);assert.equal(first.api,null);
- for(const lang of ['typescript','go','rust','python','java','csharp']) {
+ for(const lang of ['typescript','go','rust','python','java','csharp','php','ruby','swift','elixir','symfony']) {
   const files=first.files.filter(f=>f.path.startsWith(lang+'/'));
   assert.ok(files.some(f=>f.contents.includes('OrderCreatedPayload')),lang);
   assert.ok(files.some(f=>f.contents.includes('127.0.0.1:39092')),lang+' broker override');
-  assert.ok(files.some(f=>f.contents.includes('all-six-js-client')),lang+' client ID override');
+  assert.ok(files.some(f=>f.contents.includes('all-ten-js-client')),lang+' client ID override');
  }
  assert.ok(first.files.some(f=>f.path==='typescript/events.ts'));
  assert.equal(first.files.map(f=>f.contents).join('\n').match(/export type OrderCreatedPayload =/g).length,1);
@@ -30,7 +30,7 @@ test('AsyncAPI event and models-only packages compose with distinct owners',asyn
  assert.ok(result.files.some(f=>f.path.startsWith('model-types/')));
 });
 test('AsyncAPI unsupported SDK languages skip and incompatible options fail',async(t)=>{
- const config=await setup(t);config.plugins=[bundle.pluginRuby()];
+ const config=await setup(t);config.plugins=[{kind:"native-sdk",name:"postman",package:{language:"postman",path:"postman",mode:"sdk"}}];
  const result=await generate(config,{write:false});assert.deepEqual(result.files,[]);assert.equal(result.skipped.length,1);
  for(const plugin of [bundle.pluginTypeScript,bundle.pluginCSharp]) {
   config.plugins=[plugin({style:'flat'})];await assert.rejects(()=>generate(config),/Kafka event SDK packages/);

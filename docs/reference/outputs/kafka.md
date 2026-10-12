@@ -2,7 +2,9 @@
 
 AsyncAPI describes messages, channels and send/receive operations. Poolster's Kafka
 outputs generate data models and broker clients; they do not turn events into HTTP
-endpoints. Broker-independent [models-only packages](shared-models.md) remain available.
+endpoints. All ten SDK languages have Kafka implementations; Symfony bundles the PHP
+runtime with DI integration. Broker-independent [models-only packages](shared-models.md)
+remain available. Support is the bounded plaintext JSON subset described below.
 
 ## Generate a package
 
@@ -16,7 +18,12 @@ endpoints. Broker-independent [models-only packages](shared-models.md) remain av
     { "language": "rust", "path": "rust", "name": "acme-events", "plugins": [{ "name": "asyncapi" }] },
     { "language": "python", "path": "python", "name": "acme-events", "plugins": [{ "name": "asyncapi" }] },
     { "language": "java", "path": "java", "name": "com.acme.events", "plugins": [{ "name": "asyncapi" }] },
-    { "language": "csharp", "path": "csharp", "name": "Acme.Events", "plugins": [{ "name": "asyncapi" }] }
+    { "language": "csharp", "path": "csharp", "name": "Acme.Events", "plugins": [{ "name": "asyncapi" }] },
+    { "language": "php", "path": "php", "name": "acme/events", "plugins": [{ "name": "asyncapi" }] },
+    { "language": "ruby", "path": "ruby", "name": "acme-events", "plugins": [{ "name": "asyncapi" }] },
+    { "language": "swift", "path": "swift", "name": "AcmeEvents", "plugins": [{ "name": "asyncapi" }] },
+    { "language": "elixir", "path": "elixir", "name": "acme_events", "plugins": [{ "name": "asyncapi" }] },
+    { "language": "symfony", "path": "symfony", "name": "acme/events-symfony", "plugins": [{ "name": "asyncapi" }] }
   ]
 }
 ```
@@ -36,7 +43,10 @@ Use `input.options.broker` to override the native broker configuration:
 
 ```js
 import { generate } from '@relevate/poolster';
-import { inputAsyncApi, pluginTypeScript, pluginGo, pluginRust, pluginPython, pluginJava, pluginCSharp } from '@relevate/poolster-plugins';
+import {
+  inputAsyncApi, pluginTypeScript, pluginGo, pluginRust, pluginPython, pluginJava,
+  pluginCSharp, pluginPhp, pluginRuby, pluginSwift, pluginElixir,
+} from '@relevate/poolster-plugins';
 
 await generate({
   input: {
@@ -45,7 +55,10 @@ await generate({
     broker: { kind: 'kafka', brokers: ['127.0.0.1:29092'], client_id: 'acme' },
   },
   output: 'generated',
-  plugins: [pluginTypeScript(), pluginGo(), pluginRust(), pluginPython(), pluginJava(), pluginCSharp()],
+  plugins: [
+    pluginTypeScript(), pluginGo(), pluginRust(), pluginPython(), pluginJava(),
+    pluginCSharp(), pluginPhp(), pluginRuby(), pluginSwift(), pluginElixir(),
+  ],
 });
 ```
 
@@ -65,7 +78,10 @@ let package = poolster::ts::package("client")
 ```
 
 The same composition uses `poolster::go`, `poolster::rust`, `poolster::python` or
-`poolster::java` or `poolster::csharp`. Models and operations
+`poolster::java`, `poolster::csharp`, `poolster::php`, `poolster::ruby`,
+`poolster::swift` or `poolster::elixir`. Symfony uses
+`poolster::symfony::asyncapi(provider)` to bundle a self-contained PHP SDK and DI
+registration, preserving the selected input revision. Models and operations
 bind to the same selected event contract. Payload/header/key roles resolve through
 stable native message IDs, rather than generated names. A changed contract revision,
 missing role or incompatible model provider fails generation. Keep the source identity
@@ -86,7 +102,13 @@ Model support and JSON Schema runtime validation differ by target; see the
 
 Generated packages retain `asyncapi.json` and their model contract manifest. Broker
 clients validate the supported wire schema before publishing and after receiving;
-handlers control application processing. Compilation/delegate tests and actual broker
+handlers control application processing. PHP cannot detect duplicate wire header names
+because php-rdkafka exposes a collapsed map. Elixir requires supplied, nonempty declared
+keys and nonempty declared header values, and its acknowledgement schedules a native
+asynchronous commit. Swift native runtime evidence is macOS-only; Linux remains
+unverified. See the [conformance comparison](kafka-conformance.md).
+
+Compilation/delegate tests and actual broker
 round trips are different checks, recorded in the [verification log](../../verification/verification.md).
 
 Rust generated packages use bundled librdkafka through rust-rdkafka. Building them
@@ -177,10 +199,87 @@ unsupported keywords, external references, dialects and bindings fail generation
 UTF-8, duplicate JSON fields/headers and tombstones are checked explicitly. Runtime and
 subscriptions have independent ownership: close both.
 
-## Conformance and deployment boundaries
-
-See the [executable Kafka conformance baseline](kafka-conformance.md) for common cases, language-specific acknowledgement policies, evidence gaps, and TLS/SASL, schema registry and transaction follow-up work.
-
 ## C# package details
 
 .NET 8 emits canonical shared models and per-operation event classes, with separate runtime, subscription and codec files. Dependencies pin **Confluent.Kafka 2.12.0** and **JsonSchema.Net 7.3.4**. Native sends return delivery metadata with idempotent producer retries; separate application calls are not deduplicated. Consumer offsets commit explicitly after processing, or after a successful handler helper. Failed decoding poisons the subscription without committing; dispose and reopen for replay. Consumer cancellation is cooperative, with polling intervals up to 250 ms. Kafka and HTTP/GraphQL require separate C# output packages. See [C# event features and generated calls](../languages/csharp.md#kafka-event-features).
+
+## PHP and Symfony package details
+
+PHP 8.2+ emits canonical shared models under `src/Models`, per-operation event
+classes under `src/Events`, and separate runtime, codec, subscription and metadata
+files. Composer pins **php-rdkafka 6.0.5** and **Opis JSON Schema 2.6.0**. Install the
+native extension before installing the generated package. See the
+[reproducible PHP/Symfony harness](../../../crates/plugins/php/tests/fixtures/kafka/README.md).
+
+`<Operation>Event::send($runtime, $payload, $headers, $key)` waits for broker delivery
+metadata. Native idempotent producer retries do not deduplicate separate calls.
+`subscribe()` returns a manually acknowledged subscription; `run($handler)` commits
+only after success. Close subscriptions separately from the producer runtime.
+Poll/decode failures poison the subscription without committing; close and reopen to
+replay. Cancellation is cooperative, with checks up to 250 ms apart.
+
+Payload/key/header UTF-8, duplicate JSON members, malformed JSON, schema violations,
+nonfinite numbers and tombstones fail. **php-rdkafka collapses duplicate Kafka header
+names into a map, so duplicate wire header detection is unavailable.** The normal
+shared-model and Draft-07 schema subset limits still apply.
+
+The `symfony` output includes the PHP package and a `PoolsterKafkaBundle` with DI
+registration for `KafkaRuntime`. Its generated `SYMFONY.md` shows bundle registration
+and broker configuration. Applications own their worker loops; DI does not start
+consumers, provision topics or commit offsets. See the [PHP capability page](../languages/php.md).
+
+## Ruby package details
+
+Ruby 3.2+ emits shared models, per-operation modules, runtime/codec/subscription files
+and a gem manifest. It pins **rdkafka 0.28.0** and **json_schemer 2.5.0**. Sends wait
+for native delivery metadata and use idempotent native producer retries. Consumers
+start new groups at earliest and synchronously commit only after explicit `record.ack`
+or successful handlers. Pending records block further polling; failures remain
+uncommitted for close/reopen replay. Cancellation is cooperative and poll/ack/close
+stay on the subscription's creating thread. Kafka and HTTP/GraphQL use separate
+packages. See the [Ruby capability page](../languages/ruby.md).
+
+## Swift package details
+
+Swift 6 emits canonical shared models, one source per operation, codec/schema/runtime/
+subscription helpers and a small C ABI bridge to official **librdkafka 2.12.0**.
+Install the pinned native toolchain before building; the runtime rejects other
+versions. Generated actor/async APIs await delivery metadata and commit received
+records after explicit acknowledgement or successful handlers. Native producer
+idempotence protects transport retries, and task cancellation stops waiting without
+retracting queued sends. Decode failures poison the subscription for close/reopen
+replay. Await outstanding sends before closing producers.
+
+Swift implements a bounded schema vocabulary and finite numeric range; unsupported
+keywords fail generation. Native compilation and broker execution are verified on
+macOS; **Linux execution remains unverified**. Kafka and HTTP/GraphQL use separate
+packages. See the [Swift capability page](../languages/swift.md).
+
+## Elixir package details
+
+Elixir emits shared-model and per-operation modules plus separate runtime, codec,
+subscription and callback helpers. Mix pins **brod 4.6.3**, **jesse 1.8.2** and
+**Jason 1.4.4**. Native dependencies require CMake and a C compiler. Producer sends
+wait for broker acknowledgement with bounded native retries; there is no idempotent
+producer guarantee.
+
+brod cannot distinguish null and empty keys/header values. Keyless operations work;
+declared keys must be supplied, and declared key/header schemas require
+`minLength >= 1`. jesse validates the accepted subset of Draft-07 keywords with
+Draft-06-equivalent semantics; unsupported keywords fail generation.
+
+Consumers start new groups at earliest and require acknowledgement in partition
+order. `ack(record)` **schedules** a native asynchronous commit; it does not prove the
+offset is persisted. The native commit interval is one second and shutdown flushing
+is best effort, so immediate-close redelivery is possible. Failed handlers leave
+records pending; malformed records invalidate subscriptions without acknowledging.
+Cancellation wakes pending polls and stops the subscriber. Kafka and HTTP/GraphQL
+use separate packages. See the [Elixir capability page](../languages/elixir.md).
+
+## Conformance and deployment boundaries
+
+The [executable Kafka conformance baseline](kafka-conformance.md) compares all ten
+SDK outputs and Symfony integration, including native acknowledgement differences
+and evidence gaps. Language coverage does not imply full AsyncAPI or broker support.
+TLS/SASL, schema registry, transactions, broader bindings and other brokers remain
+separate follow-up work.

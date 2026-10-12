@@ -11,7 +11,11 @@ pub(crate) fn ruby_version(version: &str) -> String {
 }
 
 pub(crate) fn ruby_string(value: &str) -> String {
-    serde_json::to_string(value).expect("strings serialize")
+    serde_json::to_string(value)
+        .expect("strings serialize")
+        .replace("#{", "\\#{")
+        .replace("#@", "\\#@")
+        .replace("#$", "\\#$")
 }
 
 pub(crate) fn ruby_file_name(value: &str) -> String {

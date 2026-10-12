@@ -1,0 +1,118 @@
+defmodule __NAMESPACE__.Events.KafkaCodec do
+  @moduledoc false
+  alias __NAMESPACE__.JSON
+
+  def utf8(value) when is_binary(value) do
+    if !String.valid?(value), do: raise(ArgumentError, "invalid Kafka UTF-8")
+    value
+  end
+
+  def utf8(_), do: raise(ArgumentError, "Kafka value must be a nonnull UTF-8 string")
+  def validate(nil, nil), do: :ok
+  def validate(nil, _), do: raise(ArgumentError, "unsupported Kafka role")
+
+  def validate(schema, value) do
+    # Generation rejects keywords whose draft-07 semantics differ from draft-06.
+    schema =
+      if is_map(schema),
+        do: Map.put(schema, "$schema", "http://json-schema.org/draft-06/schema#"),
+        else: schema
+
+    case :jesse.validate_with_schema(schema, value) do
+      {:ok, _} -> :ok
+      {:error, errors} -> raise ArgumentError, "invalid Kafka value: #{inspect(errors)}"
+    end
+  end
+
+  def encode(definition, payload, options) do
+    payload = JSON.to_wire(payload)
+    headers = JSON.to_wire(Keyword.get(options, :headers, %{}))
+    key = JSON.to_wire(Keyword.get(options, :key))
+    if !is_map(headers), do: raise(ArgumentError, "Kafka headers must be a map")
+
+    Enum.each(headers, fn {name, value} ->
+      utf8(name)
+      utf8(value)
+    end)
+
+    if definition.wire["key_schema"] && is_nil(key),
+      do: raise(ArgumentError, "brod declared Kafka keys require a supplied nonempty string")
+
+    unless is_nil(key), do: utf8(key)
+    validate(definition.wire["payload_schema"], payload)
+
+    validate(
+      definition.wire["headers_schema"],
+      if(is_nil(definition.wire["headers_schema"]) and map_size(headers) == 0,
+        do: nil,
+        else: headers
+      )
+    )
+
+    unless is_nil(key), do: validate(definition.wire["key_schema"], key)
+    {key || <<>>, Enum.to_list(headers), Jason.encode!(payload)}
+  end
+
+  def decode({:kafka_message, offset, key, value, _ts_type, _ts, raw_headers}, definition) do
+    if is_nil(value) or value == :undefined,
+      do: raise(ArgumentError, "Kafka tombstone unsupported")
+
+    payload = value |> utf8() |> Jason.decode!(objects: :ordered_objects) |> unique()
+
+    headers =
+      Enum.reduce(raw_headers, %{}, fn {name, value}, result ->
+        name = utf8(name)
+        if Map.has_key?(result, name), do: raise(ArgumentError, "duplicate Kafka header")
+
+        if value in [nil, :undefined, <<>>],
+          do: raise(ArgumentError, "brod cannot distinguish null/empty Kafka headers")
+
+        Map.put(result, name, utf8(value))
+      end)
+
+    key =
+      cond do
+        is_nil(definition.wire["key_schema"]) and key in [nil, :undefined, <<>>] ->
+          nil
+
+        key in [nil, :undefined, <<>>] ->
+          raise ArgumentError, "brod cannot distinguish null/empty declared Kafka keys"
+
+        true ->
+          utf8(key)
+      end
+
+    validate(definition.wire["payload_schema"], payload)
+
+    validate(
+      definition.wire["headers_schema"],
+      if(is_nil(definition.wire["headers_schema"]) and map_size(headers) == 0,
+        do: nil,
+        else: headers
+      )
+    )
+
+    unless is_nil(key), do: validate(definition.wire["key_schema"], key)
+
+    %{
+      offset: offset,
+      payload: model(definition.payload_type, payload),
+      headers: model(definition.headers_type, headers),
+      key: model(definition.key_type, key)
+    }
+  end
+
+  defp model(_, nil), do: nil
+  defp model(nil, _), do: nil
+  defp model(module, value), do: module.from_map(value)
+
+  defp unique(%Jason.OrderedObject{values: pairs}) do
+    Enum.reduce(pairs, %{}, fn {key, value}, result ->
+      if Map.has_key?(result, key), do: raise(ArgumentError, "duplicate JSON property")
+      Map.put(result, key, unique(value))
+    end)
+  end
+
+  defp unique(values) when is_list(values), do: Enum.map(values, &unique/1)
+  defp unique(value), do: value
+end

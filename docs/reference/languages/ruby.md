@@ -12,7 +12,7 @@ Audited **11 October 2026**, against this checkout's unreleased alpha.2 generato
 | GraphQL operations | Fixed-document query/mutation clients; opt-in SSE subscriptions and experimental multipart incremental delivery |
 | Shared schema-model blocks | Models-only package, including supported AsyncAPI payload/header/key shapes; no broker client |
 | RPC / Protobuf | Unsupported |
-| Events / AsyncAPI | No producer/consumer implementation; models-only is supported separately |
+| Events / AsyncAPI | Shared models and Kafka JSON producer/consumer package |
 | Workflows / Arazzo | Unsupported |
 | Capabilities / Cap’n Proto | Unsupported |
 
@@ -67,6 +67,45 @@ response = client.users.read('id' => '42')
 
 These are alternative generation styles. Mutation groups use `client.mutation.<operation>`; custom resource names require explicit mappings. Responses expose `data`, `errors`, `status` and `require_data`; nested models expose selected getters and `to_h`.
 
+## Kafka event features
+
+Ruby 3.2+ gem packages pin **rdkafka 0.28.0** and **json_schemer 2.5.0**. CLI recipes select `asyncapi`, JS uses `pluginRuby()`, and Rust uses `ruby::asyncapi(provider).using_models(models.handle())`.
+
+| Feature | Generated behavior |
+| --- | --- |
+| API style | Per-operation modules, `SendOrder.send()` / `ReceiveOrder.subscribe()`. HTTP/GraphQL style settings do not apply. |
+| Retry / idempotence | Native producer idempotence, `acks=all`, 30 s delivery deadline. No deduplication of separate calls; a timeout can follow publication. |
+| Acknowledgement | One pending record; synchronous `record.ack`, or handler-success `run`. Failed handlers leave offsets uncommitted; close/reopen to replay. |
+| Validation | Supported Draft-07 schema constraints, strict UTF-8/JSON, duplicate JSON/header detection. Decode failures invalidate the subscription before acknowledgement. |
+| Cancellation | Cooperative `cancel`, checked between polls up to 250 ms; may be called from another thread. Poll/ack/close stay on the creating thread. |
+| Bindings | Fixed topics, client/group IDs and broker overrides; conflicting group overrides fail. |
+| Auth / wider features | Plaintext only; TLS/SASL, transactions, schema registry and other brokers remain unsupported. |
+
+For package `acme_orders` and `sendOrder`/`receiveOrder` operations:
+
+```ruby
+require 'acme_orders'
+client = AcmeOrders::Events.connect
+payload = AcmeOrders::Models::OrderCreatedPayload.from_hash('id' => '42', 'quantity' => 1)
+headers = AcmeOrders::Models::OrderCreatedHeaders.from_hash('trace' => 'trace-1')
+AcmeOrders::Events::SendOrder.send(client, payload, headers: headers, key: 'order-42')
+subscription = AcmeOrders::Events::ReceiveOrder.subscribe(client)
+begin
+  record = subscription.poll(timeout: 1)
+  if record
+    process_order(record.payload) # application handler
+    record.ack
+  end
+ensure
+  subscription.close
+  client.close
+end
+```
+
+The sample assumes a fixed group binding; otherwise pass `group:` to `subscribe`. Optional keys preserve absent versus empty; schema constraints still apply. The gem contains canonical `models/`, separate `events/` runtime/codec/subscription and one operation file per operation. One gemspec owns both models and runtime dependencies. Keep Kafka and HTTP/GraphQL in separate output packages. Generated files retain the native document and model provenance; generation does not create topics.
+
+Evidence: [generation/provider/layout tests](../../../crates/plugins/ruby/tests/events.rs), [wire and broker probe](../../../crates/plugins/ruby/tests/fixtures/events-wire.rb), [conformance](../outputs/kafka-conformance.md).
+
 ## Files and model boundaries
 
 HTTP emits a gemspec, `lib/<gem>.rb` loader, model/client runtime files and bounded model/operation/resource chunks for large APIs. It does not emit exactly one HTTP file per operation at every size.
@@ -83,7 +122,7 @@ CLI/JS models-only mode and Rust block composition support the documented neutra
 
 ## Remaining gaps
 
-No RPC, Kafka execution, workflow or capability client is bundled for this language. GraphQL selections remain fixed documents; dynamic typed `fields:` selection and GraphQL-aware automatic pagination, idempotency and retries remain application work. Experimental incremental delivery is the documented `deferSpec=20220824` dialect, not universal server compatibility.
+No RPC, workflow or capability client is bundled for this language. GraphQL selections remain fixed documents; dynamic typed `fields:` selection and GraphQL-aware automatic pagination, idempotency and retries remain application work. Experimental incremental delivery is the documented `deferSpec=20220824` dialect, not universal server compatibility.
 
 ## Source and test evidence
 

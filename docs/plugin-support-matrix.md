@@ -26,36 +26,38 @@ vary by language. All selections remain fixed operation documents. See the
 See the [language guides](reference/README.md) and [verification](verification/verification.md#advanced-graphql-checks-10-october-2026)
 for tested features and per-language limits. These additions are not yet published.
 
+The [12 October Kafka verification record](verification-results/kafka-all-languages-2026-10-12.json) records all ten adapters: **21 suites passed, no failed/skipped adapters**, and **1,007 effective workspace passes, 0 remaining failures, 205 ignored**. Native probes are separate from default workspace totals.
+
 ✅ = implemented for the stated contract; — = no bundled generation support.
 A check does not imply support for every feature of a specification. Target-specific
 limitations still apply. GraphQL is a separate contract even when its transport is HTTP.
 
 ## Output plugins and accepted inputs
 
-| Output plugin | Generated output | OpenAPI / HTTP `Api` | GraphQL operations | Protobuf RPC | AsyncAPI events | Arazzo workflows | Cap’n Proto |
-| --- | --- | :---: | :---: | :---: | :---: | :---: | :---: |
-| TypeScript | HTTP SDK/models; GraphQL client; Kafka message/client package; workflow runner | ✅ | ✅ | — | ✅ | ✅ | — |
-| Zod | HTTP and selected GraphQL validators | ✅ | ✅ | — | — | — | — |
-| Faker | HTTP and selected GraphQL fixtures | ✅ | ✅ | — | — | — | — |
-| MSW | HTTP and GraphQL mock handlers | ✅ | ✅ | — | — | — | — |
-| Cypress | HTTP and GraphQL request/interception helpers | ✅ | ✅ | — | — | — | — |
-| React Query | TypeScript query/mutation hooks | ✅ | ✅ | — | — | — | — |
-| Vue Query | TypeScript query/mutation hooks | ✅ | ✅ | — | — | — | — |
-| SWR | TypeScript query/mutation hooks | ✅ | ✅ | — | — | — | — |
-| Go | HTTP/GraphQL SDK; Protobuf gRPC; Kafka JSON client | ✅ | ✅ | ✅ | ✅ | — | — |
-| Rust | HTTP/GraphQL SDK; Kafka JSON client | ✅ | ✅ | — | ✅ | — | — |
-| Python | HTTP SDK; synchronous GraphQL client; Kafka JSON client | ✅ | ✅ | — | ✅ | — | — |
-| Java | Java HTTP SDK; GraphQL client; Kafka JSON client | ✅ | ✅ | — | ✅ | — | — |
-| C# | C# HTTP SDK; GraphQL client; Kafka JSON client | ✅ | ✅ | — | ✅ | — | — |
-| PHP | PHP HTTP SDK; GraphQL client | ✅ | ✅ | — | — | — | — |
-| Symfony | HTTP integration; PHP GraphQL SDK, HttpClient transport and bundle | ✅ | ✅ | — | — | — | — |
-| Ruby | Ruby HTTP SDK; GraphQL client with RBS | ✅ | ✅ | — | — | — | — |
-| Elixir | Elixir HTTP SDK; GraphQL client | ✅ | ✅ | — | — | — | — |
-| Swift | Swift HTTP SDK; GraphQL client | ✅ | ✅ | — | — | — | — |
-| Rust CLI | HTTP and fixed-operation GraphQL command-line client | ✅ | ✅ | — | — | — | — |
-| TypeScript CLI | HTTP and fixed-operation GraphQL command-line client | ✅ | ✅ | — | — | — | — |
-| Postman | HTTP collections/examples; GraphQL collections and environments | ✅ | ✅ | — | — | — | — |
-| Terraform | Terraform provider scaffolding | ✅ | — | — | — | — | — |
+| Output plugin | Generated output | OpenAPI / HTTP `Api` | GraphQL operations | Protobuf RPC | AsyncAPI models | Kafka transport | Arazzo workflows | Cap’n Proto |
+| --- | --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| TypeScript | HTTP SDK/models; GraphQL client; Kafka message/client package; workflow runner | ✅ | ✅ | — | ✅ | ✅ | ✅ | — |
+| Zod | HTTP and selected GraphQL validators | ✅ | ✅ | — | — | — | — | — |
+| Faker | HTTP and selected GraphQL fixtures | ✅ | ✅ | — | — | — | — | — |
+| MSW | HTTP and GraphQL mock handlers | ✅ | ✅ | — | — | — | — | — |
+| Cypress | HTTP and GraphQL request/interception helpers | ✅ | ✅ | — | — | — | — | — |
+| React Query | TypeScript query/mutation hooks | ✅ | ✅ | — | — | — | — | — |
+| Vue Query | TypeScript query/mutation hooks | ✅ | ✅ | — | — | — | — | — |
+| SWR | TypeScript query/mutation hooks | ✅ | ✅ | — | — | — | — | — |
+| Go | HTTP/GraphQL SDK; Protobuf gRPC; Kafka JSON client | ✅ | ✅ | ✅ | ✅ | ✅ | — | — |
+| Rust | HTTP/GraphQL SDK; Kafka JSON client | ✅ | ✅ | — | ✅ | ✅ | — | — |
+| Python | HTTP SDK; synchronous GraphQL client; Kafka JSON client | ✅ | ✅ | — | ✅ | ✅ | — | — |
+| Java | Java HTTP SDK; GraphQL client; Kafka JSON client | ✅ | ✅ | — | ✅ | ✅ | — | — |
+| C# | C# HTTP SDK; GraphQL client; Kafka JSON client | ✅ | ✅ | — | ✅ | ✅ | — | — |
+| PHP | PHP HTTP SDK; GraphQL client; Kafka JSON client | ✅ | ✅ | — | ✅ | ✅ | — | — |
+| Symfony | HTTP/GraphQL integration; PHP Kafka SDK and DI bundle | ✅ | ✅ | — | ✅ (bundled PHP) | ✅ | — | — |
+| Ruby | Ruby HTTP SDK; GraphQL client with RBS; Kafka JSON client | ✅ | ✅ | — | ✅ | ✅ | — | — |
+| Elixir | Elixir HTTP SDK; GraphQL client; Kafka JSON client | ✅ | ✅ | — | ✅ | ✅ | — | — |
+| Swift | Swift HTTP SDK; GraphQL client; Kafka JSON client | ✅ | ✅ | — | ✅ | ✅ | — | — |
+| Rust CLI | HTTP and fixed-operation GraphQL command-line client | ✅ | ✅ | — | — | — | — | — |
+| TypeScript CLI | HTTP and fixed-operation GraphQL command-line client | ✅ | ✅ | — | — | — | — | — |
+| Postman | HTTP collections/examples; GraphQL collections and environments | ✅ | ✅ | — | — | — | — | — |
+| Terraform | Terraform provider scaffolding | ✅ | — | — | — | — | — | — |
 
 The TypeScript output package contains several generators: `ts::sdk()` /
 `ts::types()` for HTTP, `ts::graphql()` for `GraphqlOperations`, `ts::asyncapi()`
@@ -120,16 +122,20 @@ checks do not establish general JSON Schema runtime validation; constraints rema
 the semantic manifest. Go and Swift direct-construction APIs still have limited controls
 for optional nullable field presence. See the [detailed boundaries](reference/outputs/shared-models.md#boundaries).
 
-Event transports are implemented for **TypeScript, Go, Rust, Python, Java and C#**, separately from
+Event transports are implemented for **all ten SDK languages**, with **Symfony PHP DI integration**, separately from
 models-only coverage. CLI and JS event generation assemble event-derived shared models;
 Rust plugin authors select them with `asyncapi(provider).using_models(models.handle())`.
 Stable message IDs bind payload/header/key roles, and stale contract revisions are rejected.
 The direct TypeScript factory retains its legacy standalone rendering path for compatibility.
 
-All six have generated compilation/runtime and real local Kafka round-trip checks.
+Generated compilation/runtime and local Kafka checks are tracked per output; Swift
+evidence covers macOS, while Linux execution remains unverified.
 TypeScript uses KafkaJS 2.2.4/AJV 8.17.1, Go franz-go 1.18.1/jsonschema v5.3.1,
 Rust rust-rdkafka 0.38.0/jsonschema 0.33.0, Python kafka-python 3.0.11/jsonschema 4.26.0,
-Java Apache Kafka 3.9.1/networknt 1.5.6/Jackson 2.18.3, and C# Confluent.Kafka 2.12.0/JsonSchema.Net 7.3.4. The broker is pinned Redpanda 25.3.11.
+Java Apache Kafka 3.9.1/networknt 1.5.6/Jackson 2.18.3, C# Confluent.Kafka 2.12.0/JsonSchema.Net 7.3.4,
+PHP php-rdkafka 6.0.5/Opis 2.6.0, Ruby rdkafka 0.28.0/json_schemer 2.5.0,
+Swift official librdkafka 2.12.0, and Elixir brod 4.6.3/jesse 1.8.2/Jason 1.4.4.
+The broker is pinned Redpanda 25.3.11.
 Generation does not contact a broker. Tests provision unique topics; clients do not
 provision broker infrastructure. See [Kafka usage](reference/outputs/kafka.md).
 
@@ -147,7 +153,7 @@ runtime, operations and models occupy separate files in one `models` package; th
 configured name sets its module path. See [Go package details](reference/outputs/kafka.md#go-package-details).
 
 More brokers, declared security/authentication, dynamic channels, traits, replies,
-broader schema coverage and event transports for PHP, Ruby, Swift and Elixir remain work.
+broader schema coverage and additional platform verification remain work.
 This is not full AsyncAPI support. Broker/delegate/native tests overlap ordinary suites
 and are reported separately in the [verification log](verification/verification.md).
 
@@ -168,10 +174,25 @@ uses native tokens with bounded polling; invalid wire data poisons the subscript
 without committing. See [C# Kafka features](reference/languages/csharp.md#kafka-event-features).
 
 The [executable conformance baseline](reference/outputs/kafka-conformance.md) registers
-all six adapters, actual generated-package broker tests and explicit test-evidence gaps.
+all ten SDK outputs plus Symfony integration, actual generated-package broker tests
+and explicit test-evidence gaps.
 TypeScript retains native KafkaJS commit/skip policy; the suite does not imply identical
 acknowledgement semantics. TLS/SASL, registry integration and transactions remain
 separate follow-up work.
+
+PHP uses blocking sends and explicit synchronous acknowledgements; failed decoding
+poisons the subscription. Symfony includes that PHP SDK and DI configuration. Native
+php-rdkafka collapses duplicate Kafka header names before generated code can inspect
+them; duplicate-wire-header detection is unavailable. Ruby uses native idempotent
+producer retries and synchronous manual commits. Swift emits a small C ABI bridge to
+pinned librdkafka plus actor-based APIs; its Linux execution is not yet verified.
+
+Elixir uses brod: declared keys must be supplied and key/header schemas require
+`minLength >= 1` because the native codec cannot preserve null versus empty role values.
+Keyless operations remain supported. An acknowledgement schedules an asynchronous
+native offset commit; immediate-close redelivery is possible. Producer retries are
+bounded without an idempotence guarantee. These limits are visible in the
+[side-by-side Kafka chart](reference/outputs/kafka-conformance.md).
 
 ## GraphQL capability chart
 
@@ -209,7 +230,7 @@ multiplexing, reconnect/replay or newer ID-based incremental dialect is claimed.
 | OpenAPI | ✅ | HTTP output plugins above |
 | GraphQL SDL / local introspection JSON + operation documents | ✅ | All ten SDK languages through Rust API, CLI and npm entry points |
 | Protobuf proto2/proto3 | ✅ | Go messages and gRPC clients/server interfaces |
-| AsyncAPI 2.6 / 3.0 / 3.1 | ✅ | TS/Go/Rust/Python/Java Kafka for the supported 3.0/3.1 subsets; ten-language models-only subsets |
+| AsyncAPI 2.6 / 3.0 / 3.1 | ✅ | All ten SDK Kafka outputs plus Symfony PHP DI for the bounded plaintext JSON 3.0/3.1 subset; ten-language models-only subsets |
 | Arazzo 1.0.0 / 1.0.1 / 1.1.0 | ✅ | TypeScript sequential runners with resolved local OpenAPI sources |
 | Cap’n Proto | ✅ | — |
 

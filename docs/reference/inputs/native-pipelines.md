@@ -58,7 +58,7 @@ capabilities and release checklists.
 | OpenAPI → existing languages | Existing compiler and adapter | Existing SDK pipelines preserved | Existing target-specific limits still apply |
 | GraphQL → all ten SDK languages | SDL / local introspection JSON, full-file imports and operation documents | Selected clients; opt-in distinct SSE, directional scalar callbacks, experimental multipart 20220824 | WebSockets/reconnect, selective imports, newer incremental variants, dynamic fields and other native output contracts |
 | Protobuf → Go gRPC | Proto2/proto3 descriptors, imports and RPC metadata | Official messages, clients and server interfaces; unary and all streaming directions | Editions, broader official fixture coverage and additional output languages |
-| AsyncAPI → TS / Go / Rust / Python / Java / C# | 2.6/3.0/3.1 native document and message blocks | 3.0/3.1 JSON Kafka clients with shared models | Other event languages, broader schemas/bindings, security and other brokers |
+| AsyncAPI → all ten SDK languages + Symfony | 2.6/3.0/3.1 native document and message blocks | Bounded 3.0/3.1 plaintext JSON Kafka clients with shared models; Symfony PHP DI integration | Broader schemas/bindings, security and other brokers; Swift Linux execution unverified |
 | Arazzo → TypeScript | Native document and explicit local source resolution | Sequential HTTP runners with local workflow dependencies | Actions/retries, richer expressions/criteria and additional source types |
 | Cap’n Proto → Rust | Official compiler request and capability/node blocks | Not implemented | Official capnpc Rust generation, capnp-rpc interfaces and local capability tests |
 
@@ -213,7 +213,10 @@ not claimed as supported generated Go packages.
 
 ## AsyncAPI → TypeScript / Kafka
 
-Go, Rust, Python, Java and C# also provide tested Kafka clients using shared model packages. See the
+All ten SDK languages now provide Kafka client implementations using shared models;
+Symfony bundles the PHP runtime with DI registration. PHP has a native duplicate-wire-header
+detection gap, Elixir requires nonempty declared keys/header values and schedules
+asynchronous commits, and Swift Linux execution remains unverified. See the
 [Kafka generation guide](../outputs/kafka.md) for composition, broker configuration,
 file layout and language-specific acknowledgement behavior. The details below describe
 the TypeScript transport.
@@ -249,7 +252,8 @@ This establishes that tested Kafka subset, not every Kafka deployment or AsyncAP
 Broker-independent model-package tests are separate: focused Python/PHP/Ruby/Elixir
 checks passed 21 tests, including four explicitly executed native decoder tests.
 They exercise recursive references, presence/nullability and unsupported-feature
-diagnostics; they do not establish Kafka transport support for those languages.
+diagnostics; those historical model-only checks are separate from the newer Kafka
+transport tests and do not establish broker runtime behavior.
 
 ## Arazzo → TypeScript workflow runners
 
@@ -284,7 +288,7 @@ servers. This does not establish support for the complete upstream OAuth workflo
 | --- | --- | --- | --- |
 | GraphQL | `typescript`, `rust`, `go`, `python`, `php`, `java`, `csharp`, `dotnet`, `ruby`, `swift`, `elixir` | `graphql` | `input.options.operation_files`; Runtime scalar callbacks; separately enabled SSE; incremental input selects a separate contract |
 | Protobuf | `go` | `grpc` | Plugin `module`; toolchain paths if not on PATH; source `go_package` or plugin `go_packages` |
-| AsyncAPI | `typescript`, `go`, `rust`, `python`, `java` | `asyncapi` | Supported Kafka servers or `input.options.broker` |
+| AsyncAPI | `typescript`, `go`, `rust`, `python`, `java`, `csharp`, `php`, `ruby`, `swift`, `elixir`, `symfony` | `asyncapi` | Supported Kafka servers or `input.options.broker`; target-specific schema limits |
 | Arazzo | `typescript` | `workflow` | `input.options.workflow_sources` |
 
 A supported native CLI package selects one matching generator; TypeScript GraphQL
@@ -298,7 +302,8 @@ one input source, and existing `openapi` recipes remain valid.
 
 Completed foundation: contracts, optional blocks, typed hooks, provenance/revision
 checks, OpenAPI input extraction and first-party HTTP output migration. GraphQL →
-all ten SDK languages, Protobuf → Go gRPC, AsyncAPI → TypeScript/Go/Rust/Python/Java/C# Kafka and Arazzo → TypeScript
+all ten SDK languages, Protobuf → Go gRPC, AsyncAPI → ten-language Kafka clients
+with Symfony PHP DI integration, and Arazzo → TypeScript
 have usable, tested subsets described above.
 
 The frozen pre-output-migration HTTP corpus is **complete: 205 APIs × 10 languages,
@@ -315,11 +320,15 @@ These are the remaining implementation and release gaps:
 - [x] **EVENT-1:** Broker-independent AsyncAPI models-only packages from exposed
   rich schema blocks for all ten languages, within their documented model subsets.
   Complete collections are required; empty complete collections remain valid.
-- [x] **EVENT-SHARED:** TS/Go/Rust/Python/Java/C# event generators accept `GeneratedModels<Language>`;
+- [x] **EVENT-SHARED:** All ten SDK event generators accept `GeneratedModels<Language>`;
   CLI/JS compose shared models with event clients. Native role IDs and revision checks
   protect payload/header/key references. Compilation and local Kafka tests passed.
-- [ ] **EVENT-LANGUAGES:** Add explicit event transports for the remaining four
-  languages (PHP, Ruby, Swift and Elixir), beginning with a separately scoped language/broker implementation.
+- [x] **EVENT-LANGUAGES:** Explicit bounded Kafka transports for all ten SDK languages,
+  plus Symfony PHP runtime/DI integration. Native client policies differ; Swift Linux
+  execution remains unverified.
+- [ ] **EVENT-PLATFORMS:** Verify the Swift native toolchain and generated Kafka runtime
+  on Linux. Preserve explicit PHP duplicate-header and Elixir null/empty-role/commit
+  limitations; broaden them only with a tested native adapter.
 - [ ] **EVENT-2:** Extend event schemas, correlation IDs and bindings; add explicit
   security support and failure tests before advertising them. Other brokers need
   their own tested transport adapter.

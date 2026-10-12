@@ -1,0 +1,55 @@
+# Generated Elixir Kafka events
+
+`mix deps.get && mix compile` installs pinned brod 4.6.3, jesse 1.8.2 and Jason
+1.4.4. brod's kafka_protocol dependency builds crc32cer with CMake and a C compiler.
+Kafka event packages must be separate from generated HTTP/GraphQL packages.
+
+```elixir
+{:ok, client} = __NAMESPACE__.Events.connect(brokers: ["localhost:29092"])
+:ok = __NAMESPACE__.Events.SendOrder.send(client, payload, headers: headers, key: "key")
+{:ok, subscription} = __NAMESPACE__.Events.ReceiveOrder.subscribe(client)
+{:ok, record} = __NAMESPACE__.Events.KafkaSubscription.poll(subscription, 5_000)
+process(record.payload)
+:ok = __NAMESPACE__.Events.KafkaRecord.ack(record)
+__NAMESPACE__.Events.KafkaSubscription.close(subscription)
+__NAMESPACE__.Events.KafkaClient.close(client)
+```
+
+Each operation is a module using the AsyncAPI name. Payloads/headers use selected
+shared-model modules; scalar keys remain binaries. Presence and nullability are
+preserved by those models. brod's encoder treats empty keys as null, and its decoder collapses null/empty
+keys and headers. Keyless operations are supported. Declared keys and headers
+require minLength >= 1; declared keys must be supplied when sending. Incoming
+null/empty declared roles fail explicitly rather than becoming valid empty strings.
+There is no claim of optional-key support for brod.
+
+Producers wait for broker acknowledgement (`required_acks=-1`, 10sec ack timeout,
+three bounded native retries). There is no idempotent producer or application-call
+deduplication guarantee. A caller timeout does not cancel an already sent request.
+
+Consumers use brod's group subscriber, start new groups at earliest, and leave fetched
+records unacknowledged until the application acknowledges them. Native prefetch
+is bounded, and out-of-order acknowledgements within a partition are rejected. `ack` **schedules**
+brod's native offset commit; it does not mean the offset is already persisted.
+Native commit interval is one second and subscriber shutdown flushes acknowledged
+offsets on a best-effort basis. Immediate-close redelivery is therefore possible.
+Use idempotent handlers. `run` schedules acknowledgement only after handler success.
+A failed handler leaves the record pending; close/reopen the same group to replay.
+Malformed records invalidate the subscription without acknowledging or skipping
+past them. Double/foreign/invalidated acknowledgements fail.
+
+Poll returns `{:ok, record}`, `:timeout` or `{:error, reason}`. Concurrent polls
+are rejected. Cancellation wakes a pending poll and stops the native subscriber.
+Subscriptions and producer clients have separate lifetimes; close both.
+
+The generated package uses a precompiled 64-name pool because brod requires
+registered atom client names. Wire client IDs are honored independently. Clients
+are used through PIDs; user strings never become atoms. Exhaustion fails clearly.
+
+Static plaintext JSON Kafka only. jesse supports Draft6: generation accepts only
+Draft7 keywords with equivalent Draft6 semantics and rejects `if/then/else`,
+`format`, external refs and other unsupported keywords. Invalid UTF-8, duplicate
+properties/headers, null headers, tombstones and invalid constraints fail explicitly.
+BEAM cannot represent nonfinite floats, and Jason rejects nonfinite JSON tokens.
+TLS/SASL, schema registry, transactions, dynamic topics and unsupported bindings
+are rejected. Clients do not provision topics.

@@ -1,0 +1,66 @@
+import Foundation
+
+// Deliberately bounded Draft7 vocabulary; generation rejects other keywords.
+enum KafkaSchema {
+    static func validate(_ value: JSONValue, schema: String) throws {
+        try check(value, schema: KafkaJSON.parse(Data(schema.utf8)))
+    }
+    private static func fail(_ reason: String) throws { throw KafkaError.invalid("Schema: " + reason) }
+    private static func number(_ value: JSONValue) -> Decimal? {
+        switch value {
+        case .integer(let n): return Decimal(n)
+        case .unsignedInteger(let n): return Decimal(string: String(n), locale: Locale(identifier: "en_US_POSIX"))
+        case .number(let n): return n.isFinite ? Decimal(string: String(n), locale: Locale(identifier: "en_US_POSIX")) : nil
+        default: return nil
+        }
+    }
+    private static func matches(_ value: JSONValue, type: String) -> Bool {
+        switch (type, value) {
+        case ("null", .null), ("boolean", .bool), ("string", .string), ("object", .object), ("array", .array): return true
+        case ("number", _): return number(value) != nil
+        case ("integer", .integer), ("integer", .unsignedInteger): return true
+        case ("integer", .number(let n)): return n.isFinite && n.rounded(.towardZero) == n
+        default: return false
+        }
+    }
+    private static func bound(_ count: Int, _ object: [String: JSONValue], _ minimum: String, _ maximum: String) throws {
+        if let n = object[minimum].flatMap(number), Decimal(count) < n { try fail(minimum) }
+        if let n = object[maximum].flatMap(number), Decimal(count) > n { try fail(maximum) }
+    }
+    static func check(_ value: JSONValue, schema: JSONValue) throws {
+        if case .bool(let allowed) = schema { if !allowed { try fail("false schema") }; return }
+        guard case .object(let object) = schema else { try fail("schema must be object or boolean"); return }
+        if let type = object["type"] {
+            let types: [JSONValue]
+            if case .array(let values) = type { types = values } else { types = [type] }
+            guard types.contains(where: { if case .string(let name) = $0 { return matches(value, type: name) }; return false }) else { try fail("type"); return }
+        }
+        if case .array(let values) = object["enum"], !values.contains(value) { try fail("enum") }
+        if let constant = object["const"], constant != value { try fail("const") }
+        if let n = number(value) {
+            for (key, exclusive, upper) in [("minimum", false, false), ("maximum", false, true), ("exclusiveMinimum", true, false), ("exclusiveMaximum", true, true)] {
+                if let limit = object[key].flatMap(number) {
+                    if upper ? (exclusive ? n >= limit : n > limit) : (exclusive ? n <= limit : n < limit) { try fail(key) }
+                }
+            }
+        }
+        switch value {
+        case .string(let text): try bound(text.unicodeScalars.count, object, "minLength", "maxLength")
+        case .array(let values):
+            try bound(values.count, object, "minItems", "maxItems")
+            if let items = object["items"] { for child in values { try check(child, schema: items) } }
+        case .object(let values):
+            try bound(values.count, object, "minProperties", "maxProperties")
+            if case .array(let required) = object["required"] {
+                for key in required { if case .string(let name) = key, values[name] == nil { try fail("required " + name) } }
+            }
+            let properties: [String: JSONValue]
+            if case .object(let defined) = object["properties"] { properties = defined } else { properties = [:] }
+            for (name, child) in values {
+                if let property = properties[name] { try check(child, schema: property) }
+                else if let additional = object["additionalProperties"] { try check(child, schema: additional) }
+            }
+        default: break
+        }
+    }
+}

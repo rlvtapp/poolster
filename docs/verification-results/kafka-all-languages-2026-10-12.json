@@ -1,0 +1,783 @@
+{
+  "date": "2026-10-12",
+  "scope": "AsyncAPI 3.0/3.1 plaintext JSON Kafka subset across ten SDK languages; Symfony uses PHP runtime and DI bundle",
+  "workspace": {
+    "test_executables": 106,
+    "effective": {
+      "passed": 1007,
+      "failed": 0,
+      "ignored": 205
+    },
+    "initial": {
+      "passed": 987,
+      "failed": 18,
+      "ignored": 205
+    },
+    "initial_failure_reason": "Sandbox denied compiler cache/Docker/local server sockets; nested Rust Cargo attempted registry access. All failed binaries rerun successfully with required access and cached dependencies. Final affected binaries replace initial results, not additive totals. Two newly added safety tests included.",
+    "initial_results": "/private/tmp/poolster-parallel-kafka-ten-tests/results.json",
+    "final_affected_libs": "/private/tmp/poolster-affected-libs-final.log",
+    "final_affected_events": "/private/tmp/poolster-affected-events-final.log",
+    "rust_offline_rerun": "/private/tmp/poolster-kafka-ten-rust-offline-rerun.log"
+  },
+  "sdk": {
+    "full_suite": {
+      "passed": 89,
+      "failed": 0,
+      "skipped": 2,
+      "log": "/private/tmp/poolster-kafka-ten-npm-final.log"
+    },
+    "explicit_kafka_broker": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "log": "/private/tmp/poolster-kafka-ten-js-broker.log"
+    },
+    "final_rebuilt_addon_events": {
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "log": "/private/tmp/poolster-kafka-ten-js-events-final.log"
+    }
+  },
+  "cli": {
+    "all_ten_and_symfony_generation_regeneration": {
+      "passed": 1,
+      "failed": 0,
+      "log": "/private/tmp/poolster-kafka-ten-cli-final.log"
+    }
+  },
+  "checks": {
+    "workspace_clippy": "passed with -D warnings",
+    "final_elixir_clippy": "passed with -D warnings",
+    "format": "passed",
+    "diff": "passed",
+    "source_size": {
+      "authored_files": 769,
+      "violations": 0
+    },
+    "workspace_doc_tests": {
+      "status": "passed",
+      "log": "/private/tmp/poolster-kafka-ten-doctests.log",
+      "note": "Node cdylib doc tests unsupported by Cargo; no runnable documentation tests in supported targets."
+    }
+  },
+  "native_evidence": "Normally ignored compilation and broker tests explicitly enabled; their counts are separate from default workspace totals. Adapter reports contain nested generated-package counts and must not be added to workspace counts.",
+  "limitations": [
+    "Kafka subset only; no generated TLS/SASL, registries, transactions, other brokers or full AsyncAPI support",
+    "PHP native associative header map can collapse duplicate wire names before validation",
+    "Elixir declared keys and header values require minLength >= 1; native acknowledgement schedules asynchronous commit and immediate close can replay",
+    "Swift native broker evidence is macOS only; Linux unverified",
+    "Existing TypeScript/Go evidence gaps remain visible in conformance chart"
+  ],
+  "additional_native_logs": [
+    "/private/tmp/poolster-php-kafka-harness-tests.log",
+    "/private/tmp/poolster-php-symfony-events-final-native.log",
+    "/private/tmp/poolster-swift-provider-nested-final.log"
+  ],
+  "conformance": {
+    "invocations": 2,
+    "adapters": 10,
+    "suites": 21,
+    "passed": 21,
+    "failed": 0,
+    "skipped": 0,
+    "scope": "adapter-level execution; reports include nested generated-crate counts",
+    "results": [
+      {
+        "language": "typescript",
+        "suite": "generation",
+        "tier": "generation",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-typescript",
+          "--offline",
+          "--locked",
+          "--lib",
+          "events::tests"
+        ],
+        "cases": [
+          "provenance",
+          "regeneration"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0
+        },
+        "log": "/private/tmp/poolster-kafka-ten-conformance/typescript-generation.log",
+        "reason": null
+      },
+      {
+        "language": "typescript",
+        "suite": "broker",
+        "tier": "native",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-typescript",
+          "--offline",
+          "--locked",
+          "--test",
+          "asyncapi_native",
+          "generated_kafka_package_compiles_and_roundtrips_real_broker",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cases": [
+          "package",
+          "roundtrip",
+          "outgoing-validation",
+          "incoming-validation",
+          "acknowledgement",
+          "utf8"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        "log": "/private/tmp/poolster-kafka-ten-conformance/typescript-broker.log",
+        "reason": null
+      },
+      {
+        "language": "go",
+        "suite": "generation",
+        "tier": "generation",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-go",
+          "--offline",
+          "--locked",
+          "--test",
+          "events",
+          ""
+        ],
+        "cases": [
+          "provenance",
+          "regeneration"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 3,
+          "failed": 0,
+          "ignored": 2
+        },
+        "log": "/private/tmp/poolster-kafka-ten-conformance/go-generation.log",
+        "reason": null
+      },
+      {
+        "language": "go",
+        "suite": "codec",
+        "tier": "native",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-go",
+          "--offline",
+          "--locked",
+          "--test",
+          "events",
+          "generated_package_compiles_and_validates_wire_messages",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cases": [
+          "package",
+          "outgoing-validation",
+          "incoming-validation",
+          "utf8"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        "log": "/private/tmp/poolster-kafka-ten-conformance/go-codec.log",
+        "reason": null
+      },
+      {
+        "language": "go",
+        "suite": "broker",
+        "tier": "native",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-go",
+          "--offline",
+          "--locked",
+          "--test",
+          "events",
+          "generated_client_roundtrips_local_kafka",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cases": [
+          "package",
+          "roundtrip",
+          "acknowledgement",
+          "handler-replay",
+          "cancellation"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        "log": "/private/tmp/poolster-kafka-ten-conformance/go-broker.log",
+        "reason": null
+      },
+      {
+        "language": "rust",
+        "suite": "generation",
+        "tier": "generation",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-rust",
+          "--offline",
+          "--locked",
+          "--lib",
+          "events::tests"
+        ],
+        "cases": [
+          "provenance",
+          "regeneration"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 4,
+          "failed": 0,
+          "ignored": 1
+        },
+        "log": "/private/tmp/poolster-kafka-ten-conformance/rust-generation.log",
+        "reason": null
+      },
+      {
+        "language": "rust",
+        "suite": "broker",
+        "tier": "native",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-rust",
+          "--offline",
+          "--locked",
+          "--lib",
+          "events::tests::native_generated_kafka_package",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cases": [
+          "package",
+          "roundtrip",
+          "outgoing-validation",
+          "incoming-validation",
+          "acknowledgement",
+          "bindings",
+          "utf8",
+          "handler-replay",
+          "cancellation"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 5,
+          "failed": 0,
+          "ignored": 0
+        },
+        "log": "/private/tmp/poolster-kafka-ten-conformance/rust-broker.log",
+        "reason": null
+      },
+      {
+        "language": "python",
+        "suite": "generation",
+        "tier": "generation",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-python",
+          "--offline",
+          "--locked",
+          "--lib",
+          "events::tests"
+        ],
+        "cases": [
+          "provenance",
+          "regeneration"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 3,
+          "failed": 0,
+          "ignored": 1
+        },
+        "log": "/private/tmp/poolster-kafka-ten-conformance/python-generation.log",
+        "reason": null
+      },
+      {
+        "language": "python",
+        "suite": "broker",
+        "tier": "native",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-python",
+          "--offline",
+          "--locked",
+          "--lib",
+          "events::tests::generated_python_codec_and_local_broker",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cases": [
+          "package",
+          "roundtrip",
+          "outgoing-validation",
+          "incoming-validation",
+          "acknowledgement",
+          "cancellation",
+          "bindings",
+          "utf8",
+          "handler-replay"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        "log": "/private/tmp/poolster-kafka-ten-conformance/python-broker.log",
+        "reason": null
+      },
+      {
+        "language": "java",
+        "suite": "generation",
+        "tier": "generation",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-java",
+          "--offline",
+          "--locked",
+          "--test",
+          "events",
+          ""
+        ],
+        "cases": [
+          "provenance",
+          "regeneration"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 5,
+          "failed": 0,
+          "ignored": 2
+        },
+        "log": "/private/tmp/poolster-kafka-ten-conformance/java-generation.log",
+        "reason": null
+      },
+      {
+        "language": "java",
+        "suite": "broker",
+        "tier": "native",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-java",
+          "--offline",
+          "--locked",
+          "--test",
+          "events",
+          "generated_package_roundtrips_local_kafka",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cases": [
+          "package",
+          "roundtrip",
+          "outgoing-validation",
+          "incoming-validation",
+          "acknowledgement",
+          "cancellation",
+          "bindings",
+          "utf8",
+          "handler-replay"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        "log": "/private/tmp/poolster-kafka-ten-conformance/java-broker.log",
+        "reason": null
+      },
+      {
+        "language": "csharp",
+        "suite": "generation",
+        "tier": "generation",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-csharp",
+          "--offline",
+          "--locked",
+          "--test",
+          "events"
+        ],
+        "cases": [
+          "provenance",
+          "regeneration"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 9,
+          "failed": 0,
+          "ignored": 3
+        },
+        "log": "/private/tmp/poolster-kafka-ten-conformance/csharp-generation.log",
+        "reason": null
+      },
+      {
+        "language": "csharp",
+        "suite": "broker",
+        "tier": "native",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-csharp",
+          "--offline",
+          "--locked",
+          "--test",
+          "events",
+          "generated_package_roundtrips_local_kafka",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cases": [
+          "package",
+          "roundtrip",
+          "outgoing-validation",
+          "incoming-validation",
+          "utf8",
+          "acknowledgement",
+          "handler-replay",
+          "cancellation",
+          "bindings"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        "log": "/private/tmp/poolster-kafka-ten-conformance/csharp-broker.log",
+        "reason": null
+      },
+      {
+        "language": "php",
+        "suite": "generation",
+        "tier": "generation",
+        "command": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "-p",
+          "poolster-plugin-php",
+          "--lib",
+          "events::"
+        ],
+        "cases": [
+          "provenance",
+          "regeneration"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 5,
+          "failed": 0,
+          "ignored": 1
+        },
+        "log": "/private/tmp/poolster-kafka-ten-conformance/php-generation.log",
+        "reason": null
+      },
+      {
+        "language": "php",
+        "suite": "broker",
+        "tier": "native",
+        "command": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "-p",
+          "poolster-plugin-php",
+          "--lib",
+          "events::tests::native",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cases": [
+          "package",
+          "roundtrip",
+          "outgoing-validation",
+          "incoming-validation",
+          "utf8",
+          "acknowledgement",
+          "handler-replay",
+          "cancellation",
+          "bindings"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        "log": "/private/tmp/poolster-kafka-ten-conformance/php-broker.log",
+        "reason": null
+      },
+      {
+        "language": "swift",
+        "suite": "generation",
+        "tier": "generation",
+        "command": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "-p",
+          "poolster-plugin-swift",
+          "--test",
+          "events"
+        ],
+        "cases": [
+          "provenance",
+          "regeneration"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 3,
+          "failed": 0,
+          "ignored": 2
+        },
+        "log": "/private/tmp/poolster-kafka-ten-conformance/swift-generation.log",
+        "reason": null
+      },
+      {
+        "language": "swift",
+        "suite": "broker",
+        "tier": "native",
+        "command": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "-p",
+          "poolster-plugin-swift",
+          "--test",
+          "events",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cases": [
+          "package",
+          "roundtrip",
+          "outgoing-validation",
+          "incoming-validation",
+          "utf8",
+          "acknowledgement",
+          "handler-replay",
+          "cancellation",
+          "bindings"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0
+        },
+        "log": "/private/tmp/poolster-kafka-ten-conformance/swift-broker.log",
+        "reason": null
+      },
+      {
+        "language": "ruby",
+        "suite": "generation",
+        "tier": "generation",
+        "command": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "-p",
+          "poolster-plugin-ruby",
+          "--test",
+          "events"
+        ],
+        "cases": [
+          "provenance",
+          "regeneration"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 7,
+          "failed": 0,
+          "ignored": 2
+        },
+        "log": "/private/tmp/poolster-ruby-elixir-conformance/ruby-generation.log",
+        "reason": null
+      },
+      {
+        "language": "ruby",
+        "suite": "broker",
+        "tier": "native",
+        "command": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "-p",
+          "poolster-plugin-ruby",
+          "--test",
+          "events",
+          "generated_package",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cases": [
+          "package",
+          "roundtrip",
+          "outgoing-validation",
+          "incoming-validation",
+          "utf8",
+          "acknowledgement",
+          "handler-replay",
+          "cancellation",
+          "bindings"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0
+        },
+        "log": "/private/tmp/poolster-ruby-elixir-conformance/ruby-broker.log",
+        "reason": null
+      },
+      {
+        "language": "elixir",
+        "suite": "generation",
+        "tier": "generation",
+        "command": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "-p",
+          "poolster-plugin-elixir",
+          "--test",
+          "events"
+        ],
+        "cases": [
+          "provenance",
+          "regeneration"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 8,
+          "failed": 0,
+          "ignored": 2
+        },
+        "log": "/private/tmp/poolster-ruby-elixir-conformance/elixir-generation.log",
+        "reason": null
+      },
+      {
+        "language": "elixir",
+        "suite": "broker",
+        "tier": "native",
+        "command": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "-p",
+          "poolster-plugin-elixir",
+          "--test",
+          "events",
+          "generated_package",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cases": [
+          "package",
+          "roundtrip",
+          "outgoing-validation",
+          "incoming-validation",
+          "utf8",
+          "acknowledgement",
+          "handler-replay",
+          "cancellation",
+          "bindings"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0
+        },
+        "log": "/private/tmp/poolster-ruby-elixir-conformance/elixir-broker.log",
+        "reason": null
+      }
+    ]
+  }
+}

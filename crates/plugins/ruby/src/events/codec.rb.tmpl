@@ -1,0 +1,53 @@
+# frozen_string_literal: true
+require 'json'
+require 'json_schemer'
+
+module __NAMESPACE__
+  module Events
+    module KafkaCodec
+      class UniqueObject < Hash
+        def []=(key, value)
+          raise ArgumentError, "duplicate JSON property #{key}" if key?(key)
+          super
+        end
+      end
+      def self.utf8(value)
+        raise ArgumentError, 'Kafka value must be a string' unless value.is_a?(String)
+        value = value.dup.force_encoding(Encoding::UTF_8)
+        raise ArgumentError, 'invalid Kafka UTF-8' unless value.valid_encoding?
+        value
+      end
+      def self.wire(value)
+        case value
+        when Array then value.map { |item| wire(item) }
+        when Hash then value.to_h { |key, item| [key.to_s, wire(item)] }
+        else value.respond_to?(:to_h) && !value.nil? ? wire(value.to_h) : value
+        end
+      end
+      def self.check_json(value)
+        case value
+        when String then utf8(value)
+        when Float then raise ArgumentError, 'nonfinite Kafka JSON number' unless value.finite?
+        when Hash then value.each { |key, item| utf8(key); check_json(item) }
+        when Array then value.each { |item| check_json(item) }
+        when Integer, TrueClass, FalseClass, NilClass then nil
+        else raise ArgumentError, 'Kafka JSON value is unsupported'
+        end
+      end
+      def self.check_headers(headers)
+        raise ArgumentError, 'Kafka headers must be an object' unless headers.is_a?(Hash)
+        headers.each { |name, value| utf8(name); utf8(value) }
+      end
+      def self.decode(message, definition)
+        raise ArgumentError, 'Kafka tombstones are unsupported' if message.payload.nil?
+        payload = JSON.parse(utf8(message.payload), object_class: UniqueObject, allow_nan: false)
+        headers = message.headers.to_h { |name, value| [utf8(name), utf8(value)] }
+        key = message.key.nil? ? nil : utf8(message.key)
+        definition.validate('payload', payload)
+        definition.validate('headers', definition.wire['headers_schema'].nil? ? (headers.empty? ? nil : headers) : headers)
+        definition.validate('key', key) unless key.nil?
+        [definition.decode('payload', payload), definition.decode('headers', headers), definition.decode('key', key)]
+      end
+    end
+  end
+end

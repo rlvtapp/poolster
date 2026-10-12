@@ -52,14 +52,8 @@ impl ModelOutput for Ruby {
                 },
             );
         }
-        cx.files
-            .emit(GeneratedFile::new(format!("lib/{library}.rb"), index)?)?;
-        let version = cx.common.package_version.as_deref().unwrap_or("0.1.0");
-        let manifest = format!(
-            "Gem::Specification.new do |spec|\n  spec.name = {package:?}\n  spec.version = {version:?}\n  spec.summary = 'Generated Poolster models'\n  spec.authors = ['Poolster']\n  spec.files = Dir['lib/**/*.rb']\n  spec.require_paths = ['lib']\n  spec.required_ruby_version = '>= 3.1'\nend\n"
-        );
-        cx.files
-            .emit(GeneratedFile::new(format!("{library}.gemspec"), manifest)?)?;
+        cx.workspace.model_index = index;
+        cx.workspace.models = true;
         Ok(symbols)
     }
 }

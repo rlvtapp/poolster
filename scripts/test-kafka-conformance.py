@@ -36,14 +36,18 @@ class ConformanceTests(unittest.TestCase):
         grid = doc.split('<!-- kafka-evidence:start -->', 1)[1].split('<!-- kafka-evidence:end -->', 1)[0].strip()
         self.assertEqual(grid, module.evidence_matrix(catalog))
 
-    def test_pending_languages_are_visible_without_executable_adapters(self):
+    def test_every_sdk_language_is_visible_and_pending_has_no_adapter(self):
         catalog = json.loads(module.CATALOG.read_text())
-        self.assertEqual(catalog['pending_languages'], ['php', 'ruby', 'swift', 'elixir'])
-        self.assertFalse(set(catalog['pending_languages']) & set(catalog['languages']))
+        expected = {'typescript', 'rust', 'go', 'python', 'java', 'csharp',
+                    'php', 'ruby', 'swift', 'elixir'}
+        pending = catalog.get('pending_languages', [])
+        self.assertTrue(expected <= set(catalog['languages']) | set(pending))
+        self.assertFalse(set(pending) & set(catalog['languages']))
+        # Pending status is independently testable even when all bundled outputs exist.
+        catalog['pending_languages'] = ['future-language']
         grid = module.evidence_matrix(catalog)
-        self.assertIn('PHP | Ruby | Swift | Elixir', grid)
-        self.assertTrue(all(line.endswith('| N | N | N | N |')
-                            for line in grid.splitlines()[2:]))
+        self.assertIn('future-language', grid)
+        self.assertTrue(all(line.endswith('| N |') for line in grid.splitlines()[2:]))
         catalog['pending_languages'].append('go')
         self.assertTrue(module.validate(catalog))
 

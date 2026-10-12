@@ -1,0 +1,75 @@
+# frozen_string_literal: true
+require 'rdkafka'
+require_relative 'codec'
+require_relative 'subscription'
+
+module __NAMESPACE__
+  module Events
+    class KafkaDefinition
+      attr_reader :wire, :payload_type, :headers_type, :key_type
+      def initialize(wire, payload_type, headers_type, key_type)
+        @wire, @payload_type, @headers_type, @key_type = wire.freeze, payload_type, headers_type, key_type
+        @schemas = {}
+      end
+      def validate(role, value)
+        schema = wire["#{role}_schema"]
+        raise ArgumentError, "#{role} is unsupported by this operation" if schema.nil? && !value.nil?
+        return if schema.nil?
+        @schemas[role] ||= JSONSchemer.schema(schema, meta_schema: JSONSchemer.draft7, ref_resolver: ->(_uri) { raise ArgumentError, 'external schema reference' })
+        raise ArgumentError, "invalid Kafka #{role}" unless @schemas[role].valid?(value)
+      end
+      def decode(role, value)
+        type = { 'payload' => payload_type, 'headers' => headers_type, 'key' => key_type }.fetch(role)
+        (type.nil? || value.nil?) ? nil : (type.respond_to?(:from_hash) ? type.from_hash(value) : value)
+      end
+    end
+
+    class KafkaClient
+      def initialize(brokers:)
+        @brokers = brokers
+        @producers = {}
+        @closed = false
+      end
+      def send_event(definition, payload, headers: nil, key: nil, timeout: 30)
+        raise IOError, 'Kafka client is closed' if @closed
+        wire_payload = KafkaCodec.wire(payload)
+        wire_headers = headers.nil? ? {} : KafkaCodec.wire(headers)
+        wire_key = KafkaCodec.wire(key)
+        KafkaCodec.check_json(wire_payload)
+        KafkaCodec.check_headers(wire_headers)
+        KafkaCodec.utf8(wire_key) unless wire_key.nil?
+        definition.validate('payload', wire_payload)
+        definition.validate('headers', definition.wire['headers_schema'].nil? ? nil : wire_headers)
+        definition.validate('key', wire_key) unless wire_key.nil?
+        id = definition.wire['client_id'] || 'poolster-ruby'
+        producer = (@producers[id] ||= Rdkafka::Config.new(
+          'bootstrap.servers' => @brokers, 'client.id' => id,
+          'acks' => 'all', 'enable.idempotence' => true,
+          'delivery.timeout.ms' => 30_000, 'request.timeout.ms' => 10_000
+        ).producer)
+        producer.produce(topic: definition.wire.fetch('topic'), payload: JSON.generate(wire_payload),
+                         key: wire_key, headers: wire_headers).wait(max_wait_timeout: timeout)
+      end
+      def subscribe(definition, group: nil)
+        raise IOError, 'Kafka client is closed' if @closed
+        fixed = definition.wire['group_id']
+        raise ArgumentError, 'group override conflicts with Kafka binding' if fixed && group && group != fixed
+        group ||= fixed
+        raise ArgumentError, 'Kafka consumer requires a group' if group.nil? || group.empty?
+        consumer = Rdkafka::Config.new(
+          'bootstrap.servers' => @brokers, 'client.id' => definition.wire['client_id'] || 'poolster-ruby',
+          'group.id' => group, 'enable.auto.commit' => false, 'enable.auto.offset.store' => false,
+          'auto.offset.reset' => 'earliest'
+        ).consumer
+        consumer.subscribe(definition.wire.fetch('topic'))
+        KafkaSubscription.new(consumer, definition)
+      end
+      def close
+        return if @closed
+        @closed = true
+        @producers.each_value(&:close)
+        @producers.clear
+      end
+    end
+  end
+end

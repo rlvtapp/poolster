@@ -1,0 +1,48 @@
+# Swift Kafka JSON events
+
+Generated Swift 6 package (macOS 13+; Linux system toolchain), using Codable/actors and official librdkafka **2.12.0**.
+Sources pin the verified upstream release commit
+`2f2208847f7f91eaf54bcbd2cedf5dbb2dd3a3fe`. Install that native toolchain before
+building; runtime rejects other versions rather than silently claiming coverage.
+
+On macOS/Linux, obtain the official `confluentinc/librdkafka` v2.12.0 release and
+build/install it with `./configure --prefix=/your/native/prefix`, `make`, then
+`make install`. Install `pkg-config` and set `PKG_CONFIG_PATH` to that prefix's
+`lib/pkgconfig`. Alternatively pass `-Xcc -I/your/native/prefix/include` and
+`-Xlinker -L/your/native/prefix/lib` to `swift build`, and configure the native loader
+library path. SwiftPM declares the system-library dependency explicitly; it does
+not install native packages automatically. Generic brew/apt providers may install
+a different version; verify `rd_kafka_version_str()` is exactly `2.12.0`.
+
+```swift
+let runtime = KafkaDefaults.connect()
+// let delivered = try await SendOrderEvent.send(runtime, payload: payload, headers: headers, key: key)
+// let subscription = try await ReceiveOrderEvent.subscribe(runtime)
+// let record = try await subscription.receive()
+// try await process(record.payload)
+// try await subscription.ack(record)
+// await subscription.close()
+await runtime.close()
+```
+
+One operation source per operation, canonical shared models, separate codec,
+schema/runtime/subscription and small C ABI bridge. Native AsyncAPI document retained.
+Header objects must be closed nonnullable strings; optional keys are nonnullable strings.
+Supported bounded Draft7 schema constraints are validated before send/after receipt;
+unsupported schema keywords (including pattern, unions, refs and format) reject generation.
+Numeric schema bounds are limited to finite magnitudes up to 1e28; runtime numeric
+validation uses Foundation Decimal and rejects values outside its representable range.
+Native producer idempotence and `acks=all` protect transport retries only; no
+application deduplication or transactions. Sends await broker delivery metadata;
+cancellation stops waiting and does not retract queued records. Producers cache per
+operation client ID. Await outstanding sends before closing producers: close may
+purge queued/in-flight messages. Consumer subscriptions have independent lifetimes.
+Auto-commit/auto-store off, new groups earliest. Manual `ack(record)` or handler-success
+`run` commits after success; failed handlers leave offsets uncommitted. Only one pending
+record per subscription. Strict UTF-8/JSON, duplicate keys/headers, null headers and
+tombstones reject and poison the subscription; close/reopen for replay. Swift Task
+cancellation terminates receive waits. Fixed group override conflicts reject.
+
+Static plaintext Kafka JSON subset only: no generated TLS/SASL, registry, transactions,
+automatic handler retries, dead-letter policy or other brokers. Separate Kafka and
+HTTP/GraphQL output packages are required.

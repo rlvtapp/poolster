@@ -1,0 +1,82 @@
+# frozen_string_literal: true
+module __NAMESPACE__
+  module Events
+    class KafkaRecord
+      attr_reader :payload, :headers, :key, :topic, :partition, :offset
+      def initialize(subscription, message, values)
+        @subscription, @message = subscription, message
+        @payload, @headers, @key = values
+        @topic, @partition, @offset = message.topic, message.partition, message.offset
+        @acked = false
+      end
+      def ack
+        raise IOError, 'record already acknowledged' if @acked
+        @subscription.ack(self, @message)
+        @acked = true
+      end
+    end
+    class KafkaSubscription
+      def initialize(consumer, definition)
+        @consumer, @definition = consumer, definition
+        @pending = nil
+        @cancelled = false
+        @closed = false
+        @poisoned = false
+        @thread = Thread.current
+      end
+      def poll(timeout: 1)
+        check_thread
+        raise IOError, 'Kafka subscription is closed or invalidated' if @closed || @poisoned
+        raise IOError, 'acknowledge the pending record before polling' if @pending
+        return nil if @cancelled
+        remaining = [timeout, 0].max
+        begin
+          loop do
+            started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+            message = @consumer.poll(([remaining, 0.25].min * 1000).to_i)
+            if message
+              @pending = KafkaRecord.new(self, message, KafkaCodec.decode(message, @definition))
+              return @pending
+            end
+            remaining -= Process.clock_gettime(Process::CLOCK_MONOTONIC) - started
+            return nil if @cancelled || remaining <= 0
+          end
+        rescue StandardError
+          @poisoned = true
+          raise
+        end
+      end
+      def ack(record, message)
+        check_thread
+        raise IOError, 'Kafka subscription is closed or invalidated' if @closed || @poisoned
+        raise ArgumentError, 'record does not belong to this subscription' unless @pending.equal?(record)
+        @consumer.store_offset(message)
+        @consumer.commit(nil, false)
+        @pending = nil
+      end
+      def run(timeout: 1)
+        loop do
+          break if @cancelled
+          record = poll(timeout: timeout)
+          next unless record
+          yield record
+          record.ack
+        end
+      end
+      # Cooperative cancellation may be called from a different thread.
+      def cancel
+        @cancelled = true
+      end
+      def close
+        check_thread
+        return if @closed
+        @closed = true
+        @consumer.close
+      end
+      private
+      def check_thread
+        raise ThreadError, 'poll, ack and close must use the subscription thread' unless Thread.current.equal?(@thread)
+      end
+    end
+  end
+end

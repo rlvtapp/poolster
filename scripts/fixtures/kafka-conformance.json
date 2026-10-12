@@ -993,12 +993,636 @@
           "required_env": []
         }
       ]
+    },
+    "php": {
+      "coverage": {
+        "package": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/php/src/events/probe.php"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "roundtrip": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/php/src/events/probe.php"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "outgoing-validation": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/php/src/events/probe.php"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "incoming-validation": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/php/src/events/probe.php"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "utf8": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/php/src/events/probe.php"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "acknowledgement": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/php/src/events/probe.php"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "handler-replay": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/php/src/events/probe.php"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "cancellation": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/php/src/events/probe.php"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "bindings": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/php/src/events/probe.php"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "provenance": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/php/src/events/tests/provenance.rs"
+          ],
+          "suites": [
+            "generation"
+          ]
+        },
+        "regeneration": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/php/src/events/tests/provenance.rs"
+          ],
+          "suites": [
+            "generation"
+          ]
+        }
+      },
+      "suites": [
+        {
+          "id": "generation",
+          "tier": "generation",
+          "command": [
+            "cargo",
+            "test",
+            "--offline",
+            "--locked",
+            "-p",
+            "poolster-plugin-php",
+            "--lib",
+            "events::"
+          ],
+          "cases": [
+            "provenance",
+            "regeneration"
+          ],
+          "required_env": []
+        },
+        {
+          "id": "broker",
+          "tier": "native",
+          "command": [
+            "cargo",
+            "test",
+            "--offline",
+            "--locked",
+            "-p",
+            "poolster-plugin-php",
+            "--lib",
+            "events::tests::native",
+            "--",
+            "--ignored",
+            "--nocapture"
+          ],
+          "cases": [
+            "package",
+            "roundtrip",
+            "outgoing-validation",
+            "incoming-validation",
+            "utf8",
+            "acknowledgement",
+            "handler-replay",
+            "cancellation",
+            "bindings"
+          ],
+          "required_env": []
+        }
+      ]
+    },
+    "swift": {
+      "coverage": {
+        "package": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/swift/tests/fixtures/events.swift"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "roundtrip": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/swift/tests/fixtures/events.swift"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "outgoing-validation": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/swift/tests/fixtures/events.swift"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "incoming-validation": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/swift/tests/fixtures/events.swift"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "utf8": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/swift/tests/fixtures/events.swift"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "acknowledgement": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/swift/tests/fixtures/events.swift"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "handler-replay": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/swift/tests/fixtures/events.swift"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "cancellation": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/swift/tests/fixtures/events.swift"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "bindings": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/swift/tests/fixtures/events.swift"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "provenance": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/swift/tests/events.rs"
+          ],
+          "suites": [
+            "generation"
+          ]
+        },
+        "regeneration": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/swift/tests/events.rs"
+          ],
+          "suites": [
+            "generation"
+          ]
+        }
+      },
+      "suites": [
+        {
+          "id": "generation",
+          "tier": "generation",
+          "command": [
+            "cargo",
+            "test",
+            "--offline",
+            "--locked",
+            "-p",
+            "poolster-plugin-swift",
+            "--test",
+            "events"
+          ],
+          "cases": [
+            "provenance",
+            "regeneration"
+          ],
+          "required_env": []
+        },
+        {
+          "id": "broker",
+          "tier": "native",
+          "command": [
+            "cargo",
+            "test",
+            "--offline",
+            "--locked",
+            "-p",
+            "poolster-plugin-swift",
+            "--test",
+            "events",
+            "--",
+            "--ignored",
+            "--nocapture"
+          ],
+          "cases": [
+            "package",
+            "roundtrip",
+            "outgoing-validation",
+            "incoming-validation",
+            "utf8",
+            "acknowledgement",
+            "handler-replay",
+            "cancellation",
+            "bindings"
+          ],
+          "required_env": [
+            "POOLSTER_SWIFT_KAFKA_PREFIX"
+          ]
+        }
+      ]
+    },
+    "ruby": {
+      "coverage": {
+        "package": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/ruby/tests/fixtures/events-wire.rb"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "roundtrip": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/ruby/tests/fixtures/events-wire.rb"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "outgoing-validation": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/ruby/tests/fixtures/events-wire.rb"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "incoming-validation": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/ruby/tests/fixtures/events-wire.rb",
+            "crates/plugins/ruby/tests/fixtures/events-broker-wire.java"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "utf8": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/ruby/tests/fixtures/events-wire.rb",
+            "crates/plugins/ruby/tests/fixtures/events-broker-wire.java"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "acknowledgement": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/ruby/tests/fixtures/events-wire.rb"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "handler-replay": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/ruby/tests/fixtures/events-wire.rb"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "cancellation": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/ruby/tests/fixtures/events-wire.rb"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "bindings": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/ruby/tests/fixtures/events-wire.rb"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "provenance": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/ruby/tests/events.rs"
+          ],
+          "suites": [
+            "generation"
+          ]
+        },
+        "regeneration": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/ruby/tests/events.rs"
+          ],
+          "suites": [
+            "generation"
+          ]
+        }
+      },
+      "suites": [
+        {
+          "id": "generation",
+          "tier": "generation",
+          "command": [
+            "cargo",
+            "test",
+            "--offline",
+            "--locked",
+            "-p",
+            "poolster-plugin-ruby",
+            "--test",
+            "events"
+          ],
+          "cases": [
+            "provenance",
+            "regeneration"
+          ],
+          "required_env": []
+        },
+        {
+          "id": "broker",
+          "tier": "native",
+          "command": [
+            "cargo",
+            "test",
+            "--offline",
+            "--locked",
+            "-p",
+            "poolster-plugin-ruby",
+            "--test",
+            "events",
+            "generated_package",
+            "--",
+            "--ignored",
+            "--nocapture"
+          ],
+          "cases": [
+            "package",
+            "roundtrip",
+            "outgoing-validation",
+            "incoming-validation",
+            "utf8",
+            "acknowledgement",
+            "handler-replay",
+            "cancellation",
+            "bindings"
+          ],
+          "required_env": [
+            "POOLSTER_RUBY_EVENTS_RUNNER",
+            "POOLSTER_JAVA",
+            "POOLSTER_KAFKA_JAVA_CLASSPATH"
+          ]
+        }
+      ]
+    },
+    "elixir": {
+      "coverage": {
+        "package": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/elixir/tests/fixtures/events-wire.exs"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "roundtrip": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/elixir/tests/fixtures/events-wire.exs"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "outgoing-validation": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/elixir/tests/fixtures/events-wire.exs"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "incoming-validation": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/elixir/tests/fixtures/events-wire.exs",
+            "crates/plugins/elixir/tests/fixtures/events-broker-wire.java"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "utf8": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/elixir/tests/fixtures/events-wire.exs",
+            "crates/plugins/elixir/tests/fixtures/events-broker-wire.java"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "acknowledgement": {
+          "status": "native-policy",
+          "sources": [
+            "crates/plugins/elixir/tests/fixtures/events-wire.exs"
+          ],
+          "suites": [
+            "broker"
+          ],
+          "note": "Ack schedules native brod commit; it does not confirm persisted offsets. Immediate close can replay; ordered acknowledgements and failed-handler replay are tested."
+        },
+        "handler-replay": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/elixir/tests/fixtures/events-wire.exs"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "cancellation": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/elixir/tests/fixtures/events-wire.exs"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "bindings": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/elixir/tests/fixtures/events-wire.exs"
+          ],
+          "suites": [
+            "broker"
+          ]
+        },
+        "provenance": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/elixir/tests/events.rs"
+          ],
+          "suites": [
+            "generation"
+          ]
+        },
+        "regeneration": {
+          "status": "tested",
+          "sources": [
+            "crates/plugins/elixir/tests/events.rs"
+          ],
+          "suites": [
+            "generation"
+          ]
+        }
+      },
+      "suites": [
+        {
+          "id": "generation",
+          "tier": "generation",
+          "command": [
+            "cargo",
+            "test",
+            "--offline",
+            "--locked",
+            "-p",
+            "poolster-plugin-elixir",
+            "--test",
+            "events"
+          ],
+          "cases": [
+            "provenance",
+            "regeneration"
+          ],
+          "required_env": []
+        },
+        {
+          "id": "broker",
+          "tier": "native",
+          "command": [
+            "cargo",
+            "test",
+            "--offline",
+            "--locked",
+            "-p",
+            "poolster-plugin-elixir",
+            "--test",
+            "events",
+            "generated_package",
+            "--",
+            "--ignored",
+            "--nocapture"
+          ],
+          "cases": [
+            "package",
+            "roundtrip",
+            "outgoing-validation",
+            "incoming-validation",
+            "utf8",
+            "acknowledgement",
+            "handler-replay",
+            "cancellation",
+            "bindings"
+          ],
+          "required_env": [
+            "POOLSTER_ELIXIR_EVENTS_RUNNER",
+            "POOLSTER_JAVA",
+            "POOLSTER_KAFKA_JAVA_CLASSPATH"
+          ]
+        }
+      ]
     }
   },
-  "pending_languages": [
-    "php",
-    "ruby",
-    "swift",
-    "elixir"
-  ]
+  "pending_languages": []
 }

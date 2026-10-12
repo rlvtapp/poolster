@@ -135,9 +135,6 @@ fn emit(
         format!("Sources/{module}/ModelRuntime.swift"),
         crate::http::json_value(),
     )?)?;
-    cx.files.emit(GeneratedFile::new(
-        "Package.swift",
-        crate::http::package_manifest(&module, &module),
-    )?)?;
+    cx.workspace.models = true;
     Ok(symbols)
 }

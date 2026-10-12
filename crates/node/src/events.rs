@@ -92,6 +92,33 @@ fn generate(request: &str) -> AnyResult<String> {
             "python" => append!(python, package),
             "java" => append!(java, package),
             "csharp" => append!(csharp, package),
+            "php" => append!(php, package),
+            "ruby" => append!(ruby, package),
+            "swift" => append!(swift, package),
+            "elixir" => append!(elixir, package),
+            "symfony" => {
+                let input = InputProvider::<EventOperations>::new(
+                    registry.clone(),
+                    "asyncapi",
+                    &request.source,
+                )
+                .using(&request.provider)
+                .with_options(InputOptions {
+                    broker: request.broker.clone(),
+                    ..Default::default()
+                });
+                let output = symfony::asyncapi(Some(input.handle()));
+                let common = Common {
+                    package_version: package.version.clone(),
+                    source_quality: package.source_quality.clone(),
+                    ..Default::default()
+                };
+                let mut target = symfony::package(&package.path).common(common);
+                if let Some(name) = &package.name {
+                    target = target.name(name);
+                }
+                profiles = profiles.package(target.with(output).with(input));
+            }
             _ => bail!(
                 "unsupported Kafka event output language {}",
                 package.language

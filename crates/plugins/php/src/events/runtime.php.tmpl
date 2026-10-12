@@ -1,0 +1,96 @@
+<?php
+declare(strict_types=1);
+namespace __NAMESPACE__\Events;
+
+/** Blocking Kafka producer. Native retries are idempotent within each producer session. */
+final class KafkaRuntime
+{
+    private array $producers = [];
+    private bool $closed = false;
+    private object $deliveryRegistry;
+    private ?\Closure $statistics;
+
+    public function __construct(public readonly string $brokers, ?callable $statistics = null)
+    {
+        $this->deliveryRegistry = (object)['pending' => []];
+        $this->statistics = $statistics === null ? null : \Closure::fromCallable($statistics);
+        if ($brokers === '') {
+            throw new \InvalidArgumentException('Kafka seed brokers are required');
+        }
+    }
+
+    public function send(array $definition, \JsonSerializable|\BackedEnum $payload, \JsonSerializable|\BackedEnum|null $headers = null, \JsonSerializable|\BackedEnum|null $key = null, int $timeoutMs = 30000): DeliveryMetadata
+    {
+        if ($this->closed || $timeoutMs < 1) {
+            throw new \LogicException('producer is closed or timeout is invalid');
+        }
+        [$wire, $wireHeaders, $wireKey] = KafkaCodec::encode($definition, $payload, $headers, $key);
+        $id = $definition['clientId'] ?? 'poolster-php';
+        if (!isset($this->producers[$id])) {
+            $conf = new \RdKafka\Conf();
+            $conf->set('bootstrap.servers', $this->brokers);
+            $conf->set('client.id', $id);
+            $conf->set('enable.idempotence', 'true');
+            $conf->set('acks', 'all');
+            $conf->set('message.timeout.ms', '30000');
+            if ($this->statistics !== null) {
+                $conf->set('statistics.interval.ms', '100');
+                $statistics = $this->statistics;
+                $conf->setStatsCb(static function ($client, string $json) use ($statistics): void { $statistics(json_decode($json, true, 512, JSON_THROW_ON_ERROR)); });
+            }
+            $registry = $this->deliveryRegistry;
+            $conf->setDrMsgCb(static function ($producer, $message) use ($registry): void {
+                $context = $registry->pending[$message->opaque ?? ''] ?? null;
+                if (is_object($context)) {
+                    $context->done = true;
+                    $context->error = $message->err;
+                    $context->topic = $message->topic_name;
+                    $context->partition = $message->partition;
+                    $context->offset = $message->offset;
+                    unset($registry->pending[$message->opaque]);
+                }
+            });
+            $this->producers[$id] = new \RdKafka\Producer($conf);
+        }
+        $producer = $this->producers[$id];
+        $context = (object)['done' => false, 'error' => 0];
+        $opaque = bin2hex(random_bytes(16));
+        $this->deliveryRegistry->pending[$opaque] = $context;
+        $producer->newTopic($definition['topic'])->producev(RD_KAFKA_PARTITION_UA, 0, $wire, $wireKey, $wireHeaders, null, $opaque);
+        $deadline = hrtime(true) + $timeoutMs * 1000000;
+        while (!$context->done && hrtime(true) < $deadline) {
+            $producer->poll(25);
+        }
+        if (!$context->done) {
+            throw new \RuntimeException('Kafka delivery timed out; delivery may still occur');
+        }
+        if ($context->error !== RD_KAFKA_RESP_ERR_NO_ERROR) {
+            throw new \RuntimeException(rd_kafka_err2str($context->error), $context->error);
+        }
+        return new DeliveryMetadata($context->topic, $context->partition, $context->offset);
+    }
+
+    public function subscribe(array $definition, ?string $group = null): KafkaSubscription
+    {
+        if ($this->closed) {
+            throw new \LogicException('runtime is closed');
+        }
+        return new KafkaSubscription($this->brokers, $definition, $group, $this->statistics);
+    }
+
+    /** Producer close does not acknowledge consumer records. */
+    public function close(): void
+    {
+        if ($this->closed) {
+            return;
+        }
+        $this->closed = true;
+        foreach ($this->producers as $producer) {
+            $result = $producer->flush(30000);
+            if ($result !== RD_KAFKA_RESP_ERR_NO_ERROR) {
+                throw new \RuntimeException('Kafka producer close could not flush all deliveries', $result);
+            }
+        }
+        $this->producers = [];
+    }
+}

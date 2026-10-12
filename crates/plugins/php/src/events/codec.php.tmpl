@@ -1,0 +1,122 @@
+<?php
+declare(strict_types=1);
+namespace __NAMESPACE__\Events;
+
+/** Validates wire values before construction; optional presence survives model serialization. */
+final class KafkaCodec
+{
+    public static function encode(array $definition, \JsonSerializable|\BackedEnum $payload, \JsonSerializable|\BackedEnum|null $headers, \JsonSerializable|\BackedEnum|null $key): array
+    {
+        $wire = json_encode($payload, JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION);
+        $value = self::json($wire);
+        self::validate($value, $definition['payloadSchema']);
+        $headerObject = $headers === null ? new \stdClass() : self::json(json_encode($headers, JSON_THROW_ON_ERROR));
+        $keyValue = $key instanceof \BackedEnum ? $key->value : $key?->jsonSerialize();
+        self::validateRoles($definition, $headerObject, $keyValue);
+        return [$wire, (array)$headerObject, $keyValue];
+    }
+
+    public static function decode(array $definition, ?string $wire, array $headers, ?string $key): array
+    {
+        if ($wire === null) { throw new \UnexpectedValueException('Kafka JSON tombstones are unsupported'); }
+        foreach ($headers as $name => $value) {
+            self::utf8((string)$name);
+            if (!is_string($value)) { throw new \UnexpectedValueException('Kafka header value must be nonnull string'); }
+            self::utf8($value);
+        }
+        if ($key !== null) { self::utf8($key); }
+        $value = self::json($wire);
+        self::validate($value, $definition['payloadSchema']);
+        $headerObject = (object)$headers;
+        self::validateRoles($definition, $headerObject, $key);
+        return [self::model($definition['payloadClass'], $value),
+            $definition['headersClass'] === null ? null : self::model($definition['headersClass'], $headerObject),
+            $key === null ? null : self::model($definition['keyClass'], $key)];
+    }
+
+    private static function validateRoles(array $definition, mixed $headers, mixed $key): void
+    {
+        if (!$headers instanceof \stdClass) { throw new \UnexpectedValueException('Kafka headers must be an object'); }
+        foreach ((array)$headers as $name => $value) {
+            self::utf8((string)$name);
+            if (!is_string($value)) { throw new \UnexpectedValueException('Kafka headers require nonnull strings'); }
+            self::utf8($value);
+        }
+        if ($definition['headersSchema'] !== null) { self::validate($headers, $definition['headersSchema']); }
+        elseif ((array)$headers !== []) { throw new \UnexpectedValueException('operation does not declare headers'); }
+        if ($key !== null) {
+            if ($definition['keySchema'] === null || !is_string($key)) { throw new \UnexpectedValueException('operation requires declared string key'); }
+            self::utf8($key);
+            self::validate($key, $definition['keySchema']);
+        }
+    }
+
+    private static function validate(mixed $value, mixed $schema): void
+    {
+        $schema = json_decode(json_encode($schema, JSON_THROW_ON_ERROR), false, 512, JSON_THROW_ON_ERROR);
+        $validator = new \Opis\JsonSchema\Validator();
+        if ($schema instanceof \stdClass && !isset($schema->{'$schema'})) { $schema->{'$schema'} = 'http://json-schema.org/draft-07/schema#'; }
+        if (!$validator->validate($value, $schema)->isValid()) { throw new \UnexpectedValueException('Kafka JSON Schema validation failed'); }
+    }
+
+    private static function model(?string $class, mixed $value): \JsonSerializable|\BackedEnum
+    {
+        if ($class === null) { throw new \UnexpectedValueException('missing model type'); }
+        if (method_exists($class, 'fromArray')) {
+            $array = json_decode(json_encode($value, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR);
+            return $class::fromArray($array);
+        }
+        if (enum_exists($class)) { return $class::from($value); }
+        return $class::from($value);
+    }
+
+    private static function utf8(string $value): void
+    {
+        if (preg_match('//u', $value) !== 1) { throw new \UnexpectedValueException('invalid UTF-8 in Kafka wire value'); }
+    }
+
+    private static function json(string $wire): mixed
+    {
+        self::utf8($wire);
+        $value = json_decode($wire, false, 512, JSON_THROW_ON_ERROR);
+        // PHP json_decode silently overwrites duplicate object members. Parse token structure first.
+        preg_match_all('/"(?:[^"\\\\]|\\\\.)*"|[{}\\[\\],:]|true|false|null|-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?(?:[eE][+-]?[0-9]+)?/s', $wire, $matches);
+        $tokens = $matches[0];
+        $index = 0;
+        self::checkObjectKeys($tokens, $index, 0);
+        self::finite($value);
+        return $value;
+    }
+
+    private static function checkObjectKeys(array $tokens, int &$index, int $depth): void
+    {
+        if ($depth > 512) { throw new \UnexpectedValueException('JSON nesting budget exceeded'); }
+        $token = $tokens[$index++] ?? '';
+        if ($token === '{') {
+            $seen = [];
+            if (($tokens[$index] ?? '') === '}') { $index++; return; }
+            do {
+                $key = json_decode($tokens[$index++], true, 512, JSON_THROW_ON_ERROR);
+                if (array_key_exists($key, $seen)) { throw new \UnexpectedValueException('duplicate JSON object member'); }
+                $seen[$key] = true;
+                $index++; // colon; syntax already verified by json_decode
+                self::checkObjectKeys($tokens, $index, $depth + 1);
+                $separator = $tokens[$index++] ?? '';
+            } while ($separator === ',');
+        } elseif ($token === '[') {
+            if (($tokens[$index] ?? '') === ']') { $index++; return; }
+            do {
+                self::checkObjectKeys($tokens, $index, $depth + 1);
+                $separator = $tokens[$index++] ?? '';
+            } while ($separator === ',');
+        }
+    }
+
+    private static function finite(mixed $value): void
+    {
+        if (is_float($value) && !is_finite($value)) { throw new \UnexpectedValueException('nonfinite JSON number'); }
+        if (is_array($value) || is_object($value)) {
+            foreach ($value as $child) { self::finite($child); }
+        }
+    }
+}

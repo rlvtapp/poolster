@@ -12,7 +12,7 @@ Audited **11 October 2026**, against this checkout's unreleased alpha.2 generato
 | GraphQL operations | Fixed-document query/mutation clients; opt-in SSE subscriptions and experimental multipart incremental delivery |
 | Shared schema-model blocks | Models-only package, including supported AsyncAPI payload/header/key shapes; no broker client |
 | RPC / Protobuf | Unsupported |
-| Events / AsyncAPI | No producer/consumer implementation; models-only is supported separately |
+| Events / AsyncAPI | Shared models and Kafka JSON producer/consumer package |
 | Workflows / Arazzo | Unsupported |
 | Capabilities / Cap’n Proto | Unsupported |
 
@@ -66,6 +66,50 @@ variables = %Example.Models.ReadUserVariables{id: "42"}
 
 Styles are alternatives. Mutations use `Example.Mutation.<operation>` in idiomatic output. Optional GraphQL fields use `:poolster_absent` for absence and `nil` for explicit null. Inspect `response.errors` with `response.data`; `Example.Runtime.require_data(response)` requires error-free data.
 
+## Kafka event features
+
+Mix packages pin **brod 4.6.3**, **jesse 1.8.2** and **Jason 1.4.4**; the native CRC dependency needs CMake and a C compiler. CLI recipes select `asyncapi`, JS uses `pluginElixir()`, and Rust uses `elixir::asyncapi(provider).using_models(models.handle())`.
+
+| Feature | Generated behavior |
+| --- | --- |
+| API style | Per-operation modules, `SendOrder.send()` / `ReceiveOrder.subscribe()`. HTTP/GraphQL style settings do not apply. |
+| Retry / idempotence | Broker acknowledgement, 10 s acknowledgement timeout and three bounded native retries. No idempotent producer or application deduplication guarantee. Caller timeout does not cancel a sent request. |
+| Acknowledgement | Explicit `KafkaRecord.ack` or handler-success `run` schedules brod's native commit. Persistence is asynchronous; immediate close can cause redelivery. Acknowledgements enforce partition order. |
+| Validation | Draft-07 keywords whose semantics match Jesse's Draft-06 validator. Unsupported keywords reject generation. Malformed data poisons the subscription without acknowledgement. |
+| Cancellation | `KafkaSubscription.cancel` wakes a pending poll and stops the native subscriber. Close producer clients and subscriptions separately. |
+| Bindings / capacity | Static topics and wire client/group IDs. A precompiled 64-name native-client pool avoids creating atoms from user strings; exhaustion fails explicitly. |
+| Auth / wider features | Plaintext only; TLS/SASL, transactions, schema registry and other brokers remain unsupported. |
+
+For package `acme_orders` and `sendOrder`/`receiveOrder` operations:
+
+```elixir
+alias AcmeOrders.{Events, Models}
+alias Events.{SendOrder, ReceiveOrder, KafkaRecord, KafkaSubscription, KafkaClient}
+{:ok, client} = Events.connect()
+payload = Models.OrderCreatedPayload.from_map(%{"id" => "42", "quantity" => 1})
+headers = Models.OrderCreatedHeaders.from_map(%{"trace" => "trace-1"})
+:ok = SendOrder.send(client, payload, headers: headers, key: "order-42")
+{:ok, subscription} = ReceiveOrder.subscribe(client)
+try do
+  case KafkaSubscription.poll(subscription, 1_000) do
+    {:ok, record} ->
+      process_order(record.payload) # application handler
+      :ok = KafkaRecord.ack(record)
+    :timeout -> :ok
+    {:error, reason} -> raise inspect(reason)
+  end
+after
+  KafkaSubscription.close(subscription)
+  KafkaClient.close(client)
+end
+```
+
+The sample assumes a fixed group binding; otherwise pass `group:` to `subscribe`. **Native boundary:** brod's encoder/decoder merge empty and null byte values. Keyless messages work; declared keys must be supplied and declared key/header string schemas must require `minLength >= 1`. Unsupported empty-string schemas fail generation; incoming null/empty declared roles fail validation. Optional-key parity with the other clients is unavailable. Jesse rejects `if/then/else`, `format` and other unsupported schema features rather than claiming Draft-07 completeness.
+
+One Mix manifest contains model/runtime dependencies. Shared model modules and per-operation event modules occupy separate files under `lib/<package>/`; codecs, callbacks and subscription/runtime modules are separate. Keep Kafka and HTTP/GraphQL packages separate. Topics remain application infrastructure.
+
+Evidence: [generation/provider/layout tests](../../../crates/plugins/elixir/tests/events.rs), [wire and broker probe](../../../crates/plugins/elixir/tests/fixtures/events-wire.exs), [conformance](../outputs/kafka-conformance.md).
+
 ## Files and model boundaries
 
 HTTP emits `mix.exs`, application/client/runtime/error modules, individual model modules, bounded `api/operations_NNNN.ex` partitions and resource chunks. Direct `API` delegates remain available in namespaced output. HTTP currently requests Finch `~> 0.18` and Jason `~> 1.4`; GraphQL requests Finch 0.24.0 and Jason 1.4.5, so the generated manifests are not identical.
@@ -82,7 +126,7 @@ CLI/JS models-only mode and Rust block composition support the documented neutra
 
 ## Remaining gaps
 
-No RPC, Kafka execution, workflow or capability client is bundled for this language. GraphQL selections remain fixed documents; dynamic typed `fields:` selection and GraphQL-aware automatic pagination, idempotency and retries remain application work. Experimental incremental delivery is the documented `deferSpec=20220824` dialect, not universal server compatibility.
+No RPC, workflow or capability client is bundled for this language. GraphQL selections remain fixed documents; dynamic typed `fields:` selection and GraphQL-aware automatic pagination, idempotency and retries remain application work. Experimental incremental delivery is the documented `deferSpec=20220824` dialect, not universal server compatibility.
 
 ## Source and test evidence
 

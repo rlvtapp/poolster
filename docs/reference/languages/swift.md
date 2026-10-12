@@ -1,6 +1,6 @@
 # Swift output capabilities
 
-Audited against the current repository on **2026-10-11**. This describes implemented generated APIs, not the intended output specification or a promise about a previously published package. Examples show alternatives from different generation styles; do not paste all alternatives into one scope.
+Audited against the current repository on **2026-10-12**. This describes implemented generated APIs, not the intended output specification or a promise about a previously published package. Examples show alternatives from different generation styles; do not paste all alternatives into one scope.
 
 Swift 5.9+ / Swift Package Manager; Foundation URLSession, async/await and Codable. GraphQL packages target macOS 12+ and iOS 15+.
 
@@ -11,7 +11,7 @@ Swift 5.9+ / Swift Package Manager; Foundation URLSession, async/await and Codab
 | HTTP / OpenAPI | SDK, typed models and target-specific runtime helpers |
 | GraphQL | Selection-specific client, variables/results and HTTP runtime; optional advanced transports |
 | RPC / Protobuf | No service/client/server generator in this language; shared models are a separate subset |
-| Events / AsyncAPI | Shared model subset only; no producer/consumer runtime in this language |
+| Events / AsyncAPI | Shared models and Kafka JSON producer/consumer package |
 | Workflows / Arazzo | No workflow runner |
 | Capabilities / Cap’n Proto | No message/capability RPC generator |
 | Shared models | Neutral model package; supported schema subset and explicit rejection of unsupported shapes |
@@ -105,6 +105,45 @@ CLI: `poolster generate schema.graphql --input-format graphql --operation operat
 
 See [shared-model output](../outputs/shared-models.md) and the matrix for per-language enum/alias/additional-property restrictions.
 
+## Kafka event features
+
+Swift 6 / macOS 13+ packages use Codable, actors and a small C bridge to official **librdkafka 2.12.0**, release commit `2f2208847f7f91eaf54bcbd2cedf5dbb2dd3a3fe`. SwiftPM declares a system library; install the pinned native library and configure its include/library/pkg-config paths. Runtime checks the exact library version. Native execution was verified with Swift 6.4 on macOS ARM64; Linux execution remains unverified.
+
+CLI recipes select `asyncapi`, JS uses `pluginSwift()`, and Rust uses `swift::asyncapi(provider).using_models(models.handle())`.
+
+| Feature | Generated behavior |
+| --- | --- |
+| API style | Per-operation `SendOrderEvent.send` / `ReceiveOrderEvent.subscribe`, with actor runtime and async receive. HTTP/GraphQL style settings do not apply. |
+| Retry / idempotence | Native producer idempotence and `acks=all`. Send returns delivery metadata; cancellation stops waiting without retracting publication. Await sends before closing producers. |
+| Acknowledgement | One pending record, synchronous native commit via `await subscription.ack(record)`, or handler-success `run`. Failed handlers leave offsets uncommitted; close/reopen to replay. |
+| Validation | Bounded supported Draft-07 constraints; unsupported keywords reject generation. Strict UTF-8/JSON, duplicates, null headers and tombstones reject and poison the subscription. |
+| Cancellation | Swift Task cancellation interrupts receive waits. Subscription lifetime is independent of the producer runtime. |
+| Bindings | Static topics and operation client/group IDs; conflicting fixed group overrides fail. |
+| Auth / wider features | Plaintext only; TLS/SASL, transactions, schema registry and other brokers remain unsupported. |
+
+Using generated payload/header/key values for `sendOrder`/`receiveOrder`:
+
+```swift
+let runtime = KafkaDefaults.connect()
+try await SendOrderEvent.send(runtime, payload: payload, headers: headers, key: key)
+let subscription = try await ReceiveOrderEvent.subscribe(runtime)
+do {
+    let record = try await subscription.receive()
+    try await processOrder(record.payload) // application handler
+    try await subscription.ack(record)
+} catch {
+    await subscription.close()
+    await runtime.close()
+    throw error
+}
+await subscription.close()
+await runtime.close()
+```
+
+The sample assumes a fixed group binding; otherwise supply `group:`. Absent and empty keys/header values remain distinct. Native model declarations, per-operation sources, codec/schema/runtime/subscription and C bridge occupy separate files in one SwiftPM package. Keep Kafka and HTTP/GraphQL packages separate. Generation retains the native document and provenance and does not provision topics.
+
+Evidence: [generation/provider/layout/native tests](../../../crates/plugins/swift/tests/events.rs), [broker probe](../../../crates/plugins/swift/tests/fixtures/events.swift), [conformance](../outputs/kafka-conformance.md).
+
 ## Files, naming and regeneration
 
 HTTP Swift package: client/runtime, model, operation and resource files. GraphQL: `Sources/<module>/Runtime/`, `Client/`, `Operations/`, `Models/`, `Groups/`; SwiftPM discovers the sources.
@@ -115,9 +154,9 @@ HTTP resource methods retain full operation names (`contacts.getContact`); Java/
 
 ## Gaps and evidence
 
-Events, RPC, workflows and capabilities still need language-specific runnable packages. GraphQL retry/idempotency policy, automatic pagination and dynamic typed selections are application work or future features, not enabled by the HTTP runtime. Shared-model support does not imply runtime schema-validation parity.
+RPC, workflows and capabilities still need language-specific runnable packages. GraphQL retry/idempotency policy, automatic pagination and dynamic typed selections are application work or future features, not enabled by the HTTP runtime. Shared-model support does not imply runtime schema-validation parity.
 
-This page audits code and existing tests; it does not report a new compiler or broker run. Native generated-code tests can be ignored by the ordinary workspace suite until their toolchains are explicitly enabled.
+Kafka generated packages have been compiled and executed against the local broker; see the linked conformance evidence. Native generated-code tests can be ignored by the ordinary workspace suite until their toolchains are explicitly enabled.
 
 - [HTTP implementation](../../../crates/plugins/swift/src/http/)
 - [HTTP operation tests](../../../crates/plugins/swift/src/operation_tests.rs)

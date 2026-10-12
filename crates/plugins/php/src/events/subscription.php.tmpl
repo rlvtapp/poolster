@@ -1,0 +1,105 @@
+<?php
+declare(strict_types=1);
+namespace __NAMESPACE__\Events;
+
+/** Single-threaded manual-ack consumer. A failed decode poisons this subscription. */
+final class KafkaSubscription
+{
+    private \RdKafka\KafkaConsumer $consumer;
+    private ?KafkaRecord $pending = null;
+    private bool $closed = false;
+    private bool $cancelled = false;
+    private bool $poisoned = false;
+
+    public function __construct(string $brokers, private readonly array $definition, ?string $group, ?\Closure $statistics = null)
+    {
+        $fixed = $definition['groupId'];
+        if ($fixed !== null && $group !== null && $fixed !== $group) {
+            throw new \InvalidArgumentException('consumer group conflicts with operation binding');
+        }
+        $group ??= $fixed;
+        if ($group === null || $group === '') {
+            throw new \InvalidArgumentException('consumer group is required');
+        }
+        $conf = new \RdKafka\Conf();
+        $conf->set('bootstrap.servers', $brokers);
+        $conf->set('group.id', $group);
+        $conf->set('client.id', $definition['clientId'] ?? 'poolster-php');
+        $conf->set('enable.auto.commit', 'false');
+        $conf->set('enable.auto.offset.store', 'false');
+        $conf->set('auto.offset.reset', 'earliest');
+        if ($statistics !== null) {
+            $conf->set('statistics.interval.ms', '100');
+            $conf->setStatsCb(static function ($client, string $json) use ($statistics): void { $statistics(json_decode($json, true, 512, JSON_THROW_ON_ERROR)); });
+        }
+        $this->consumer = new \RdKafka\KafkaConsumer($conf);
+        $this->consumer->subscribe([$definition['topic']]);
+    }
+
+    /** @return ?KafkaRecord Null means timeout or cooperative cancellation. */
+    public function poll(int $timeoutMs = 1000, ?callable $cancelled = null): ?KafkaRecord
+    {
+        if ($this->closed || $this->poisoned || $this->pending !== null || $timeoutMs < 0) {
+            throw new \LogicException('subscription closed, poisoned, awaiting acknowledgement, or invalid timeout');
+        }
+        $deadline = hrtime(true) + $timeoutMs * 1000000;
+        do {
+            if ($this->cancelled || ($cancelled !== null && $cancelled())) {
+                return null;
+            }
+            $remaining = max(0, (int)(($deadline - hrtime(true)) / 1000000));
+            try {
+                $message = $this->consumer->consume(min(250, $remaining));
+            } catch (\Throwable $error) {
+                $this->poisoned = true;
+                throw $error;
+            }
+            if ($message->err === RD_KAFKA_RESP_ERR__TIMED_OUT || $message->err === RD_KAFKA_RESP_ERR__PARTITION_EOF) {
+                continue;
+            }
+            if ($message->err !== RD_KAFKA_RESP_ERR_NO_ERROR) {
+                $this->poisoned = true;
+                throw new \RuntimeException($message->errstr(), $message->err);
+            }
+            try {
+                [$payload, $headers, $key] = KafkaCodec::decode($this->definition, $message->payload, $message->headers ?? [], $message->key);
+            } catch (\Throwable $error) {
+                $this->poisoned = true;
+                throw $error;
+            }
+            $record = new KafkaRecord($payload, $headers, $key, $message->topic_name, $message->partition, $message->offset);
+            $reference = \WeakReference::create($record);
+            $record->attachAck(function () use ($message, $reference): void {
+                if ($this->closed || $this->poisoned || $this->pending !== $reference->get()) {
+                    throw new \LogicException('record cannot be acknowledged by this subscription');
+                }
+                $this->consumer->commit($message);
+                $this->pending = null;
+            });
+            return $this->pending = $record;
+        } while (hrtime(true) < $deadline);
+        return null;
+    }
+
+    /** Handler failures leave the record uncommitted. Close and reopen to replay it. */
+    public function run(callable $handler, ?callable $cancelled = null): void
+    {
+        while (!$this->cancelled && !($cancelled !== null && $cancelled())) {
+            $record = $this->poll(250, $cancelled);
+            if ($record !== null) {
+                $handler($record);
+                $record->ack();
+            }
+        }
+    }
+
+    public function cancel(): void { $this->cancelled = true; }
+    public function close(): void
+    {
+        if (!$this->closed) {
+            $this->closed = true;
+            $this->pending = null;
+            $this->consumer->close();
+        }
+    }
+}

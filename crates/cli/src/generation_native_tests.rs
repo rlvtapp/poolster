@@ -244,19 +244,31 @@ fn graphql_other_language_packages_generate_and_regenerate_through_recipe() {
 }
 
 #[test]
-fn kafka_recipe_shares_models_for_six_languages_and_regenerates() {
+fn kafka_recipe_shares_models_for_all_languages_and_regenerates() {
     let root = tempfile::tempdir().unwrap();
     std::fs::write(
         root.path().join("messages.yaml"),
         include_str!("../../inputs/asyncapi/tests/fixtures/kafka-json.yaml"),
     )
     .unwrap();
-    let packages = ["typescript", "go", "rust", "python", "java", "csharp"].map(|language| serde_json::json!({"language":language,"path":language,"plugins":[{"name":"asyncapi"}]}));
+    let packages = ["typescript", "go", "rust", "python", "java", "csharp", "php", "ruby", "swift", "elixir", "symfony"].map(|language| serde_json::json!({"language":language,"path":language,"plugins":[{"name":"asyncapi"}]}));
     let recipe = serde_json::json!({"input":{"format":"asyncapi","path":"messages.yaml","provider":"asyncapi.roas","options":{"broker":{"kind":"kafka","brokers":["127.0.0.1:39092"],"client_id":"recipe-kafka-override"}}},"output":{"path":"generated"},"packages":packages});
     let path = root.path().join("poolster.json");
     std::fs::write(&path, serde_json::to_vec(&recipe).unwrap()).unwrap();
     generate_from_config(&path, ColorChoice::Never, false, false).unwrap();
-    for language in ["typescript", "go", "rust", "python", "java", "csharp"] {
+    for language in [
+        "typescript",
+        "go",
+        "rust",
+        "python",
+        "java",
+        "csharp",
+        "php",
+        "ruby",
+        "swift",
+        "elixir",
+        "symfony",
+    ] {
         let folder = root.path().join("generated").join(language);
         let manifest: serde_json::Value = serde_json::from_slice(
             &std::fs::read(folder.join(".poolster/model-contract.json")).unwrap(),
@@ -269,7 +281,7 @@ fn kafka_recipe_shares_models_for_six_languages_and_regenerates() {
                     generated_sources(&path, result);
                 } else if matches!(
                     path.extension().and_then(|extension| extension.to_str()),
-                    Some("ts" | "go" | "rs" | "py" | "java" | "cs")
+                    Some("ts" | "go" | "rs" | "py" | "java" | "cs" | "php" | "rb" | "swift" | "ex")
                 ) {
                     result.push_str(&std::fs::read_to_string(path).unwrap());
                 }

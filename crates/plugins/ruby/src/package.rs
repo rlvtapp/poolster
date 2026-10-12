@@ -16,7 +16,10 @@ pub struct Settings {
 impl Language for Ruby {
     const NAME: &'static str = "ruby";
     type Settings = Settings;
-    type Workspace = ();
+    type Workspace = crate::events::Workspace;
+    fn finalize(cx: &mut poolster_core::engine::FinalizeContext<Self>) -> Result<()> {
+        crate::events::Workspace::finalize(cx)
+    }
     fn bundle_middleware(
         tree: &mut poolster_core::GeneratedTree,
         middleware: &[poolster_core::customization::BundledMiddleware],
@@ -82,6 +85,11 @@ impl Plugin<Ruby> for Sdk {
         vec![Provision::of::<RubyModels>()]
     }
     fn generate(&self, cx: &mut PluginContext<'_, Ruby>) -> Result<()> {
+        anyhow::ensure!(
+            !cx.workspace.events,
+            "ruby Kafka and HTTP/GraphQL require separate output packages"
+        );
+        cx.workspace.native_api = true;
         self.http.run(cx, |cx| {
             cx.files.append(crate::render_sdk(
                 cx.api,

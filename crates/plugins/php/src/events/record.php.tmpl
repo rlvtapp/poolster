@@ -1,0 +1,30 @@
+<?php
+declare(strict_types=1);
+namespace __NAMESPACE__\Events;
+
+final class KafkaRecord
+{
+    private ?\Closure $acknowledge = null;
+    private bool $acknowledged = false;
+    public function __construct(
+        public readonly \JsonSerializable|\BackedEnum $payload,
+        public readonly \JsonSerializable|\BackedEnum|null $headers,
+        public readonly \JsonSerializable|\BackedEnum|null $key,
+        public readonly string $topic,
+        public readonly int $partition,
+        public readonly int $offset,
+    ) {}
+    /** @internal */
+    public function attachAck(\Closure $acknowledge): void
+    {
+        if ($this->acknowledge !== null) { throw new \LogicException('acknowledger is already attached'); }
+        $this->acknowledge = $acknowledge;
+    }
+    public function ack(): void
+    {
+        if ($this->acknowledged || $this->acknowledge === null) { throw new \LogicException('record already acknowledged or detached'); }
+        ($this->acknowledge)();
+        $this->acknowledged = true;
+        $this->acknowledge = null;
+    }
+}

@@ -1,0 +1,119 @@
+import Foundation
+import PoolsterKafkaShim
+
+public struct KafkaDelivery: Sendable { public let partition: Int32; public let offset: Int64 }
+private struct PendingDelivery: Sendable { let error: Int32; let partition: Int32; let offset: Int64 }
+
+// The actor serializes native producer calls while asynchronous waits remain
+// cancellable. Native queued records can still be delivered after cancellation.
+public actor KafkaRuntime {
+    private let brokers: String
+    private let clientID: String
+    private var producers: [String: KafkaNativeClient] = [:]
+    private var deliveries: [UInt64: PendingDelivery] = [:]
+    private var waiting = Set<UInt64>()
+    private var nextToken: UInt64 = 0
+    private var closed = false
+    public init(brokers: String, clientID: String = "poolster-swift") {
+        self.brokers = brokers; self.clientID = clientID
+    }
+    public var producerClientNames: [String] { producers.values.map { String(cString: pk_name($0.pointer)) }.sorted() }
+    private func producer(_ id: String) throws -> KafkaNativeClient {
+        guard !closed else { throw KafkaError.closed }
+        if let handle = producers[id] { return handle }
+        let handle = KafkaNativeClient(try kafkaOpen(brokers, id, nil, nil))
+        producers[id] = handle
+        return handle
+    }
+    public func send<P, H, K>(_ definition: KafkaDefinition<P, H, K>, payload: P, headers: H? = nil, key: K? = nil) async throws -> KafkaDelivery {
+        try Task.checkCancellation()
+        let wire = try definition.encode(payload, headers, key)
+        let handle = try producer(definition.clientID ?? clientID)
+        nextToken += 1; let token = nextToken
+        waiting.insert(token)
+        defer { waiting.remove(token); deliveries.removeValue(forKey: token) }
+        let error = kafkaEnqueue(handle.pointer, definition.topic, wire, token)
+        if error != 0 { throw kafkaBroker(error) }
+        while true {
+            try Task.checkCancellation()
+            guard !closed else { throw KafkaError.closed }
+            for producer in producers.values {
+                while true {
+                    let report = pk_delivery_poll(producer.pointer)
+                    if report.available == 0 { break }
+                    if waiting.contains(report.token) {
+                        deliveries[report.token] = PendingDelivery(error: report.error, partition: report.partition, offset: report.offset)
+                    }
+                }
+            }
+            if let result = deliveries.removeValue(forKey: token) {
+                if result.error != 0 { throw kafkaBroker(result.error) }
+                return KafkaDelivery(partition: result.partition, offset: result.offset)
+            }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+    }
+    public func subscribe<P, H, K>(_ definition: KafkaDefinition<P, H, K>, group: String? = nil) throws -> KafkaSubscription<P, H, K> {
+        guard !closed else { throw KafkaError.closed }
+        if let fixed = definition.group, let group, group != fixed { throw KafkaError.invalid("Group override conflicts with operation binding") }
+        guard let selected = definition.group ?? group, !selected.isEmpty else { throw KafkaError.invalid("Consumer group required") }
+        return try KafkaSubscription(definition: definition, brokers: brokers, clientID: definition.clientID ?? clientID, group: selected)
+    }
+    /// Explicitly stop producers. Await outstanding sends first; closing may
+    /// discard queued/in-flight messages. Subscriptions close independently.
+    public func close() {
+        guard !closed else { return }
+        closed = true
+        for handle in producers.values { handle.close() }
+        producers.removeAll(); deliveries.removeAll()
+    }
+
+}
+
+func kafkaBroker(_ error: Int32) -> KafkaError { .broker(String(cString: pk_error(error))) }
+func kafkaOpen(_ brokers: String, _ clientID: String, _ group: String?, _ topic: String?) throws -> OpaquePointer {
+    var error = [CChar](repeating: 0, count: 1024)
+    let handle = brokers.withCString { brokers in clientID.withCString { id in
+        if let group, let topic { return group.withCString { group in topic.withCString { topic in pk_open(brokers, id, group, topic, &error, error.count) } } }
+        return pk_open(brokers, id, nil, nil, &error, error.count)
+    } }
+    guard let handle else { throw KafkaError.broker(String(cString: error)) }
+    return handle
+}
+func kafkaEnqueue(_ handle: OpaquePointer, _ topic: String, _ wire: KafkaWire, _ token: UInt64) -> Int32 {
+    let names = wire.headers.keys.sorted()
+    let storage = names.map { name -> (UnsafeMutablePointer<CChar>, UnsafeMutablePointer<UInt8>, Int) in
+        let data = wire.headers[name]!
+        let bytes = UnsafeMutablePointer<UInt8>.allocate(capacity: max(1, data.count))
+        data.copyBytes(to: bytes, count: data.count)
+        return (strdup(name)!, bytes, data.count)
+    }
+    defer { for (name, bytes, _) in storage { free(name); bytes.deallocate() } }
+    let headers = storage.map { pk_header(name: UnsafePointer($0.0), value: UnsafePointer($0.1), length: $0.2, is_null: 0) }
+    return headers.withUnsafeBufferPointer { headers in topic.withCString { topic in wire.payload.withUnsafeBytes { payload in
+        if let key = wire.key {
+            var sentinel: UInt8 = 0
+            return withUnsafePointer(to: &sentinel) { sentinel in key.withUnsafeBytes { key in
+                pk_send(handle, topic, payload.bindMemory(to: UInt8.self).baseAddress, payload.count, key.bindMemory(to: UInt8.self).baseAddress ?? sentinel, key.count, headers.baseAddress, headers.count, token)
+            } }
+        }
+        return pk_send(handle, topic, payload.bindMemory(to: UInt8.self).baseAddress, payload.count, nil, 0, headers.baseAddress, headers.count, token)
+    } } }
+}
+
+// These internal owners are accessed only through their owning actor. Sendable
+// permits destruction after actor lifetime without transferring raw C pointers.
+final class KafkaNativeClient: @unchecked Sendable {
+    let pointer: OpaquePointer
+    private var closed = false
+    init(_ pointer: OpaquePointer) { self.pointer = pointer }
+    func close() { if !closed { closed = true; pk_close(pointer) } }
+    deinit { if !closed { pk_close(pointer) } }
+}
+final class KafkaNativeMessage: @unchecked Sendable {
+    let pointer: OpaquePointer
+    private var freed = false
+    init(_ pointer: OpaquePointer) { self.pointer = pointer }
+    func free() { if !freed { freed = true; pk_message_free(pointer) } }
+    deinit { if !freed { pk_message_free(pointer) } }
+}

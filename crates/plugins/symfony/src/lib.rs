@@ -57,3 +57,6 @@ mod tests {
         assert!(source.ends_with('\n'));
     }
 }
+
+mod events;
+pub use events::{AsyncApi, asyncapi};

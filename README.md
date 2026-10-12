@@ -50,8 +50,9 @@ and client code, with raw, flat and grouped call styles. GraphQL also generates
 [Postman collections and executable CLIs](docs/reference/outputs/graphql-tools.md).
 AsyncAPI generates [shared models](docs/reference/outputs/shared-models.md) for all ten
 SDK languages and [Kafka producer/consumer packages](docs/reference/outputs/kafka.md)
-for TypeScript, Go, Rust, Python, Java and C#. PHP, Ruby, Swift and Elixir Kafka
-transports remain planned. See the [Kafka capability comparison](docs/reference/outputs/kafka-conformance.md).
+for all ten SDK languages, plus Symfony integration over the PHP runtime. This is
+the bounded plaintext JSON Kafka subset, with language-specific limits. See the
+[Kafka capability comparison](docs/reference/outputs/kafka-conformance.md).
 RPC and workflows have their own supported pipelines.
 
 [Plugin support matrix](docs/plugin-support-matrix.md) ·

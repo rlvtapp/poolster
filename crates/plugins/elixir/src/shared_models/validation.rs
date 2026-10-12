@@ -33,7 +33,9 @@ pub(super) fn checked_model(module: &str, schema: &Schema, plan: &ModelPlan) -> 
     if let SchemaKind::Object { fields, .. } = &schema.value.kind {
         let mut guards = String::new();
         for field in fields {
-            let key = serde_json::to_string(&field.name).unwrap();
+            let key = serde_json::to_string(&field.name)
+                .unwrap()
+                .replace("#{", "\\#{");
             let condition = valid(&field.value, &format!("Map.get(map, {key})"), plan);
             let condition = if field.required {
                 format!("(Map.has_key?(map, {key}) and {condition})")

@@ -11,7 +11,10 @@ pub struct Settings {
 impl Language for Php {
     const NAME: &'static str = "php";
     type Settings = Settings;
-    type Workspace = ();
+    type Workspace = crate::events::Workspace;
+    fn finalize(cx: &mut poolster_core::engine::FinalizeContext<'_, Self>) -> Result<()> {
+        crate::events::Workspace::finalize(cx)
+    }
     fn bundle_middleware(
         tree: &mut poolster_core::GeneratedTree,
         middleware: &[poolster_core::customization::BundledMiddleware],

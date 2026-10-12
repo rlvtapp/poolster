@@ -22,11 +22,7 @@ impl ModelOutput for Php {
             .as_deref()
             .unwrap_or("poolster/models");
         let namespace = namespace_for_package(package);
-        let manifest = serde_json::json!({"name": package, "type":"library", "require":{"php":">=8.2"}, "autoload":{"psr-4":{format!("{namespace}\\"):"src/"}}});
-        cx.files.emit(GeneratedFile::new(
-            "composer.json",
-            format!("{}\n", serde_json::to_string_pretty(&manifest)?),
-        )?)?;
+        cx.workspace.models = true;
         let named = NamedTypes::from_schemas(&plan.schemas);
         let mut symbols = BTreeMap::new();
         for schema in &plan.schemas {

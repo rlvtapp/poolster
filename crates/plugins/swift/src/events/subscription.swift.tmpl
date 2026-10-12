@@ -1,0 +1,103 @@
+import Foundation
+import PoolsterKafkaShim
+
+public struct KafkaRecord<P: Sendable, H: Sendable, K: Sendable>: Sendable {
+    public let payload: P
+    public let headers: H
+    public let key: K?
+    public let topic: String
+    public let partition: Int32
+    public let offset: Int64
+    fileprivate let subscriptionID: UUID
+    fileprivate let token: UInt64
+}
+
+// Manual-ack actor. Only one outstanding record is permitted. Decoding failures
+// poison the subscription, preventing a later ack from skipping malformed data.
+public actor KafkaSubscription<P: Codable & Sendable, H: Codable & Sendable, K: Codable & Sendable> {
+    private let definition: KafkaDefinition<P, H, K>
+    private var native: KafkaNativeClient?
+    private var pending: KafkaNativeMessage?
+    private let identity = UUID()
+    private var token: UInt64 = 0
+    private var poisoned = false
+    private var receiving = false
+    public nonisolated let clientName: String
+    init(definition: KafkaDefinition<P, H, K>, brokers: String, clientID: String, group: String) throws {
+        self.definition = definition
+        let handle = try kafkaOpen(brokers, clientID, group, definition.topic)
+        native = KafkaNativeClient(handle); clientName = String(cString: pk_name(handle))
+    }
+    public func receive() async throws -> KafkaRecord<P, H, K> {
+        guard !receiving else { throw KafkaError.invalid("Concurrent receive is unsupported") }
+        guard pending == nil else { throw KafkaError.invalid("Acknowledge pending record before receiving again") }
+        guard !poisoned else { throw KafkaError.invalid("Subscription failed; close and reopen") }
+        receiving = true; defer { receiving = false }
+        while true {
+            try Task.checkCancellation()
+            guard let native else { throw KafkaError.closed }
+            if let message = pk_receive(native.pointer) {
+                do {
+                    let error = pk_message_error(message)
+                    if error != 0 { throw kafkaBroker(error) }
+                    var length = 0
+                    guard let bytes = pk_payload(message, &length) else { throw KafkaError.invalid("Tombstones unsupported") }
+                    let payload = Data(bytes: bytes, count: length)
+                    var keyLength = 0
+                    let key = pk_key(message, &keyLength).map { Data(bytes: $0, count: keyLength) }
+                    var headers: [String: Data] = [:]
+                    var index = 0; var header = pk_header()
+                    while pk_header_at(message, index, &header) != 0 {
+                        guard let nameBytes = header.name, let name = String(validatingCString: nameBytes) else { throw KafkaError.invalid("Invalid header-name UTF-8") }
+                        guard header.is_null == 0, let value = header.value else { throw KafkaError.invalid("Null headers unsupported") }
+                        guard headers[name] == nil else { throw KafkaError.invalid("Duplicate Kafka header") }
+                        headers[name] = Data(bytes: value, count: header.length); index += 1
+                    }
+                    let (p, h, k) = try definition.decode(KafkaWire(payload: payload, headers: headers, key: key))
+                    token += 1; pending = KafkaNativeMessage(message)
+                    return KafkaRecord(payload: p, headers: h, key: k, topic: definition.topic, partition: pk_partition(message), offset: pk_offset(message), subscriptionID: identity, token: token)
+                } catch {
+                    pk_message_free(message); poisoned = true; throw error
+                }
+            }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+    }
+    public func ack(_ record: KafkaRecord<P, H, K>) throws {
+        guard let native else { throw KafkaError.closed }
+        guard !poisoned, let pending, record.subscriptionID == identity, record.token == token,
+              record.topic == definition.topic, record.partition == pk_partition(pending.pointer), record.offset == pk_offset(pending.pointer)
+        else { throw KafkaError.invalid("Record is not pending on this subscription") }
+        let error = pk_commit(native.pointer, pending.pointer)
+        if error != 0 { poisoned = true; throw kafkaBroker(error) }
+        pending.free(); self.pending = nil
+    }
+    public func run(_ handler: @Sendable (KafkaRecord<P, H, K>) async throws -> Void) async throws {
+        while true {
+            let record = try await receive()
+            try await handler(record)
+            try ack(record)
+        }
+    }
+    public func close() {
+        if let pending { pending.free(); self.pending = nil }
+        if let native { native.close(); self.native = nil }
+    }
+
+}
+
+public struct KafkaMessages<P: Codable & Sendable, H: Codable & Sendable, K: Codable & Sendable>: AsyncSequence, Sendable {
+    public typealias Element = KafkaRecord<P, H, K>
+    let subscription: KafkaSubscription<P, H, K>
+    public struct AsyncIterator: AsyncIteratorProtocol {
+        let subscription: KafkaSubscription<P, H, K>
+        public mutating func next() async throws -> Element? {
+            do { return try await subscription.receive() }
+            catch KafkaError.closed { return nil }
+        }
+    }
+    public func makeAsyncIterator() -> AsyncIterator { AsyncIterator(subscription: subscription) }
+}
+public extension KafkaSubscription {
+    nonisolated var messages: KafkaMessages<P, H, K> { KafkaMessages(subscription: self) }
+}

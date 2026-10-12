@@ -10,15 +10,21 @@ Choose a language to see **what Poolster currently generates**, contract by cont
 | Python | [Python](python.md) | Kafka events |
 | Java | [Java](java.md) | Kafka events |
 | C# | [C#](csharp.md) | Kafka events |
-| PHP / Symfony | [PHP](php.md) | Shared model packages; Symfony integration has its own boundary |
-| Ruby | [Ruby](ruby.md) | Shared model packages; no event transport |
-| Swift | [Swift](swift.md) | Shared model packages; no event transport |
-| Elixir | [Elixir](elixir.md) | Shared model packages; no event transport |
+| PHP / Symfony | [PHP](php.md) | Kafka events; Symfony bundles the PHP SDK and DI integration |
+| Ruby | [Ruby](ruby.md) | Kafka events |
+| Swift | [Swift](swift.md) | Kafka events; native macOS checks, Linux unverified |
+| Elixir | [Elixir](elixir.md) | Kafka events; required nonempty declared keys/headers and asynchronous offset commits |
 
 Updated **12 October 2026** against the unreleased checkout; each language page
 states its own audit date. These pages describe
 implemented output, not the already published alpha.1 release. Language support does
 not mean every contract, schema feature or runtime option is implemented.
+
+All ten event outputs target the bounded plaintext JSON Kafka subset, not every
+AsyncAPI broker or feature. PHP cannot detect duplicate wire header names because
+its native client collapses them into a map. Elixir rejects empty declared keys/header
+values and schedules native offset commits; an acknowledgement is not proof of a
+persisted commit. See the [Kafka comparison](../outputs/kafka-conformance.md).
 
 ## Read the feature tables
 

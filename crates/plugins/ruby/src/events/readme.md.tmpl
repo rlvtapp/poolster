@@ -1,0 +1,47 @@
+# Generated Ruby Kafka events
+
+Install this gem with Bundler. It pins rdkafka 0.28.0 and json_schemer 2.5.0.
+Requires Ruby 3.2 or newer and a supported librdkafka platform. Ruby Kafka event
+packages must be separate from generated HTTP/GraphQL packages.
+
+```ruby
+require '__LIBRARY__'
+client = __NAMESPACE__::Events.connect(brokers: 'localhost:29092')
+# Operation modules use the declared AsyncAPI names.
+__NAMESPACE__::Events::SendOrder.send(client, payload, headers: headers, key: 'key')
+subscription = __NAMESPACE__::Events::ReceiveOrder.subscribe(client)
+begin
+  while (record = subscription.poll(timeout: 1))
+    process(record.payload)
+    record.ack
+  end
+ensure
+  subscription.close
+  client.close
+end
+```
+
+Payload/header classes come from the selected shared-model provider. Scalar
+keys are Ruby strings. Missing optional values and explicit nulls remain distinct.
+
+`send` waits for a native delivery report. The producer uses `acks=all` and native
+idempotence, but separate application sends are not deduplicated. A timeout does
+not prove non-delivery. There is no application retry wrapper.
+
+Consumers disable automatic commit/offset storage, start new groups at earliest,
+and commit synchronously only when `record.ack` succeeds. `run` acknowledges only
+after the handler returns; failed handlers leave the record pending. Close and
+reopen the same group for redelivery. Polling cannot advance past an unacknowledged
+record. Double/foreign acknowledgements fail. Malformed records invalidate the
+subscription without committing; close and reopen after resolving the bad record.
+
+`cancel` is cooperative, callable from another thread, and checked at most every
+250ms. Poll, ack and close stay on the subscription's creating thread. Close both
+subscription and client; closing one does not close the other.
+
+Static plaintext JSON Kafka only. Unsupported schema keywords, external refs,
+security/bindings, dynamic topics, nullable/nonstring keys and nonstring/open
+headers fail during generation. Incoming/outgoing payloads, headers and keys are
+validated with Draft7; invalid UTF-8, duplicate JSON properties/headers, null
+headers, tombstones and nonfinite JSON numbers fail explicitly. The generated
+client does not provision topics, TLS/SASL, transactions or schema registry.

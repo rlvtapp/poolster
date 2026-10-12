@@ -46,11 +46,7 @@ impl ModelOutput for Elixir {
                 },
             );
         }
-        let version = cx.common.package_version.as_deref().unwrap_or("0.1.0");
-        let mix = format!(
-            "defmodule {module}.MixProject do\n  use Mix.Project\n  def project, do: [app: :{library}, version: {version:?}, elixir: \">= 1.14.0\", deps: []]\n  def application, do: []\nend\n"
-        );
-        cx.files.emit(GeneratedFile::new("mix.exs", mix)?)?;
+        cx.workspace.models = true;
         Ok(symbols)
     }
 }

@@ -34,6 +34,21 @@ pub(super) fn append(
         "python" => output!(python),
         "java" => output!(java),
         "csharp" => output!(csharp),
+        "php" => output!(php),
+        "ruby" => output!(ruby),
+        "swift" => output!(swift),
+        "elixir" => output!(elixir),
+        "symfony" => {
+            let source = provider::<EventOperations>(input, registry);
+            let client = symfony::asyncapi(Some(source.handle()));
+            let package = symfony::package(path).common(common);
+            let package = if let Some(name) = name {
+                symfony::PackageExt::name(package, name)
+            } else {
+                package
+            };
+            profiles.package(package.with(source).with(client))
+        }
         _ => bail!("unsupported Kafka event output {language}"),
     })
 }

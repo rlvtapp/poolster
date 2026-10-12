@@ -10,6 +10,10 @@ You do not need to write Rust.
 5. [AsyncAPI and Kafka](../reference/outputs/kafka.md#javascript-sdk) — select inputs and generate models or broker clients.
 6. [Regeneration](regeneration.md) — preview, check and write changes.
 
+AsyncAPI can generate models or Kafka clients for all ten SDK languages. Kafka
+uses the documented plaintext JSON subset; acknowledgement, schema and platform
+limits vary by output. See the [capability comparison](../reference/outputs/kafka-conformance.md).
+
 Want to create a plugin? Use [JavaScript plugin authoring](../plugins/javascript/README.md).
 
 [All sections](../README.md)

@@ -1,0 +1,110 @@
+defmodule __NAMESPACE__.Events.KafkaClient do
+  @moduledoc "Pinned brod Kafka JSON client. Native retries are bounded; no idempotent producer guarantee."
+  use GenServer
+  alias __NAMESPACE__.Events.{KafkaCodec, KafkaSubscription}
+
+  @slots [
+    __SLOTS__
+  ]
+  def start_link(options), do: GenServer.start_link(__MODULE__, options)
+  def close(client), do: GenServer.stop(client, :normal)
+
+  def send_event(client, definition, payload, options \\ []) do
+    GenServer.call(
+      client,
+      {:send, definition, payload, options},
+      Keyword.get(options, :timeout, 30_000)
+    )
+  end
+
+  def subscribe(client, definition, options \\ []) do
+    brokers = GenServer.call(client, :brokers)
+    KafkaSubscription.start_link(brokers, definition, options)
+  end
+
+  @impl true
+  def init(options) do
+    Process.flag(:trap_exit, true)
+    {:ok, %{brokers: Keyword.fetch!(options, :brokers), producers: %{}}}
+  end
+
+  def native_client(brokers, id) do
+    endpoints =
+      Enum.map(brokers, fn broker ->
+        uri = URI.parse("kafka://" <> broker)
+
+        if is_nil(uri.host) or is_nil(uri.port),
+          do: raise(ArgumentError, "Kafka brokers require host:port")
+
+        {String.to_charlist(uri.host), uri.port}
+      end)
+
+    Enum.reduce_while(@slots, {:error, :client_capacity_exceeded}, fn name, _ ->
+      case :brod.start_link_client(endpoints, name,
+             client_id: id,
+             get_metadata_timeout_seconds: 10,
+             reconnect_cool_down_seconds: 1
+           ) do
+        {:ok, pid} -> {:halt, {:ok, pid}}
+        {:error, {:already_started, _}} -> {:cont, {:error, :client_capacity_exceeded}}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  @impl true
+  def handle_call(:brokers, _from, state), do: {:reply, state.brokers, state}
+
+  def handle_call({:send, definition, payload, options}, _from, state) do
+    try do
+      {key, headers, value} = KafkaCodec.encode(definition, payload, options)
+      id = definition.wire["client_id"] || "poolster-elixir"
+
+      {client, producers} =
+        case Map.fetch(state.producers, id) do
+          {:ok, pid} ->
+            {pid, state.producers}
+
+          :error ->
+            {:ok, pid} = native_client(state.brokers, id)
+            {pid, Map.put(state.producers, id, pid)}
+        end
+
+      updated = %{state | producers: producers}
+
+      try do
+        topic = definition.wire["topic"]
+
+        :ok =
+          :brod.start_producer(client, topic,
+            required_acks: -1,
+            ack_timeout: 10_000,
+            max_retries: 3
+          )
+
+        {:ok, call_ref} =
+          :brod.produce(client, topic, :hash, key, %{value: value, headers: headers})
+
+        result = :brod.sync_produce_request(call_ref, Keyword.get(options, :timeout, 30_000))
+        {:reply, result, updated}
+      rescue
+        error -> {:reply, {:error, error}, updated}
+      catch
+        :exit, reason -> {:reply, {:error, reason}, updated}
+      end
+    rescue
+      error -> {:reply, {:error, error}, state}
+    end
+  end
+
+  @impl true
+  def handle_info({:EXIT, pid, _reason}, state),
+    do:
+      {:noreply,
+       %{state | producers: Map.reject(state.producers, fn {_, value} -> value == pid end)}}
+
+  @impl true
+  def terminate(_reason, state) do
+    Enum.each(state.producers, fn {_, client} -> :brod.stop_client(client) end)
+  end
+end

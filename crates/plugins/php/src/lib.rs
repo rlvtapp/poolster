@@ -80,3 +80,9 @@ pub use graphql::{
 
 mod shared_models;
 pub use shared_models::shared_models;
+
+mod events;
+pub use events::{
+    AsyncApi, KafkaClient, KafkaOperationSymbols, asyncapi, render_event_package,
+    render_event_package_with_reference,
+};

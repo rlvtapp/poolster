@@ -13,7 +13,10 @@ pub struct Settings {
 impl Language for Swift {
     const NAME: &'static str = "swift";
     type Settings = Settings;
-    type Workspace = ();
+    type Workspace = crate::events::Workspace;
+    fn finalize(cx: &mut poolster_core::engine::FinalizeContext<'_, Self>) -> Result<()> {
+        crate::events::Workspace::finalize(cx)
+    }
     fn finalize_files(tree: &mut poolster_core::GeneratedTree) -> Result<()> {
         if tree.get("test/OperationTests.swift").is_some() {
             anyhow::ensure!(
@@ -118,6 +121,11 @@ impl Plugin<Swift> for Sdk {
     }
 
     fn generate(&self, cx: &mut PluginContext<'_, Swift>) -> Result<()> {
+        anyhow::ensure!(
+            !cx.workspace.events,
+            "Swift Kafka and HTTP/GraphQL require separate output packages"
+        );
+        cx.workspace.native_api = true;
         self.http_input.with_context(cx, |cx| {
             cx.files.append(crate::open_enums::render(
                 cx.api,

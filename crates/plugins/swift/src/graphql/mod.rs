@@ -98,6 +98,11 @@ impl Plugin<crate::Swift> for Graphql {
         vec![Provision::of::<GraphqlClient>()]
     }
     fn generate(&self, cx: &mut PluginContext<'_, crate::Swift>) -> Result<()> {
+        anyhow::ensure!(
+            !cx.workspace.events,
+            "Swift Kafka and HTTP/GraphQL require separate output packages"
+        );
+        cx.workspace.native_api = true;
         let contract = cx.inputs.get::<GraphqlOperations>()?;
         let module = ident(cx.settings.package_name.as_deref().unwrap_or("GraphqlSdk"));
         let (files, symbols) = render_advanced(
@@ -227,6 +232,11 @@ impl Plugin<crate::Swift> for GraphqlIncremental {
         vec![Provision::of::<GraphqlClient>()]
     }
     fn generate(&self, cx: &mut PluginContext<'_, crate::Swift>) -> Result<()> {
+        anyhow::ensure!(
+            !cx.workspace.events,
+            "Swift Kafka and HTTP/GraphQL require separate output packages"
+        );
+        cx.workspace.native_api = true;
         let contract = cx
             .inputs
             .get::<poolster_core::native::GraphqlIncrementalOperations>()?;

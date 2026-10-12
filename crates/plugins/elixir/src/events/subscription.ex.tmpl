@@ -1,0 +1,202 @@
+defmodule __NAMESPACE__.Events.KafkaRecord do
+  @moduledoc "A decoded event. ack/1 marks its offset for brod's native asynchronous commit."
+  defstruct [:payload, :headers, :key, :topic, :partition, :offset, :subscription, :token]
+  def ack(%__MODULE__{} = record), do: GenServer.call(record.subscription, {:ack, record.token})
+end
+
+defmodule __NAMESPACE__.Events.KafkaSubscription do
+  use GenServer
+  alias __NAMESPACE__.Events.{KafkaClient, KafkaRecord, KafkaCallback}
+
+  def start_link(brokers, definition, options) do
+    fixed = definition.wire["group_id"]
+    group = Keyword.get(options, :group, fixed)
+
+    cond do
+      fixed && group != fixed -> {:error, :conflicting_group_binding}
+      !is_binary(group) or group == "" -> {:error, :consumer_group_required}
+      true -> GenServer.start_link(__MODULE__, {brokers, definition, options})
+    end
+  end
+
+  def poll(subscription, timeout \\ 1000),
+    do: GenServer.call(subscription, {:poll, timeout}, timeout + 1000)
+
+  def cancel(subscription), do: GenServer.call(subscription, :cancel)
+  def close(subscription), do: GenServer.stop(subscription, :normal)
+
+  def run(subscription, handler, timeout \\ 1000) do
+    case poll(subscription, timeout) do
+      {:ok, record} ->
+        handler.(record)
+        :ok = KafkaRecord.ack(record)
+        run(subscription, handler, timeout)
+
+      :timeout ->
+        run(subscription, handler, timeout)
+
+      other ->
+        other
+    end
+  end
+
+  @impl true
+  def init({brokers, definition, options}) do
+    Process.flag(:trap_exit, true)
+    fixed = definition.wire["group_id"]
+    group = Keyword.get(options, :group, fixed)
+
+    cond do
+      fixed && group != fixed ->
+        {:stop, :conflicting_group_binding}
+
+      !is_binary(group) or group == "" ->
+        {:stop, :consumer_group_required}
+
+      true ->
+        id = definition.wire["client_id"] || "poolster-elixir"
+
+        with {:ok, client} <- KafkaClient.native_client(brokers, id) do
+          case :brod.start_link_group_subscriber_v2(%{
+                 client: client,
+                 group_id: group,
+                 topics: [definition.wire["topic"]],
+                 cb_module: KafkaCallback,
+                 message_type: :message,
+                 init_data: {self(), definition},
+                 consumer_config: [begin_offset: :earliest, prefetch_count: 0, prefetch_bytes: 0],
+                 group_config: [offset_commit_interval_seconds: 1]
+               }) do
+            {:ok, subscriber} ->
+              {:ok,
+               %{
+                 client: client,
+                 subscriber: subscriber,
+                 pending: %{},
+                 queue: :queue.new(),
+                 waiter: nil,
+                 cancelled: false,
+                 error: nil
+               }}
+
+            {:error, reason} ->
+              :brod.stop_client(client)
+              {:stop, reason}
+          end
+        else
+          {:error, reason} -> {:stop, reason}
+        end
+    end
+  end
+
+  @impl true
+  def handle_call({:poll, _timeout}, _from, %{cancelled: true} = state),
+    do: {:reply, {:error, :cancelled}, state}
+
+  def handle_call({:poll, _timeout}, _from, %{error: error} = state) when not is_nil(error),
+    do: {:reply, {:error, error}, state}
+
+  def handle_call({:poll, _timeout}, _from, %{waiter: waiter} = state) when not is_nil(waiter),
+    do: {:reply, {:error, :concurrent_poll}, state}
+
+  def handle_call({:poll, timeout}, from, state) do
+    case :queue.out(state.queue) do
+      {{:value, record}, rest} ->
+        {:reply, {:ok, record}, %{state | queue: rest}}
+
+      {:empty, _} ->
+        token = make_ref()
+        timer = Process.send_after(self(), {:poll_timeout, token}, timeout)
+        {:noreply, %{state | waiter: {from, token, timer}}}
+    end
+  end
+
+  def handle_call({:ack, token}, _from, state) do
+    case Map.pop(state.pending, token) do
+      {nil, _} ->
+        {:reply, {:error, :foreign_or_already_acknowledged_record}, state}
+
+      {entry, pending} ->
+        earlier =
+          Enum.any?(pending, fn {_, other} ->
+            other.worker == entry.worker and other.offset < entry.offset
+          end)
+
+        cond do
+          state.cancelled or not is_nil(state.error) or !Process.alive?(entry.worker) ->
+            {:reply, {:error, :invalidated_record}, state}
+
+          earlier ->
+            {:reply, {:error, :out_of_order_acknowledgement}, state}
+
+          true ->
+            entry.info.commit_fun.(entry.offset)
+            entry.info.ack_fun.(entry.offset)
+            {:reply, :ok, %{state | pending: pending}}
+        end
+    end
+  end
+
+  def handle_call(:cancel, _from, state) do
+    :brod_group_subscriber_v2.stop(state.subscriber)
+    state = reply_waiter(state, {:error, :cancelled})
+    {:reply, :ok, %{state | cancelled: true}}
+  end
+
+  @impl true
+  def handle_info({:poolster_event, worker, token, info, values}, state) do
+    record =
+      struct(
+        KafkaRecord,
+        Map.merge(values, %{
+          subscription: self(),
+          token: token,
+          topic: info.topic,
+          partition: info.partition
+        })
+      )
+
+    state = %{
+      state
+      | pending:
+          Map.put(state.pending, token, %{worker: worker, offset: values.offset, info: info})
+    }
+
+    if state.waiter,
+      do: {:noreply, reply_waiter(state, {:ok, record})},
+      else: {:noreply, %{state | queue: :queue.in(record, state.queue)}}
+  end
+
+  def handle_info({:poolster_invalid, error}, state) do
+    # Freeze this subscription. An invalid record never advances its offset.
+    {:noreply, %{reply_waiter(state, {:error, error}) | error: error}}
+  end
+
+  def handle_info({:poll_timeout, token}, %{waiter: {_, token, _}} = state),
+    do: {:noreply, reply_waiter(state, :timeout)}
+
+  def handle_info({:poll_timeout, _}, state), do: {:noreply, state}
+
+  def handle_info({:EXIT, pid, reason}, state) do
+    if pid in [state.client, state.subscriber] and !state.cancelled do
+      {:noreply, %{reply_waiter(state, {:error, reason}) | error: reason}}
+    else
+      {:noreply, state}
+    end
+  end
+
+  defp reply_waiter(%{waiter: nil} = state, _), do: state
+
+  defp reply_waiter(state, reply) do
+    {from, _, timer} = state.waiter
+    Process.cancel_timer(timer)
+    GenServer.reply(from, reply)
+    %{state | waiter: nil}
+  end
+
+  @impl true
+  def terminate(_reason, state) do
+    if Process.alive?(state.subscriber), do: :brod_group_subscriber_v2.stop(state.subscriber)
+    if Process.alive?(state.client), do: :brod.stop_client(state.client)
+  end
+end

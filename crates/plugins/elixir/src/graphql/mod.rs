@@ -103,6 +103,11 @@ impl Plugin<Elixir> for Graphql {
         vec![Provision::of::<GraphqlClient>()]
     }
     fn generate(&self, cx: &mut PluginContext<'_, Elixir>) -> Result<()> {
+        anyhow::ensure!(
+            !cx.workspace.events,
+            "elixir Kafka and HTTP/GraphQL require separate output packages"
+        );
+        cx.workspace.native_api = true;
         let (mut tree, methods) = render_capabilities(
             cx.inputs.get::<GraphqlOperations>()?,
             cx.settings

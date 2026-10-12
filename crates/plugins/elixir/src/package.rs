@@ -11,7 +11,10 @@ pub struct Settings {
 impl Language for Elixir {
     const NAME: &'static str = "elixir";
     type Settings = Settings;
-    type Workspace = ();
+    type Workspace = crate::events::Workspace;
+    fn finalize(cx: &mut poolster_core::engine::FinalizeContext<Self>) -> Result<()> {
+        crate::events::Workspace::finalize(cx)
+    }
     fn bundle_middleware(
         tree: &mut poolster_core::GeneratedTree,
         middleware: &[poolster_core::customization::BundledMiddleware],
@@ -61,6 +64,11 @@ impl Plugin<Elixir> for Sdk {
         &self.meta
     }
     fn generate(&self, cx: &mut PluginContext<'_, Elixir>) -> Result<()> {
+        anyhow::ensure!(
+            !cx.workspace.events,
+            "elixir Kafka and HTTP/GraphQL require separate output packages"
+        );
+        cx.workspace.native_api = true;
         self.http.run(cx, |cx| {
             cx.files.append(crate::render_sdk(
                 cx.api,

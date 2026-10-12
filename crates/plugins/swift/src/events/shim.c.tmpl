@@ -1,0 +1,102 @@
+#include "poolster_kafka.h"
+#include <librdkafka/rdkafka.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+struct pk_client { rd_kafka_t *native; rd_kafka_queue_t *queue; rd_kafka_event_t *event; int consumer; };
+struct pk_message { rd_kafka_message_t *native; };
+const char *pk_version(void) { return rd_kafka_version_str(); }
+const char *pk_error(int error) { return rd_kafka_err2str((rd_kafka_resp_err_t)error); }
+static int set(rd_kafka_conf_t *conf, const char *name, const char *value, char *err, size_t size) {
+    return rd_kafka_conf_set(conf, name, value, err, size) == RD_KAFKA_CONF_OK;
+}
+pk_client *pk_open(const char *brokers, const char *client_id, const char *group, const char *topic, char *error, size_t size) {
+    if (strcmp(pk_version(), "2.12.0") != 0) { snprintf(error, size, "Swift Kafka requires librdkafka 2.12.0; loaded %s", pk_version()); return NULL; }
+    rd_kafka_conf_t *conf = rd_kafka_conf_new();
+    if (!set(conf, "bootstrap.servers", brokers, error, size) || !set(conf, "client.id", client_id, error, size)) goto bad;
+    if (group) {
+        if (!set(conf, "group.id", group, error, size) || !set(conf, "enable.auto.commit", "false", error, size) ||
+            !set(conf, "enable.auto.offset.store", "false", error, size) || !set(conf, "auto.offset.reset", "earliest", error, size)) goto bad;
+    } else {
+        if (!set(conf, "enable.idempotence", "true", error, size) || !set(conf, "acks", "all", error, size) ||
+            !set(conf, "message.timeout.ms", "30000", error, size)) goto bad;
+        rd_kafka_conf_set_events(conf, RD_KAFKA_EVENT_DR);
+    }
+    rd_kafka_t *native = rd_kafka_new(group ? RD_KAFKA_CONSUMER : RD_KAFKA_PRODUCER, conf, error, size);
+    if (!native) { rd_kafka_conf_destroy(conf); return NULL; }
+    pk_client *client = calloc(1, sizeof(*client));
+    if (!client) { rd_kafka_destroy(native); snprintf(error, size, "allocation failed"); return NULL; }
+    client->native = native; client->consumer = group != NULL;
+    if (group) {
+        rd_kafka_poll_set_consumer(native);
+        rd_kafka_topic_partition_list_t *topics = rd_kafka_topic_partition_list_new(1);
+        rd_kafka_topic_partition_list_add(topics, topic, RD_KAFKA_PARTITION_UA);
+        rd_kafka_resp_err_t err = rd_kafka_subscribe(native, topics);
+        rd_kafka_topic_partition_list_destroy(topics);
+        if (err) { snprintf(error, size, "%s", rd_kafka_err2str(err)); pk_close(client); return NULL; }
+    } else client->queue = rd_kafka_queue_get_main(native);
+    return client;
+bad:
+    rd_kafka_conf_destroy(conf); return NULL;
+}
+const char *pk_name(pk_client *client) { return rd_kafka_name(client->native); }
+void pk_close(pk_client *client) {
+    if (!client) return;
+    if (client->event) rd_kafka_event_destroy(client->event);
+    if (client->consumer) rd_kafka_consumer_close(client->native);
+    else { rd_kafka_purge(client->native, RD_KAFKA_PURGE_F_QUEUE | RD_KAFKA_PURGE_F_INFLIGHT); }
+    if (client->queue) rd_kafka_queue_destroy(client->queue);
+    rd_kafka_destroy(client->native); free(client);
+}
+int pk_send(pk_client *client, const char *topic, const unsigned char *payload, size_t length,
+    const unsigned char *key, size_t key_length, const pk_header *headers, size_t count, uint64_t token) {
+    rd_kafka_headers_t *values = rd_kafka_headers_new(count);
+    for (size_t i = 0; i < count; i++) {
+        rd_kafka_resp_err_t err = rd_kafka_header_add(values, headers[i].name, -1,
+            headers[i].is_null ? NULL : headers[i].value, headers[i].is_null ? 0 : (ssize_t)headers[i].length);
+        if (err) { rd_kafka_headers_destroy(values); return err; }
+    }
+    rd_kafka_resp_err_t err = rd_kafka_producev(client->native,
+        RD_KAFKA_V_TOPIC(topic), RD_KAFKA_V_MSGFLAGS(RD_KAFKA_MSG_F_COPY),
+        RD_KAFKA_V_VALUE((void *)payload, length), RD_KAFKA_V_KEY((void *)key, key_length),
+        RD_KAFKA_V_HEADERS(values), RD_KAFKA_V_OPAQUE((void *)(uintptr_t)token), RD_KAFKA_V_END);
+    if (err) rd_kafka_headers_destroy(values); // ownership transfers only on success.
+    return err;
+}
+pk_delivery pk_delivery_poll(pk_client *client) {
+    pk_delivery result = {0};
+    for (;;) {
+        if (client->event) {
+            const rd_kafka_message_t *message = rd_kafka_event_message_next(client->event);
+            if (message) { result.available = 1; result.error = message->err; result.partition = message->partition;
+                result.offset = message->offset; result.token = (uint64_t)(uintptr_t)message->_private; return result; }
+            rd_kafka_event_destroy(client->event); client->event = NULL;
+        }
+        client->event = rd_kafka_queue_poll(client->queue, 0);
+        if (!client->event) return result;
+        if (rd_kafka_event_type(client->event) != RD_KAFKA_EVENT_DR) {
+            rd_kafka_event_destroy(client->event); client->event = NULL;
+        }
+    }
+}
+pk_message *pk_receive(pk_client *client) {
+    rd_kafka_message_t *native = rd_kafka_consumer_poll(client->native, 0);
+    if (!native) return NULL;
+    pk_message *message = malloc(sizeof(*message));
+    if (!message) { rd_kafka_message_destroy(native); return NULL; }
+    message->native = native; return message;
+}
+int pk_message_error(pk_message *message) { return message->native->err; }
+const unsigned char *pk_payload(pk_message *message, size_t *length) { *length = message->native->len; return message->native->payload; }
+const unsigned char *pk_key(pk_message *message, size_t *length) { *length = message->native->key_len; return message->native->key; }
+int pk_header_at(pk_message *message, size_t index, pk_header *header) {
+    rd_kafka_headers_t *headers;
+    if (rd_kafka_message_headers(message->native, &headers)) return 0;
+    const void *value; size_t size;
+    if (rd_kafka_header_get_all(headers, index, &header->name, &value, &size)) return 0;
+    header->value = value; header->length = size; header->is_null = value == NULL; return 1;
+}
+int32_t pk_partition(pk_message *message) { return message->native->partition; }
+int64_t pk_offset(pk_message *message) { return message->native->offset; }
+int pk_commit(pk_client *client, pk_message *message) { return rd_kafka_commit_message(client->native, message->native, 0); }
+void pk_message_free(pk_message *message) { if (message) { rd_kafka_message_destroy(message->native); free(message); } }

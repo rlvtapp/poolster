@@ -117,6 +117,11 @@ impl Plugin<Ruby> for Graphql {
         vec![Provision::of::<GraphqlClient>()]
     }
     fn generate(&self, cx: &mut PluginContext<'_, Ruby>) -> Result<()> {
+        anyhow::ensure!(
+            !cx.workspace.events,
+            "ruby Kafka and HTTP/GraphQL require separate output packages"
+        );
+        cx.workspace.native_api = true;
         let name = cx
             .settings
             .package_name

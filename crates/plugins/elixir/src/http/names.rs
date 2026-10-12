@@ -200,5 +200,8 @@ pub(crate) fn package_version(version: &str) -> String {
 }
 
 pub(crate) fn escape_elixir_string(value: &str) -> String {
-    value.replace('\\', "\\\\").replace('"', "\\\"")
+    value
+        .replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace("#{", "\\#{")
 }

@@ -3,6 +3,33 @@
 Generation, compilation and API behavior are separate checks. Run all three
 for the package you ship.
 
+## All-language Kafka checks (12 October 2026)
+
+All ten SDK languages have registered Kafka JSON adapters; Symfony adds the PHP
+runtime and dependency-injection bundle. **21 generation/native adapter suites
+passed, with no failed or skipped adapters**, including generated compilation and
+local broker behavior. Native tests normally ignored by the workspace suite were
+explicitly enabled. The matrix retains the TypeScript/Go evidence gaps and native
+policy differences.
+
+The effective full workspace result is **1,007 passed, 0 remaining failures,
+205 ignored** across 106 test executables. The first sandboxed run had 18 failures
+in four binaries from cache/Docker/socket restrictions and nested Cargo registry
+access. Successful reruns replace those results; refreshed affected binaries also
+include two new safety tests. Ignored tests remain separate from passes.
+
+The npm SDK suite passed **89 tests, with 2 opt-in skips**. After rebuilding the
+native addon, all **5 event SDK tests** passed with the broker enabled. CLI tests
+cover all ten outputs plus Symfony, provider metadata and regeneration. Workspace
+Clippy passed with warnings denied, formatting and diff checks passed, and the
+source-size audit found no violations in 769 authored files.
+
+See the [batch record](../verification-results/kafka-all-languages-2026-10-12.json)
+and [Kafka comparison](../reference/outputs/kafka-conformance.md) for the exact
+scope and limits: plaintext JSON only, PHP duplicate-header detection, Elixir
+nonempty declared roles/asynchronous commits, and unverified Swift Linux execution.
+These additions are unreleased.
+
 ## Advanced GraphQL checks (10 October 2026)
 
 The full workspace suite passes **895 tests, 0 failures, 170 ignored**.

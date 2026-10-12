@@ -1,6 +1,6 @@
 # PHP output capabilities
 
-Audited against the current repository on **2026-10-11**. This describes implemented generated APIs, not the intended output specification or a promise about a previously published package. Examples show alternatives from different generation styles; do not paste all alternatives into one scope.
+Audited against the current repository on **2026-10-12**. This describes implemented generated APIs, not the intended output specification or a promise about a previously published package. Examples show alternatives from different generation styles; do not paste all alternatives into one scope.
 
 PHP 8.2+, Composer. HTTP injects PSR-18/PSR-7/PSR-17; portable GraphQL defaults to PHP HTTP streams.
 
@@ -11,7 +11,7 @@ PHP 8.2+, Composer. HTTP injects PSR-18/PSR-7/PSR-17; portable GraphQL defaults 
 | HTTP / OpenAPI | SDK, typed models and target-specific runtime helpers |
 | GraphQL | Selection-specific client, variables/results and HTTP runtime; optional advanced transports |
 | RPC / Protobuf | No service/client/server generator in this language; shared models are a separate subset |
-| Events / AsyncAPI | Shared model subset only; no producer/consumer runtime in this language |
+| Events / AsyncAPI | Shared models and Kafka JSON producer/consumer package; Symfony can wrap the PHP package |
 | Workflows / Arazzo | No workflow runner |
 | Capabilities / Cap’n Proto | No message/capability RPC generator |
 | Shared models | Neutral model package; supported schema subset and explicit rejection of unsupported shapes |
@@ -105,6 +105,48 @@ CLI: `poolster generate schema.graphql --input-format graphql --operation operat
 
 See [shared-model output](../outputs/shared-models.md) and the matrix for per-language enum/alias/additional-property restrictions.
 
+## Kafka event features
+
+PHP 8.2+ packages pin **php-rdkafka 6.0.5** and **Opis JSON Schema 2.6.0**. Install the native extension before Composer. CLI recipes select `asyncapi`; JavaScript uses `pluginPhp()` with an AsyncAPI input. Rust uses `php::asyncapi(Some(input.handle())).using_models(models.handle())`.
+
+| Feature | Generated behavior |
+| --- | --- |
+| API style | Native operation classes: `SendOrderEvent::send()` and `ReceiveOrderEvent::subscribe()`. Event packages do not accept HTTP/GraphQL style options. |
+| Retry / idempotence | Native idempotent producer with `acks=all` and 30 s delivery deadline. Separate calls are not deduplicated; timeout can occur after publication. |
+| Acknowledgement | One pending record; explicit `ack()` or `run($handler)` after success. Synchronous commit; failed handlers leave the offset uncommitted. |
+| Malformed records | Strict JSON, supported Draft-07 schema validation and payload/key/header UTF-8 checks. Decoding failure poisons the subscription; close and reopen to replay. |
+| Cancellation | `cancel()` or a predicate, checked between polls of at most 250 ms. No cross-thread wakeup guarantee. |
+| Bindings | Static topics, generated client/group IDs and broker overrides. Conflicting fixed group overrides fail. |
+| Auth / broader protocols | Plaintext only. TLS/SASL, transactions, schema registry and other brokers are unsupported. |
+
+For package `acme/orders` and operations `sendOrder`/`receiveOrder`:
+
+```php
+use Acme\Orders\Events\{KafkaDefaults, SendOrderEvent, ReceiveOrderEvent};
+use Acme\Orders\Models\{OrderCreatedPayload, OrderCreatedHeaders, OrderCreatedKey};
+
+$runtime = KafkaDefaults::connect();
+$payload = OrderCreatedPayload::fromArray(['id' => '42', 'quantity' => 1]);
+$headers = OrderCreatedHeaders::fromArray(['trace' => 'trace-1']);
+$key = OrderCreatedKey::from('order-42');
+SendOrderEvent::send($runtime, $payload, $headers, $key);
+$subscription = ReceiveOrderEvent::subscribe($runtime);
+try {
+    $record = $subscription->poll(1000);
+    if ($record !== null) {
+        processOrder($record->payload); // application handler
+        $record->ack();
+    }
+} finally {
+    $subscription->close();
+    $runtime->close();
+}
+```
+
+The sample assumes a fixed consumer group; otherwise supply one to `subscribe()`. Topics must already exist. Missing keys and empty keys remain distinct. Runtime files live in `src/Events/`, one operation per file, shared models in `src/Models/`, with one Composer manifest and retained native document/provenance. PHP's native library exposes headers as an associative map, so duplicate wire header names may be collapsed before validation; detection of that case is unavailable.
+
+See [Kafka output](../outputs/kafka.md) and [conformance](../outputs/kafka-conformance.md).
+
 ## Files, naming and regeneration
 
 HTTP Composer package: Client, model/error/resource classes and runtime support. GraphQL: Composer-loaded `src/Graphql.php` entry, split runtime/client plus `Models/`, `Operations/`, `Methods/`, groups and balanced traits.
@@ -115,9 +157,9 @@ HTTP and GraphQL use different transport APIs: PSR-18 for HTTP, a callable or na
 
 ## Gaps and evidence
 
-Events, RPC, workflows and capabilities still need language-specific runnable packages. GraphQL retry/idempotency policy, automatic pagination and dynamic typed selections are application work or future features, not enabled by the HTTP runtime. Shared-model support does not imply runtime schema-validation parity.
+RPC, workflows and capabilities still need language-specific runnable packages. GraphQL retry/idempotency policy, automatic pagination and dynamic typed selections are application work or future features, not enabled by the HTTP runtime. Shared-model support does not imply runtime schema-validation parity.
 
-This page audits code and existing tests; it does not report a new compiler or broker run. Native generated-code tests can be ignored by the ordinary workspace suite until their toolchains are explicitly enabled.
+Kafka generated packages have been compiled and executed against the local broker; see the linked conformance evidence. Native generated-code tests can be ignored by the ordinary workspace suite until their toolchains are explicitly enabled.
 
 - [HTTP implementation](../../../crates/plugins/php/src/http/)
 - [HTTP operation tests](../../../crates/plugins/php/src/operation_tests.rs)
@@ -139,3 +181,5 @@ Symfony is a framework-specific PHP output plugin, not an additional language. I
 | Subscriptions / incremental delivery | Not enabled by the Symfony GraphQL generator; use the portable PHP output for these transports |
 
 Evidence: [bundle generator](../../../crates/plugins/symfony/src/graphql/mod.rs), [emitted configuration/usage](../../../crates/plugins/symfony/src/graphql/readme.md.tmpl), [generated bundle runtime tests](../../../crates/plugins/symfony/src/graphql/tests.rs), [HTTP integration](../../../crates/plugins/symfony/src/http.rs).
+
+Symfony Kafka uses `symfony::asyncapi()` to produce a self-contained PHP SDK and DI bundle. Register the generated `PoolsterKafkaBundle`, configure its `<package>_kafka.brokers` setting and inject `KafkaRuntime`. Application worker services own consumer loops and shutdown; DI registration starts no consumers. Symfony models in this pipeline are bundled PHP models, not a separate Symfony models-only output.

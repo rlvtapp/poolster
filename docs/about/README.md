@@ -23,7 +23,9 @@ the source changes. Poolster manages dependency order and file ownership.
 
 OpenAPI is the established generation path. GraphQL clients and companions, and
 AsyncAPI models/Kafka clients in this checkout are unreleased additions. AsyncAPI
-models cover all ten SDK languages; Kafka transports cover six, with four planned.
+models and Kafka transports cover all ten SDK languages; Symfony adds PHP runtime
+and container integration. Kafka support remains a bounded plaintext JSON subset,
+with native client and platform differences.
 See [Kafka capabilities](../reference/outputs/kafka-conformance.md) for differences
 and limitations. Other protocols have their own support boundaries.
 

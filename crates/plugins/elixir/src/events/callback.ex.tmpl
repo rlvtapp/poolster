@@ -1,0 +1,25 @@
+defmodule __NAMESPACE__.Events.KafkaCallback do
+  @moduledoc false
+  @behaviour :brod_group_subscriber_v2
+  alias __NAMESPACE__.Events.KafkaCodec
+  @impl true
+  def init(info, {owner, definition}),
+    do: {:ok, %{info: info, owner: owner, definition: definition}}
+
+  @impl true
+  def handle_message(message, state) do
+    token = make_ref()
+
+    try do
+      values = KafkaCodec.decode(message, state.definition)
+      send(state.owner, {:poolster_event, self(), token, state.info, values})
+    rescue
+      error -> send(state.owner, {:poolster_invalid, error})
+    end
+
+    # Returning without ack preserves the native offset and lets brod process
+    # shutdown/rebalance messages. The subscription invokes native ack/commit
+    # callbacks only after explicit, partition-ordered application acknowledgement.
+    {:ok, state}
+  end
+end
