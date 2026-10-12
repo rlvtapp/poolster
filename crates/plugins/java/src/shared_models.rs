@@ -214,14 +214,7 @@ fn emit(
         format!("{root}/NullOnly.java"),
         NULL_ONLY.replace("__PACKAGE__", &package),
     )?)?;
-    cx.files.emit(GeneratedFile::new(
-        "pom.xml",
-        crate::docs::pom_xml(
-            &package,
-            "poolster-models",
-            cx.common.package_version.as_deref().unwrap_or("0.0.0"),
-        ),
-    )?)?;
+    cx.workspace.model_package = Some(package);
     Ok(symbols)
 }
 

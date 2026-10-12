@@ -1,0 +1,39 @@
+# Generated Kafka JSON event package (Java 17)
+
+Each operation has a separate `__PACKAGE__.events.<Operation>Event` class, with
+`send(runtime, payload, headers, key)` or `subscribe(runtime, groupOverride)`.
+Shared payload/header/key records live in `__PACKAGE__.model`. KafkaCodec exposes
+strict encode/decode functions for custom transports. There are no additional
+raw/flat/idiomatic event styles yet.
+
+Build with Maven: `mvn package`. Dependencies are pinned: official Apache Kafka
+client 3.9.1, networknt JSON Schema validator 1.5.6, Jackson 2.18.3.
+Provision topics separately; generation does not contact the broker.
+`KafkaDefaults.connect()` uses configured brokers; `new KafkaRuntime("host:9092")`
+replaces them. Close runtime and subscriptions explicitly.
+
+Only plaintext Kafka, static topics, JSON payloads, closed nonnullable string
+headers and optional nonnullable string keys are supported. Unsupported bindings,
+security, schema dialects and model shapes fail generation. No schema registry,
+tombstones, transactions, TLS/SASL or alternate brokers. Unknown formats are not
+accepted. JSON Schema constraints validate before sending and after receipt.
+UTF-8 is strict; duplicate JSON properties and Kafka headers are rejected.
+
+Send returns `CompletionStage<RecordMetadata>` after broker acknowledgement.
+The official producer enables idempotence and `acks=all`, with a 30-second
+delivery deadline. Its transport retries do not deduplicate separate application
+calls; Poolster adds no application retries. Cancelling the returned future does
+not retract a record already sent. Operation-level client IDs select separate
+producers; receive group/client IDs are honored.
+
+Poll returns typed records with topic, partition and offset. Call `record.ack()`
+only after processing succeeds, in partition order. Auto commit is disabled.
+`consume(timeout, handler)` acknowledges only after a successful handler call;
+exceptions stop the batch and leave remaining records uncommitted. Reopen the
+same group to retry. Decode failure invalidates the subscription without
+committing; close and reopen after handling the malformed message operationally.
+Drain acknowledgements before polling another batch. Poll, ack and close run on
+one thread; `cancel()` may be called elsewhere and wakes poll with Kafka's
+`WakeupException`. Close on the consumer thread. Runtime close does not close
+independent subscriptions. This is at-least-once processing, not exactly-once
+application side effects.

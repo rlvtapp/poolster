@@ -1,0 +1,182 @@
+package __PACKAGE__.events;
+
+import com.fasterxml.jackson.core.*;
+import com.fasterxml.jackson.databind.*;
+import com.networknt.schema.*;
+import java.nio.*;
+import java.nio.charset.*;
+import java.util.*;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.header.internals.RecordHeaders;
+
+/** Strict JSON/UTF-8 validation independent of Kafka I/O; no schema network resolution. */
+public final class KafkaCodec {
+  private KafkaCodec() {}
+
+  static final ObjectMapper JSON =
+      new ObjectMapper()
+          .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+          .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+          .enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
+          .disable(MapperFeature.ALLOW_COERCION_OF_SCALARS);
+
+  public static final class Definition<P, H, K> {
+    public final String topic, clientId, groupId;
+    final Class<P> payloadType;
+    final Class<H> headersType;
+    final Class<K> keyType;
+    final JsonSchema payloadSchema, headersSchema, keySchema;
+
+    public Definition(
+        String topic,
+        String clientId,
+        String groupId,
+        Class<P> p,
+        Class<H> h,
+        Class<K> k,
+        String ps,
+        String hs,
+        String ks) {
+      this.topic = topic;
+      this.clientId = clientId;
+      this.groupId = groupId;
+      payloadType = p;
+      headersType = h;
+      keyType = k;
+      payloadSchema = schema(ps);
+      headersSchema = schema(hs);
+      keySchema = schema(ks);
+    }
+  }
+
+  public record Wire(byte[] payload, byte[] key, RecordHeaders headers) {}
+
+  public record Decoded<P, H, K>(P payload, H headers, K key) {}
+
+  static JsonSchema schema(String text) {
+    if (text == null) return null;
+    try {
+      return JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7)
+          .getSchema(JSON.readTree(text));
+    } catch (Exception e) {
+      throw new IllegalArgumentException("invalid generated JSON Schema", e);
+    }
+  }
+
+  static JsonNode checked(JsonNode value, JsonSchema schema, String role) {
+    if (value == null) throw new IllegalArgumentException(role + " is empty JSON");
+    checkJsonValue(value, role);
+    var errors = schema.validate(value);
+    if (!errors.isEmpty())
+      throw new IllegalArgumentException(role + " schema validation failed: " + errors);
+    return value;
+  }
+
+  static void checkJsonValue(JsonNode value, String role) {
+    if ((value.isDouble() || value.isFloat()) && !Double.isFinite(value.doubleValue())) {
+      throw new IllegalArgumentException(role + " contains a nonfinite number");
+    }
+    if (value.isTextual()) encode(value.textValue(), role);
+    if (value.isObject()) {
+      var names = value.fieldNames();
+      while (names.hasNext()) encode(names.next(), role + " property name");
+    }
+    if (value.isContainerNode()) {
+      for (var child : value) checkJsonValue(child, role);
+    }
+  }
+
+  static String utf8(byte[] bytes, String role) {
+    if (bytes == null)
+      throw new IllegalArgumentException(role + " is null (tombstones unsupported)");
+    try {
+      return StandardCharsets.UTF_8
+          .newDecoder()
+          .onMalformedInput(CodingErrorAction.REPORT)
+          .onUnmappableCharacter(CodingErrorAction.REPORT)
+          .decode(ByteBuffer.wrap(bytes))
+          .toString();
+    } catch (CharacterCodingException e) {
+      throw new IllegalArgumentException(role + " contains invalid UTF-8", e);
+    }
+  }
+
+  static byte[] encode(String value, String role) {
+    try {
+      var b =
+          StandardCharsets.UTF_8
+              .newEncoder()
+              .onMalformedInput(CodingErrorAction.REPORT)
+              .onUnmappableCharacter(CodingErrorAction.REPORT)
+              .encode(CharBuffer.wrap(value));
+      var result = new byte[b.remaining()];
+      b.get(result);
+      return result;
+    } catch (CharacterCodingException e) {
+      throw new IllegalArgumentException(role + " contains invalid Unicode", e);
+    }
+  }
+
+  public static <P, H, K> Wire encode(Definition<P, H, K> d, P payload, H headers, K key) {
+    try {
+      JsonNode p = checked(JSON.valueToTree(payload), d.payloadSchema, "payload");
+      var wireHeaders = new RecordHeaders();
+      if (d.headersSchema != null) {
+        var h =
+            checked(
+                headers == null ? JSON.createObjectNode() : JSON.valueToTree(headers),
+                d.headersSchema,
+                "headers");
+        var fields = h.fields();
+        while (fields.hasNext()) {
+          var f = fields.next();
+          wireHeaders.add(f.getKey(), encode(f.getValue().textValue(), "header"));
+        }
+      } else if (headers != null)
+        throw new IllegalArgumentException("operation does not declare headers");
+      byte[] wireKey = null;
+      if (key != null) {
+        if (d.keySchema == null)
+          throw new IllegalArgumentException("operation does not declare a key");
+        var k = checked(JSON.valueToTree(key), d.keySchema, "key");
+        wireKey = encode(k.textValue(), "key");
+      }
+      return new Wire(encode(JSON.writeValueAsString(p), "payload"), wireKey, wireHeaders);
+    } catch (JsonProcessingException e) {
+      throw new IllegalArgumentException("cannot encode event", e);
+    }
+  }
+
+  public static <P, H, K> Decoded<P, H, K> decode(
+      Definition<P, H, K> d, ConsumerRecord<byte[], byte[]> record) {
+    try {
+      if (!record.topic().equals(d.topic))
+        throw new IllegalArgumentException("record topic differs from operation");
+      var p = checked(JSON.readTree(utf8(record.value(), "payload")), d.payloadSchema, "payload");
+      var h = JSON.createObjectNode();
+      for (var header : record.headers()) {
+        if (h.has(header.key()))
+          throw new IllegalArgumentException("duplicate Kafka header: " + header.key());
+        // Header names are Java strings; also reject malformed surrogate pairs.
+        encode(header.key(), "header name");
+        h.put(header.key(), utf8(header.value(), "header"));
+      }
+      H headers = null;
+      K key = null;
+      if (d.headersSchema != null)
+        headers = JSON.treeToValue(checked(h, d.headersSchema, "headers"), d.headersType);
+      else if (!h.isEmpty()) throw new IllegalArgumentException("undeclared Kafka headers");
+      if (record.key() != null) {
+        if (d.keySchema == null) throw new IllegalArgumentException("undeclared Kafka key");
+        key =
+            JSON.treeToValue(
+                checked(
+                    JSON.getNodeFactory().textNode(utf8(record.key(), "key")), d.keySchema, "key"),
+                d.keyType);
+      }
+      return new Decoded<>(JSON.treeToValue(p, d.payloadType), headers, key);
+    } catch (JsonProcessingException e) {
+      throw new IllegalArgumentException("cannot decode event", e);
+    }
+  }
+}

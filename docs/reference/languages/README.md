@@ -7,15 +7,16 @@ Choose a language to see **what Poolster currently generates**, contract by cont
 | TypeScript / JavaScript | [TypeScript](typescript.md) | Kafka events; source-resolved Arazzo workflows |
 | Rust | [Rust](rust.md) | Kafka events |
 | Go | [Go](go.md) | Protobuf gRPC clients/server interfaces, including streaming; Kafka events |
-| Python | [Python](python.md) | Shared model packages; no event transport |
-| Java | [Java](java.md) | Shared model packages; no event transport |
+| Python | [Python](python.md) | Kafka events |
+| Java | [Java](java.md) | Kafka events |
 | C# | [C#](csharp.md) | Shared model packages; no event transport |
 | PHP / Symfony | [PHP](php.md) | Shared model packages; Symfony integration has its own boundary |
 | Ruby | [Ruby](ruby.md) | Shared model packages; no event transport |
 | Swift | [Swift](swift.md) | Shared model packages; no event transport |
 | Elixir | [Elixir](elixir.md) | Shared model packages; no event transport |
 
-Audited **11 October 2026** against the unreleased checkout. These pages describe
+Updated **12 October 2026** against the unreleased checkout; each language page
+states its own audit date. These pages describe
 implemented output, not the already published alpha.1 release. Language support does
 not mean every contract, schema feature or runtime option is implemented.
 

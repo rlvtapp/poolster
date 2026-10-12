@@ -13,7 +13,9 @@ endpoints. Broker-independent [models-only packages](shared-models.md) remain av
   "packages": [
     { "language": "typescript", "path": "ts", "plugins": [{ "name": "asyncapi" }] },
     { "language": "go", "path": "go", "name": "example.com/acme/events", "plugins": [{ "name": "asyncapi" }] },
-    { "language": "rust", "path": "rust", "name": "acme-events", "plugins": [{ "name": "asyncapi" }] }
+    { "language": "rust", "path": "rust", "name": "acme-events", "plugins": [{ "name": "asyncapi" }] },
+    { "language": "python", "path": "python", "name": "acme-events", "plugins": [{ "name": "asyncapi" }] },
+    { "language": "java", "path": "java", "name": "com.acme.events", "plugins": [{ "name": "asyncapi" }] }
   ]
 }
 ```
@@ -33,7 +35,7 @@ Use `input.options.broker` to override the native broker configuration:
 
 ```js
 import { generate } from '@relevate/poolster';
-import { inputAsyncApi, pluginTypeScript, pluginGo, pluginRust } from '@relevate/poolster-plugins';
+import { inputAsyncApi, pluginTypeScript, pluginGo, pluginRust, pluginPython, pluginJava } from '@relevate/poolster-plugins';
 
 await generate({
   input: {
@@ -42,7 +44,7 @@ await generate({
     broker: { kind: 'kafka', brokers: ['127.0.0.1:29092'], client_id: 'acme' },
   },
   output: 'generated',
-  plugins: [pluginTypeScript(), pluginGo(), pluginRust()],
+  plugins: [pluginTypeScript(), pluginGo(), pluginRust(), pluginPython(), pluginJava()],
 });
 ```
 
@@ -61,7 +63,8 @@ let package = poolster::ts::package("client")
     .with(input).with(shapes).with(models).with(events);
 ```
 
-The same composition uses `poolster::go` or `poolster::rust`. Models and operations
+The same composition uses `poolster::go`, `poolster::rust`, `poolster::python` or
+`poolster::java`. Models and operations
 bind to the same selected event contract. Payload/header/key roles resolve through
 stable native message IDs, rather than generated names. A changed contract revision,
 missing role or incompatible model provider fails generation. Keep the source identity
@@ -119,3 +122,56 @@ errors stop consumption too. Cancellation returns the context error. This suppor
 at-least-once processing; handlers must tolerate redelivery, and cancelling inside a
 handler can prevent its subsequent commit. There is no generated dead-letter or
 invalid-message skip policy.
+
+## Python package details
+
+Python emits a typed installable package with shared `models/`, an `events/` client,
+per-operation modules, bounded mixin/export chunks, and separate runtime/codec helpers.
+Dependencies are pinned to `kafka-python==3.0.11` and `jsonschema==4.26.0`. See the
+[Python capability page](../languages/python.md#kafka-events) for generated calls.
+
+Send methods synchronously wait for broker acknowledgement. A timeout does not prove
+non-delivery. Producer retries default to zero; `KafkaClient(retries=N)` opts into
+native transport retries with idempotence disabled. There is no transaction or
+application exactly-once guarantee.
+
+Receive methods return context-managed subscription iterators with auto-commit disabled.
+Call `record.ack()` after processing, or use `subscription.run(handler)` to commit only
+after the handler succeeds. A new group starts at the earliest retained offset. Fixed
+group bindings reject conflicting overrides. A `threading.Event` provides cooperative
+cancellation during polling. Close subscriptions separately from their producer client.
+Poll/decode failures invalidate the subscription; close/reopen instead of resuming and
+accidentally committing past an invalid record.
+
+Closed, nonnullable string headers and optional nonnullable string keys are supported.
+Payload/header/key schemas use the documented Draft-07 vocabulary; schema `format` is
+rejected rather than silently ignored. Shared-model schema limits still apply. Native
+package tests install the generated wheel and exercise strict UTF-8, optional/null
+presence, acknowledgements, redelivery, cancellation and malformed records locally.
+
+## Java package details
+
+Java 17 emits shared model records, per-operation `<Operation>Event` classes and separate
+`KafkaRuntime`, `KafkaCodec`, `KafkaSubscription` and broker-default helpers. The recipe
+name determines the Java package. The Maven manifest pins Apache Kafka client **3.9.1**,
+networknt JSON Schema validator **1.5.6** and Jackson **2.18.3**. See the
+[Java capability page](../languages/java.md#kafka-event-features) for generated calls.
+
+Static send wrappers return `CompletionStage<RecordMetadata>` for broker acknowledgement.
+Native producers use `acks=all` and idempotence, bounded by a 30-second delivery deadline.
+That protects producer transport retries, not separate application calls or consumer
+side effects; there is no generated transaction or exactly-once workflow. Cancelling a
+future does not retract a record already sent. Operation client IDs select separate producers.
+
+Subscription polling returns typed records with explicit `ack()`. Auto-commit is disabled;
+acknowledge in partition order before polling another batch. `consume(timeout, handler)`
+commits after successful processing. A new group starts at the earliest retained offset.
+Fixed group bindings reject conflicts. Decode failures invalidate the subscription
+without committing; close/reopen to retry unacknowledged records. Poll/ack/close run on
+one thread; `cancel()` wakes a poll with Kafka's `WakeupException`.
+
+The Java model subset requires closed objects and named representable nested shapes.
+Payload/header/key JSON Schema constraints are validated before send and after receipt;
+unsupported keywords, external references, dialects and bindings fail generation.
+UTF-8, duplicate JSON fields/headers and tombstones are checked explicitly. Runtime and
+subscriptions have independent ownership: close both.

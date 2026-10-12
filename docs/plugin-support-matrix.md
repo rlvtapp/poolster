@@ -1,6 +1,6 @@
 # Poolster plugin support matrix
 
-Audited **11 October 2026**, against the unreleased alpha.2 implementation in this checkout.
+Audited **12 October 2026**, against the unreleased alpha.2 implementation in this checkout.
 
 For runtime behavior and raw/flat/idiomatic examples, see the
 [per-language capability pages](reference/languages/README.md).
@@ -44,8 +44,8 @@ limitations still apply. GraphQL is a separate contract even when its transport 
 | SWR | TypeScript query/mutation hooks | ✅ | ✅ | — | — | — | — |
 | Go | HTTP/GraphQL SDK; Protobuf gRPC; Kafka JSON client | ✅ | ✅ | ✅ | ✅ | — | — |
 | Rust | HTTP/GraphQL SDK; Kafka JSON client | ✅ | ✅ | — | ✅ | — | — |
-| Python | HTTP SDK; synchronous GraphQL client | ✅ | ✅ | — | — | — | — |
-| Java | Java HTTP SDK; GraphQL client | ✅ | ✅ | — | — | — | — |
+| Python | HTTP SDK; synchronous GraphQL client; Kafka JSON client | ✅ | ✅ | — | ✅ | — | — |
+| Java | Java HTTP SDK; GraphQL client; Kafka JSON client | ✅ | ✅ | — | ✅ | — | — |
 | C# | C# HTTP SDK; GraphQL client | ✅ | ✅ | — | — | — | — |
 | PHP | PHP HTTP SDK; GraphQL client | ✅ | ✅ | — | — | — | — |
 | Symfony | HTTP integration; PHP GraphQL SDK, HttpClient transport and bundle | ✅ | ✅ | — | — | — | — |
@@ -120,15 +120,16 @@ checks do not establish general JSON Schema runtime validation; constraints rema
 the semantic manifest. Go and Swift direct-construction APIs still have limited controls
 for optional nullable field presence. See the [detailed boundaries](reference/outputs/shared-models.md#boundaries).
 
-Event transports are implemented for **TypeScript, Go and Rust**, separately from
+Event transports are implemented for **TypeScript, Go, Rust, Python and Java**, separately from
 models-only coverage. CLI and JS event generation assemble event-derived shared models;
 Rust plugin authors select them with `asyncapi(provider).using_models(models.handle())`.
 Stable message IDs bind payload/header/key roles, and stale contract revisions are rejected.
 The direct TypeScript factory retains its legacy standalone rendering path for compatibility.
 
-All three have generated compilation/runtime and real local Kafka round-trip checks.
+All five have generated compilation/runtime and real local Kafka round-trip checks.
 TypeScript uses KafkaJS 2.2.4/AJV 8.17.1, Go franz-go 1.18.1/jsonschema v5.3.1,
-and Rust rust-rdkafka 0.38.0/jsonschema 0.33.0. The broker is pinned Redpanda 25.3.11.
+Rust rust-rdkafka 0.38.0/jsonschema 0.33.0, Python kafka-python 3.0.11/jsonschema 4.26.0,
+and Java Apache Kafka 3.9.1/networknt 1.5.6/Jackson 2.18.3. The broker is pinned Redpanda 25.3.11.
 Generation does not contact a broker. Tests provision unique topics; clients do not
 provision broker infrastructure. See [Kafka usage](reference/outputs/kafka.md).
 
@@ -146,9 +147,19 @@ runtime, operations and models occupy separate files in one `models` package; th
 configured name sets its module path. See [Go package details](reference/outputs/kafka.md#go-package-details).
 
 More brokers, declared security/authentication, dynamic channels, traits, replies,
-broader schema coverage and event transports for the other seven languages remain work.
+broader schema coverage and event transports for C#, PHP, Ruby, Swift and Elixir remain work.
 This is not full AsyncAPI support. Broker/delegate/native tests overlap ordinary suites
 and are reported separately in the [verification log](verification/verification.md).
+
+Python subscriptions expose explicit acknowledgement or handler-success commits,
+with automatic commits disabled. Producer retries default to zero and do not enable
+idempotence. Java exposes explicit partition-ordered acknowledgement and native
+idempotent producer transport retries, with no application exactly-once guarantee.
+Both start new groups at earliest retained offsets, preserve fixed group/client IDs,
+validate JSON/UTF-8 and invalidate subscriptions after decoding failures. Closed
+string headers and each language's shared-model limits apply. See the
+[Python](reference/languages/python.md#kafka-events) and
+[Java](reference/languages/java.md#kafka-event-features) capability pages.
 
 ## GraphQL capability chart
 
@@ -186,7 +197,7 @@ multiplexing, reconnect/replay or newer ID-based incremental dialect is claimed.
 | OpenAPI | ✅ | HTTP output plugins above |
 | GraphQL SDL / local introspection JSON + operation documents | ✅ | All ten SDK languages through Rust API, CLI and npm entry points |
 | Protobuf proto2/proto3 | ✅ | Go messages and gRPC clients/server interfaces |
-| AsyncAPI 2.6 / 3.0 / 3.1 | ✅ | TS/Go/Rust Kafka for the supported 3.0/3.1 subsets; ten-language models-only subsets |
+| AsyncAPI 2.6 / 3.0 / 3.1 | ✅ | TS/Go/Rust/Python/Java Kafka for the supported 3.0/3.1 subsets; ten-language models-only subsets |
 | Arazzo 1.0.0 / 1.0.1 / 1.1.0 | ✅ | TypeScript sequential runners with resolved local OpenAPI sources |
 | Cap’n Proto | ✅ | — |
 
@@ -222,6 +233,15 @@ report. An all-skipped run leaves existing files untouched. Invalid input and
 unsupported features in an otherwise supported pipeline still fail explicitly.
 
 ## Verification and release checks
+
+Python/Java Kafka batch: **974 effective workspace passes, 0 remaining failures,
+195 ignored**. The initial run found one stale C# documentation snapshot from the
+previous docs commit; only that reviewed style-guide hash changed, and both golden
+tests passed on rerun. Python generated-wheel installation and Java compilation/local
+broker probes passed. Full npm: **89 passed, 2 gated skips**; the explicit Kafka probe
+passed separately. Strict workspace Clippy, formatting and source-size checks pass.
+See the [scoped verification record](verification-results/kafka-python-java-2026-10-12.json)
+for initial failures, retries, overlapping runs and unsupported boundaries.
 
 Kafka shared-model batch: **966 workspace tests passed, 0 failed, 192 ignored**.
 Generated-package compilation and local Kafka runtime checks passed for TypeScript, Go

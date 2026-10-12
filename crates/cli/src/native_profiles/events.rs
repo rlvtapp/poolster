@@ -31,6 +31,8 @@ pub(super) fn append(
         "typescript" => output!(ts),
         "go" => output!(go),
         "rust" => output!(rust),
+        "python" => output!(python),
+        "java" => output!(java),
         _ => bail!("unsupported Kafka event output {language}"),
     })
 }

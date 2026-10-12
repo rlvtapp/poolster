@@ -1,0 +1,124 @@
+package __PACKAGE__.events;
+
+import java.time.Duration;
+import java.util.*;
+import java.util.function.Consumer;
+import org.apache.kafka.clients.consumer.*;
+import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+
+/** Single-threaded polling/acknowledgement; cancel() alone is safe from another thread. */
+public final class KafkaSubscription<P, H, K> implements AutoCloseable {
+  private final KafkaConsumer<byte[], byte[]> consumer;
+  private final KafkaCodec.Definition<P, H, K> definition;
+  private final Map<TopicPartition, ArrayDeque<Long>> pending = new HashMap<>();
+  private boolean failed, closed;
+
+  KafkaSubscription(String brokers, KafkaCodec.Definition<P, H, K> d, String overrideGroup) {
+    definition = d;
+    if (d.groupId != null && overrideGroup != null && !d.groupId.equals(overrideGroup))
+      throw new IllegalArgumentException("consumer group conflicts with declared binding");
+    var group = overrideGroup == null ? d.groupId : overrideGroup;
+    if (group == null || group.isBlank())
+      throw new IllegalArgumentException("consumer group required");
+    var p = new Properties();
+    p.setProperty("bootstrap.servers", brokers);
+    p.setProperty("group.id", group);
+    p.setProperty("client.id", d.clientId == null ? "poolster" : d.clientId);
+    p.setProperty("enable.auto.commit", "false");
+    p.setProperty("auto.offset.reset", "earliest");
+    consumer = new KafkaConsumer<>(p, new ByteArrayDeserializer(), new ByteArrayDeserializer());
+    consumer.subscribe(List.of(d.topic));
+  }
+
+  public final class Received {
+    private final KafkaCodec.Decoded<P, H, K> data;
+    public final String topic;
+    public final int partition;
+    public final long offset;
+    private boolean acked;
+
+    Received(KafkaCodec.Decoded<P, H, K> data, ConsumerRecord<byte[], byte[]> record) {
+      this.data = data;
+      topic = record.topic();
+      partition = record.partition();
+      offset = record.offset();
+    }
+
+    public P payload() {
+      return data.payload();
+    }
+
+    public H headers() {
+      return data.headers();
+    }
+
+    public K key() {
+      return data.key();
+    }
+
+    /**
+     * Commit exactly this next unacknowledged record for its partition, after application success.
+     */
+    public void ack() {
+      requireOpen();
+      if (acked) throw new IllegalStateException("record already acknowledged");
+      var tp = new TopicPartition(topic, partition);
+      var queue = pending.get(tp);
+      if (queue == null || queue.isEmpty() || queue.peekFirst() != offset)
+        throw new IllegalStateException("acknowledge in partition order");
+      if (!consumer.assignment().contains(tp))
+        throw new IllegalStateException("partition no longer assigned");
+      consumer.commitSync(Map.of(tp, new OffsetAndMetadata(Math.addExact(offset, 1))));
+      queue.removeFirst();
+      if (queue.isEmpty()) pending.remove(tp);
+      acked = true;
+    }
+  }
+
+  void requireOpen() {
+    if (closed || failed)
+      throw new IllegalStateException(
+          "subscription closed or failed; close and reopen to retry unacknowledged records");
+  }
+
+  public List<Received> poll(Duration timeout) {
+    requireOpen();
+    if (!pending.isEmpty())
+      throw new IllegalStateException("acknowledge pending records before polling again");
+    var batch = consumer.poll(timeout);
+    var result = new ArrayList<Received>();
+    try {
+      for (var record : batch)
+        result.add(new Received(KafkaCodec.decode(definition, record), record));
+    } catch (RuntimeException e) {
+      failed = true;
+      throw e;
+    }
+    for (var record : result)
+      pending
+          .computeIfAbsent(
+              new TopicPartition(record.topic, record.partition), k -> new ArrayDeque<>())
+          .add(record.offset);
+    return Collections.unmodifiableList(result);
+  }
+
+  /** Handler exceptions leave the failed and following records uncommitted. */
+  public void consume(Duration timeout, Consumer<Received> handler) {
+    for (var record : poll(timeout)) {
+      handler.accept(record);
+      record.ack();
+    }
+  }
+
+  public void cancel() {
+    consumer.wakeup();
+  }
+
+  @Override
+  public void close() {
+    if (closed) return;
+    closed = true;
+    consumer.close(Duration.ofSeconds(30));
+  }
+}

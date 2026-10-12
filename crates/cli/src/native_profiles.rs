@@ -25,7 +25,7 @@ pub(super) fn pipeline(format: &str) -> Option<(&'static str, &'static str)> {
     }
 }
 pub(super) fn language_compatible(format: &str, language: &str) -> bool {
-    (format == "asyncapi" && ["typescript", "go", "rust"].contains(&language))
+    (format == "asyncapi" && ["typescript", "go", "rust", "python", "java"].contains(&language))
         || (format == "graphql"
             && [
                 "rust",
@@ -49,7 +49,9 @@ pub(super) fn compatible(format: &str, package: &PackageConfig) -> bool {
     if shared_models::compatible(format, package) {
         return true;
     }
-    if format == "asyncapi" && ["typescript", "go", "rust"].contains(&package.language.as_str()) {
+    if format == "asyncapi"
+        && ["typescript", "go", "rust", "python", "java"].contains(&package.language.as_str())
+    {
         return package.plugins.len() == 1 && package.plugins[0].name == "asyncapi";
     }
     if format == "graphql" && ["rust-cli", "typescript-cli"].contains(&package.language.as_str()) {

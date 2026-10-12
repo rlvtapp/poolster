@@ -244,24 +244,47 @@ fn graphql_other_language_packages_generate_and_regenerate_through_recipe() {
 }
 
 #[test]
-fn kafka_recipe_shares_models_for_typescript_go_and_rust_and_regenerates() {
+fn kafka_recipe_shares_models_for_five_languages_and_regenerates() {
     let root = tempfile::tempdir().unwrap();
     std::fs::write(
         root.path().join("messages.yaml"),
         include_str!("../../inputs/asyncapi/tests/fixtures/kafka-json.yaml"),
     )
     .unwrap();
-    let packages = ["typescript", "go", "rust"].map(|language| serde_json::json!({"language":language,"path":language,"plugins":[{"name":"asyncapi"}]}));
-    let recipe = serde_json::json!({"input":{"format":"asyncapi","path":"messages.yaml"},"output":{"path":"generated"},"packages":packages});
+    let packages = ["typescript", "go", "rust", "python", "java"].map(|language| serde_json::json!({"language":language,"path":language,"plugins":[{"name":"asyncapi"}]}));
+    let recipe = serde_json::json!({"input":{"format":"asyncapi","path":"messages.yaml","provider":"asyncapi.roas","options":{"broker":{"kind":"kafka","brokers":["127.0.0.1:39092"],"client_id":"recipe-kafka-override"}}},"output":{"path":"generated"},"packages":packages});
     let path = root.path().join("poolster.json");
     std::fs::write(&path, serde_json::to_vec(&recipe).unwrap()).unwrap();
     generate_from_config(&path, ColorChoice::Never, false, false).unwrap();
-    for language in ["typescript", "go", "rust"] {
+    for language in ["typescript", "go", "rust", "python", "java"] {
         let folder = root.path().join("generated").join(language);
         let manifest: serde_json::Value = serde_json::from_slice(
             &std::fs::read(folder.join(".poolster/model-contract.json")).unwrap(),
         )
         .unwrap();
+        fn generated_sources(directory: &Path, result: &mut String) {
+            for entry in std::fs::read_dir(directory).unwrap() {
+                let path = entry.unwrap().path();
+                if path.is_dir() {
+                    generated_sources(&path, result);
+                } else if matches!(
+                    path.extension().and_then(|extension| extension.to_str()),
+                    Some("ts" | "go" | "rs" | "py" | "java")
+                ) {
+                    result.push_str(&std::fs::read_to_string(path).unwrap());
+                }
+            }
+        }
+        let mut sources = String::new();
+        generated_sources(&folder, &mut sources);
+        assert!(
+            sources.contains("127.0.0.1:39092"),
+            "{language} emits broker override"
+        );
+        assert!(
+            sources.contains("recipe-kafka-override"),
+            "{language} emits client ID override"
+        );
         assert_eq!(
             manifest["parent"]["contract"],
             "poolster.event-operations.v1"

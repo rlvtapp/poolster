@@ -89,6 +89,8 @@ fn generate(request: &str) -> AnyResult<String> {
             "typescript" => append!(ts, package),
             "go" => append!(go, package),
             "rust" => append!(rust, package),
+            "python" => append!(python, package),
+            "java" => append!(java, package),
             _ => bail!(
                 "unsupported Kafka event output language {}",
                 package.language

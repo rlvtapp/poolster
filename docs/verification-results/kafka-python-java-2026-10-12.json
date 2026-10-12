@@ -1,0 +1,102 @@
+{
+  "date": "2026-10-12",
+  "scope": "Python and Java Kafka JSON event output; CLI/Node/JavaScript all-five-target wiring",
+  "workspace": {
+    "fresh_compilation": "cargo test --workspace --offline --locked --no-run --message-format=json",
+    "execution": "102 freshly compiled test executables, four workers, each run from crate directory",
+    "initial": {
+      "passed": 973,
+      "failed": 1,
+      "ignored": 195
+    },
+    "initial_failure": {
+      "test": "every_maintained_target_matches_the_approved_output_snapshot",
+      "origin": "Previous per-language documentation commit changed generated C# STYLE_GUIDE.md without updating its approved hash",
+      "review": "Only C# STYLE_GUIDE.md length/hash differed; all generated HTTP source entries unchanged",
+      "fix": "Reviewed and updated that one snapshot entry",
+      "rerun": "cargo test -p poolster --features all-plugins --test golden_output --offline --locked",
+      "rerun_passed": 2
+    },
+    "final_effective": {
+      "passed": 974,
+      "remaining_failures": 0,
+      "ignored": 195
+    },
+    "counting": "Replace the original two-test golden executable result with its successful rerun; do not sum overlapping test runs"
+  },
+  "checks": {
+    "workspace_clippy": "all-targets -D warnings passed",
+    "format": "cargo fmt --all -- --check passed",
+    "source_layout": {
+      "authored_files": 747,
+      "violations": 0
+    },
+    "doc_tests": "passed; no runnable documentation tests; node cdylib unsupported warning remains",
+    "npm_full": {
+      "passed": 89,
+      "failed": 0,
+      "skipped": 2,
+      "gates": "Local GraphQL and Kafka server tests"
+    },
+    "npm_final_addon_focused": {
+      "passed": 10,
+      "failed": 0,
+      "skipped": 1
+    },
+    "npm_explicit_kafka": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    "npm_configuration": {
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0
+    },
+    "cli_focused": "All five language recipe passed; actual emitted broker/client-ID overrides, shared models, ownership and regeneration checked"
+  },
+  "native": {
+    "python": {
+      "tests_passed": 4,
+      "scope": "Three unit/provenance/layout tests plus explicitly enabled generated wheel installation/local Kafka test",
+      "libraries": {
+        "kafka-python": "3.0.11",
+        "jsonschema": "4.26.0"
+      },
+      "installation": "Pinned hatchling 1.27.0; actual generated wheel build/install and installed-package import",
+      "runtime": "Typed payload/header/key roundtrip; optional/null presence; fixed bindings; per-operation IDs; explicit ack; handler failure/redelivery; cancellation; strict UTF-8 and poisoned invalid subscriptions"
+    },
+    "java": {
+      "tests_passed": 11,
+      "scope": "Seven event tests including two enabled native compilation/broker tests; four existing shared-model regressions including gated native tests",
+      "libraries": {
+        "Apache Kafka": "3.9.1",
+        "networknt": "1.5.6",
+        "Jackson": "2.18.3"
+      },
+      "toolchain": "Java17 and Maven3.9.9",
+      "runtime": "Generated compilation; schema/UTF-8/duplicate-property/header/tombstone/finite-number checks; bindings; producer/consumer IDs; explicit partition-ordered ack; handler failure/redelivery; wakeup cancellation"
+    }
+  },
+  "corrected_during_batch": [
+    "Python native probe initially expected to_dict; corrected to maintained from_dict/_to_wire API",
+    "Python fixed consumer groups reject conflicting overrides",
+    "Python poll/decode failures poison subscription to prevent later offset commits skipping invalid messages",
+    "Java uses resolved model symbols and permits documented same-package providers",
+    "Java templates and emitted operation sources formatted readably",
+    "Java rejects nonfinite binary floating values and invalid Unicode before publishing",
+    "Java diagnoses JVM constant-pool schema literal limits",
+    "Existing stale C# generated-document snapshot corrected after full-run failure",
+    "Initial sandbox Kafka EPERM rerun with authorized local broker access passed"
+  ],
+  "boundaries": [
+    "Native/targeted tests overlap ordinary tests and are not added to workspace totals",
+    "Ignored tests are not passes",
+    "No new full 205-spec HTTP corpus run; current all-language HTTP golden source entries match",
+    "Static plaintext Kafka JSON subset only; supported schema/model subsets differ by language",
+    "Python producer retries default zero/idempotence disabled; Java native producer idempotence does not guarantee application exactly-once effects",
+    "No transactions, schema registry, TLS/SASL, other brokers or automatic handler retries claimed",
+    "Kafka event transports now cover TypeScript, Go, Rust, Python and Java; C#, PHP, Ruby, Swift and Elixir remain follow-up",
+    "No release publication performed"
+  ]
+}

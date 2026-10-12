@@ -1,6 +1,6 @@
 # Python capabilities and generated APIs
 
-Audited **11 October 2026**, against this checkout's unreleased alpha.2 generators. This is implemented behavior, not the target [SDK specification](../../specifications/generated-sdk.md), and not a claim that every native test runs in every environment.
+Audited **12 October 2026**, against this checkout's unreleased alpha.2 generators. This is implemented behavior, not the target [SDK specification](../../specifications/generated-sdk.md), and not a claim that every native test runs in every environment.
 
 `Built-in` means Poolster emits the behavior. `Driver` means the native library owns it. `Application` means callers must implement the policy. An HTTP transport does not make GraphQL an HTTP contract.
 
@@ -10,9 +10,9 @@ Audited **11 October 2026**, against this checkout's unreleased alpha.2 generato
 | --- | --- |
 | HTTP / OpenAPI `Api` | SDK, models, declared errors and resource facade |
 | GraphQL operations | Fixed-document query/mutation clients; opt-in SSE subscriptions and experimental multipart incremental delivery |
-| Shared schema-model blocks | Models-only package, including supported AsyncAPI payload/header/key shapes; no broker client |
+| Shared schema-model blocks | Models-only package, including supported AsyncAPI payload/header/key shapes |
 | RPC / Protobuf | Unsupported |
-| Events / AsyncAPI | No producer/consumer implementation; models-only is supported separately |
+| Events / AsyncAPI | Typed Kafka JSON producers/consumers over shared models; static plaintext Kafka subset |
 | Workflows / Arazzo | Unsupported |
 | Capabilities / Cap’n Proto | Unsupported |
 
@@ -67,6 +67,44 @@ response = client.users.read({'id': '42'})
 
 These are alternative generation styles; raw generation does not promise bound flat/group methods. `response.errors` can accompany usable `response.data`.
 
+## Kafka events
+
+The Kafka contract generator is separate from HTTP and GraphQL. It reuses the selected event revision's shared payload/header/key models and rejects stale or missing role symbols before emission. Native documents and a versioned event-contract manifest are retained.
+
+| Feature | Kafka JSON events |
+| --- | --- |
+| API styles | Flat typed operation methods; no alternate raw/grouped style switch |
+| Producer retries | Driver retries configured explicitly with `KafkaClient(retries=N)`; default zero |
+| Idempotency / transactions | Unsupported; retries may duplicate deliveries; application deduplication required |
+| Consumer acknowledgement | Explicit `record.ack()`; `subscription.run(handler)` commits only after handler returns successfully |
+| Handler retries | Application-owned; handler errors propagate and leave the record unacknowledged |
+| Cancellation / cleanup | `threading.Event`, checked between bounded 250 ms polls; context-managed client/subscription cleanup |
+| Errors | Driver, JSON/schema and decoding errors propagate; malformed records poison the subscription until close/reopen |
+| Validation | Draft-07 constraints before send and after receive; strict UTF-8 payload/key/header decoding, no tombstones or duplicate headers/JSON properties |
+| Broker bindings | Fixed operation topic/group/client IDs; conflicting caller group overrides rejected |
+| Transport | Plaintext Kafka only; no auth/TLS configuration in this generator |
+
+For message `User` and operations `sendUser` / `receiveUser`, the generated API is:
+
+```python
+from example_events import KafkaClient
+from example_events.models import UserPayload, UserHeaders
+
+with KafkaClient() as client:
+    client.send_user(
+        UserPayload.from_dict({"id": "42", "nickname": None}),
+        headers=UserHeaders.from_dict({"trace": "request-1"}), key="42",
+    )
+    with client.receive_user() as subscription:  # operation's declared groupId
+        for record in subscription:
+            process(record.payload)
+            record.ack()  # commit only after successful processing
+```
+
+Omitted optional fields stay omitted; explicitly present nulls stay null. Receive iteration requires acknowledgement before polling another record. Provision topics separately. Synchronous send waits for broker acknowledgement and accepts `timeout=`; timing out does not prove that the broker did not receive the record. Closing a subscription never automatically commits.
+
+Dependencies are pinned to [kafka-python 3.0.11](https://pypi.org/project/kafka-python/3.0.11/) and [jsonschema 4.26.0](https://pypi.org/project/jsonschema/4.26.0/). Shared-model defaults, unions/intersections/negation and unsupported literals remain rejected. Schema `format` constraints are rejected rather than silently ignored; only the documented Draft-07 subset is accepted.
+
 ## Files and model boundaries
 
 HTTP emits `pyproject.toml`, `src/<module>/client.py`, `runtime.py`, presence/multipart/OAuth helpers, `models/<model>.py`, bounded model export partitions, operation chunks and optional `resources/` chunks. Optional async generation adds async client/runtime/resource counterparts.
@@ -75,15 +113,17 @@ GraphQL emits `client.py`, `runtime.py`, model and operation packages with indiv
 
 Shared models emit an installable typed package with individual model modules, codec helpers and bounded exports. Defaults, unions/intersections/negation are rejected in the current shared-model subset; enums/constants must be scalar Python `Literal`-compatible values. This differs from HTTP/GraphQL-specific model support.
 
+Kafka adds one operation module per operation, bounded 100-operation mixin chunks, `events/client.py`, cohesive runtime/codec modules, package dependencies and ownership metadata. A package supports at most 10000 event operations; shared declarations and barrel chunks remain shared.
+
 ## Composition and configuration
 
-HTTP and GraphQL use the same language plugin package, with distinct generators and contracts. CLI recipes and npm language plugins select the input and `contracts.graphql.style`; GraphQL grouping maps supplied operation names, never inferred schema resources. Rust composition exposes `sdk()`, `graphql(Some(input.handle()))` and `shared_models(Some(blocks.handle()))`. Shared-model generation consumes schema-model blocks and publishes language symbols; it does not automatically supply RPC, event or workflow execution.
+HTTP and GraphQL use the same language plugin package, with distinct generators and contracts. CLI recipes and npm language plugins select the input and `contracts.graphql.style`; GraphQL grouping maps supplied operation names, never inferred schema resources. Rust composition exposes `asyncapi(Some(input.handle())).using_models(models.handle())`, `sdk()`, `graphql(Some(input.handle()))` and `shared_models(Some(blocks.handle()))`. Shared-model generation consumes schema-model blocks and publishes language symbols; it does not automatically supply RPC, event or workflow execution.
 
 CLI/JS models-only mode and Rust block composition support the documented neutral model subset. Unsupported input/output execution pairs follow Poolster's skipped-plugin reporting policy; a parsed input alone does not prove generation support. See [provider wiring](../outputs/native-sdk-providers.md), [shared models](../outputs/shared-models.md), [input pipelines](../inputs/native-pipelines.md) and the [support matrix](../../plugin-support-matrix.md).
 
 ## Remaining gaps
 
-No RPC, Kafka execution, workflow or capability client is bundled for this language. GraphQL selections remain fixed documents; dynamic typed `fields:` selection and GraphQL-aware automatic pagination, idempotency and retries remain application work. Experimental incremental delivery is the documented `deferSpec=20220824` dialect, not universal server compatibility.
+No RPC, workflow or capability client is bundled for this language. Kafka security, transactions, schema registry, dynamic topics, nonstring keys/headers and automatic handler retries remain unsupported. GraphQL selections remain fixed documents; dynamic typed `fields:` selection and GraphQL-aware automatic pagination, idempotency and retries remain application work. Experimental incremental delivery is the documented `deferSpec=20220824` dialect, not universal server compatibility.
 
 ## Source and test evidence
 
@@ -91,3 +131,5 @@ No RPC, Kafka execution, workflow or capability client is bundled for this langu
 - [HTTP style tests](../../../crates/plugins/python/src/tests/layout_errors.rs), [idempotency tests](../../../crates/plugins/python/src/tests/idempotency.rs), [async probes](../../../crates/plugins/python/src/tests/async_clients.rs).
 - [GraphQL rendering](../../../crates/plugins/python/src/graphql/render.rs) and [generated local-server/style tests](../../../crates/plugins/python/src/graphql/tests.rs).
 - [Shared-model subset](../../../crates/plugins/python/src/shared_models.rs) and [tests](../../../crates/plugins/python/src/shared_models/tests.rs).
+
+- [Kafka generator and subset checks](../../../crates/plugins/python/src/events/mod.rs), [runtime](../../../crates/plugins/python/src/events/runtime.py.tmpl) and [generated installation/local-broker tests](../../../crates/plugins/python/src/events/tests.rs).

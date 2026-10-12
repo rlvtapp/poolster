@@ -5,7 +5,7 @@ sdk/csharp/PoolsterClient.cs	21765	230ef6b5583ed6b1
 sdk/csharp/PoolsterContractApiSdk.csproj	462	af41cb0cd4f08a74
 sdk/csharp/README.md	2100	6f54ddab59c33ed6
 sdk/csharp/Resources/ContactsResource000.cs	668	3857e692d3d54aa7
-sdk/csharp/STYLE_GUIDE.md	2043	b87d700a4dcaa04b
+sdk/csharp/STYLE_GUIDE.md	2146	1cc8c613d4d97916
 sdk/elixir/README.md	2201	37fa7ec6792a1d6d
 sdk/elixir/STYLE_GUIDE.md	970	69f7646a8421c0a0
 sdk/elixir/lib/poolster_contract_api_sdk/api/operations_0001.ex	915	6f61d814810c0221

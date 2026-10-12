@@ -14,7 +14,10 @@ pub struct Settings {
 impl Language for Python {
     const NAME: &'static str = "python";
     type Settings = Settings;
-    type Workspace = ();
+    type Workspace = crate::events::Workspace;
+    fn finalize(cx: &mut poolster_core::engine::FinalizeContext<Self>) -> Result<()> {
+        crate::events::finalize(cx)
+    }
     fn bundle_middleware(
         tree: &mut poolster_core::GeneratedTree,
         middleware: &[poolster_core::customization::BundledMiddleware],

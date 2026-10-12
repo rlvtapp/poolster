@@ -1,6 +1,6 @@
 # Java output capabilities
 
-Audited against the current repository on **2026-10-11**. This describes implemented generated APIs, not the intended output specification or a promise about a previously published package. Examples show alternatives from different generation styles; do not paste all alternatives into one scope.
+Audited against the current repository on **2026-10-12**. This describes implemented generated APIs, not the intended output specification or a promise about a previously published package. Examples show alternatives from different generation styles; do not paste all alternatives into one scope.
 
 Java 17+, JDK HttpClient and Jackson 2.18.3; Maven and Gradle manifests.
 
@@ -11,7 +11,7 @@ Java 17+, JDK HttpClient and Jackson 2.18.3; Maven and Gradle manifests.
 | HTTP / OpenAPI | SDK, typed models and target-specific runtime helpers |
 | GraphQL | Selection-specific client, variables/results and HTTP runtime; optional advanced transports |
 | RPC / Protobuf | No service/client/server generator in this language; shared models are a separate subset |
-| Events / AsyncAPI | Shared model subset only; no producer/consumer runtime in this language |
+| Events / AsyncAPI | Kafka JSON typed producers/consumers, shared payload/header/key records and runtime JSON Schema validation; documented subset |
 | Workflows / Arazzo | No workflow runner |
 | Capabilities / Cap’n Proto | No message/capability RPC generator |
 | Shared models | Neutral model package; supported schema subset and explicit rejection of unsupported shapes |
@@ -92,6 +92,66 @@ Selecting raw removes the convenience client facade; it does not remove typed va
 
 CLI: `poolster generate schema.graphql --input-format graphql --operation operations.graphql --language java --output generated` selects the pipeline. Recipes select the language output and its contract options. In the JS SDK use `pluginJava({ contracts: { graphql: { style: 'flat' } } })`; operation documents belong to the GraphQL input configuration. In the Rust composition SDK use `java::graphql(Some(input.handle())).flat()` / `.raw()` / `.idiomatic()` as appropriate. These select generated API shape, not the SDK implementation language.
 
+## Kafka event features
+
+| Feature | Current behavior |
+| --- | --- |
+| Typed API | One `<Operation>Event` class per send/receive operation; shared `<Message>Payload`, `Headers` and `Key` records |
+| Raw / flat / idiomatic | No configurable event styles yet. Operation classes expose static typed `send`/`subscribe`; `KafkaCodec.encode/decode` is the strict wire boundary for custom transports |
+| Retry / backoff | Official Kafka producer transport retries are bounded by a 30-second delivery deadline. Poolster never replays a separate application send or failed handler automatically |
+| Idempotency | Native producer `enable.idempotence=true`, `acks=all`; protection for producer transport retries only. Separate application sends and handler side effects can duplicate; no transactions/exactly-once claim |
+| Acknowledgement | Auto commit off; `record.ack()` commits that record after success, in partition order. `consume(timeout, handler)` acks after the handler returns; exceptions leave failed/following records uncommitted |
+| Timeout / cancellation | Producer delivery/request/max-block limits are explicit. Consumer `poll(Duration)` bounds waiting. `cancel()` wakes a poll with Kafka `WakeupException`; close on the consumer thread. Cancelling a send future does not retract a sent record |
+| Errors | Schema/UTF-8/JSON decode errors throw `IllegalArgumentException`; send transport failures complete the future exceptionally; consumer transport failures use Kafka exceptions. Decode failures invalidate the subscription without committing |
+| Auth / security | Plaintext seed brokers only; declared security, TLS/SASL and unsupported Kafka bindings fail generation |
+| Bindings | Static topic, per-operation client ID and fixed receive group ID are honored. Conflicting group overrides reject; an unbound group can be supplied explicitly |
+| Validation / encoding | networknt 1.5.6 validates the bounded Draft-07 schema subset before send/after receipt. Jackson 2.18.3 preserves supported presence/nullability. Strict UTF-8, duplicate JSON property/header, tombstone and invalid key/header rejection |
+| Supported shapes | Java shared-model restrictions still apply: no nullable named roots, inline objects/enums, unions/intersections or additional-properties objects. Header objects are closed and contain nonnullable strings; keys are optional nonnullable strings. `format` keywords and external schema references reject. Embedded schema strings are capped at 60,000 modified UTF-8 bytes to respect JVM constant limits |
+| Infrastructure | Official Kafka client 3.9.1; Maven manifest. Provision topics separately. No schema registry, transactions, dead-letter/retry policy or alternate brokers |
+
+### Generated Kafka example
+
+For the checked `sendOrder`/`receiveOrder` fixture, default package `io.poolster.models`:
+
+```java
+import io.poolster.models.events.*;
+import io.poolster.models.model.*;
+import java.time.Duration;
+
+// Optional note omitted; use Presence.of(null) to send an explicit null.
+var payload = new OrderCreatedPayload("order-1", 1L, null);
+var headers = new OrderCreatedHeaders("trace-1");
+var key = new OrderCreatedKey("account-1");
+try (var runtime = KafkaDefaults.connect()) {
+  var metadata = SendOrderEvent.send(runtime, payload, headers, key)
+      .toCompletableFuture().get();
+  try (var subscription = ReceiveOrderEvent.subscribe(runtime)) {
+    for (var event : subscription.poll(Duration.ofSeconds(1))) {
+      process(event.payload());
+      event.ack(); // Only after application success.
+    }
+  }
+}
+```
+
+`process` is application code. Runtime and subscriptions have independent lifetimes.
+Polling/acknowledgement are single-threaded. Do not poll another batch until pending
+records are acknowledged; close/reopen the same group to retry unacknowledged records.
+Use `KafkaCodec.decode(SendOrderEvent.DEFINITION, consumerRecord)` to reuse strict
+models/validation with an application-owned transport rather than re-parsing schemas.
+
+Composition in the Rust SDK is
+`java::asyncapi(Some(input.handle())).using_models(models.handle())`, with
+`native::events::model_blocks` feeding `java::shared_models(None).input_shapes(...)`.
+Standalone `asyncapi` derives the same shared-model plan internally. CLI/JS SDK
+composition uses that contract chain automatically; see the [Kafka guide](../outputs/kafka.md).
+
+Evidence: [generator/runtime](../../../crates/plugins/java/src/events/),
+[provider/regeneration and generated compiler/broker tests](../../../crates/plugins/java/tests/events.rs).
+Pinned upstream contracts: [Kafka producer](https://kafka.apache.org/39/javadoc/org/apache/kafka/clients/producer/KafkaProducer.html),
+[Kafka consumer](https://kafka.apache.org/39/javadoc/org/apache/kafka/clients/consumer/KafkaConsumer.html),
+[networknt 1.5.6](https://github.com/networknt/json-schema-validator/tree/1.5.6).
+
 ## Shared-model contract features
 
 | Feature | Current behavior |
@@ -115,9 +175,9 @@ Java HTTP inputs use generated request objects; GraphQL uses operation-specific 
 
 ## Gaps and evidence
 
-Events, RPC, workflows and capabilities still need language-specific runnable packages. GraphQL retry/idempotency policy, automatic pagination and dynamic typed selections are application work or future features, not enabled by the HTTP runtime. Shared-model support does not imply runtime schema-validation parity.
+RPC, workflows and capabilities still need language-specific runnable packages. Kafka has a runnable documented subset; broader AsyncAPI broker/security/transaction features remain unsupported. GraphQL retry/idempotency policy, automatic pagination and dynamic typed selections are application work or future features, not enabled by the HTTP runtime. Shared-model support does not imply runtime schema-validation parity.
 
-This page audits code and existing tests; it does not report a new compiler or broker run. Native generated-code tests can be ignored by the ordinary workspace suite until their toolchains are explicitly enabled.
+Kafka generated Java compilation, strict wire checks and a local pinned Kafka broker round trip were explicitly run for this batch. Native generated-code tests can be ignored by the ordinary workspace suite until their toolchains are explicitly enabled.
 
 - [HTTP implementation](../../../crates/plugins/java/src/http/)
 - [HTTP operation tests](../../../crates/plugins/java/src/operation_tests.rs)

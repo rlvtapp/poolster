@@ -1,0 +1,72 @@
+package __PACKAGE__.events;
+
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.*;
+import org.apache.kafka.clients.producer.*;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+
+/**
+ * Owns lazy producers. Kafka transport retries are bounded; application sends are never replayed by
+ * Poolster.
+ */
+public final class KafkaRuntime implements AutoCloseable {
+  private final String brokers;
+  private final Map<String, KafkaProducer<byte[], byte[]>> producers = new HashMap<>();
+  private boolean closed;
+
+  public KafkaRuntime(String brokers) {
+    if (brokers == null || brokers.isBlank())
+      throw new IllegalArgumentException("Kafka seed brokers required");
+    this.brokers = brokers;
+  }
+
+  synchronized KafkaProducer<byte[], byte[]> producer(String id) {
+    if (closed) throw new IllegalStateException("Kafka runtime closed");
+    return producers.computeIfAbsent(
+        id == null ? "poolster" : id,
+        k -> {
+          var p = new Properties();
+          p.setProperty("bootstrap.servers", brokers);
+          p.setProperty("client.id", k);
+          p.setProperty("acks", "all");
+          p.setProperty("enable.idempotence", "true");
+          p.setProperty("delivery.timeout.ms", "30000");
+          p.setProperty("request.timeout.ms", "10000");
+          p.setProperty("max.block.ms", "30000");
+          return new KafkaProducer<>(p, new ByteArraySerializer(), new ByteArraySerializer());
+        });
+  }
+
+  public <P, H, K> CompletionStage<RecordMetadata> send(
+      KafkaCodec.Definition<P, H, K> d, P payload, H headers, K key) {
+    var wire = KafkaCodec.encode(d, payload, headers, key);
+    var result = new CompletableFuture<RecordMetadata>();
+    try {
+      producer(d.clientId)
+          .send(
+              new ProducerRecord<>(d.topic, null, wire.key(), wire.payload(), wire.headers()),
+              (metadata, error) -> {
+                if (error != null) result.completeExceptionally(error);
+                else result.complete(metadata);
+              });
+    } catch (RuntimeException e) {
+      result.completeExceptionally(e);
+    }
+    return result;
+  }
+
+  public synchronized <P, H, K> KafkaSubscription<P, H, K> subscribe(
+      KafkaCodec.Definition<P, H, K> d, String group) {
+    if (closed) throw new IllegalStateException("Kafka runtime closed");
+    return new KafkaSubscription<>(brokers, d, group);
+  }
+
+  @Override
+  public synchronized void close() {
+    if (closed) return;
+    closed = true;
+    for (var p : producers.values()) p.close(Duration.ofSeconds(30));
+    producers.clear();
+  }
+}

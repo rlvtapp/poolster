@@ -23,17 +23,7 @@ impl ModelOutput for Python {
             .unwrap_or("poolster-models");
         let module = python_module_name(distribution);
         let root = format!("src/{module}");
-        cx.files.emit(GeneratedFile::new(
-            "pyproject.toml",
-            render_pyproject(
-                distribution,
-                cx.common.package_version.as_deref().unwrap_or("0.1.0"),
-            ),
-        )?)?;
-        cx.files.emit(GeneratedFile::new(
-            format!("{root}/__init__.py"),
-            "from .models import *\n",
-        )?)?;
+        cx.workspace.shared_models = true;
         cx.files
             .emit(GeneratedFile::new(format!("{root}/py.typed"), "")?)?;
         cx.files.emit(GeneratedFile::new(
