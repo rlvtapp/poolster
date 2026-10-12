@@ -58,7 +58,7 @@ capabilities and release checklists.
 | OpenAPI → existing languages | Existing compiler and adapter | Existing SDK pipelines preserved | Existing target-specific limits still apply |
 | GraphQL → all ten SDK languages | SDL / local introspection JSON, full-file imports and operation documents | Selected clients; opt-in distinct SSE, directional scalar callbacks, experimental multipart 20220824 | WebSockets/reconnect, selective imports, newer incremental variants, dynamic fields and other native output contracts |
 | Protobuf → Go gRPC | Proto2/proto3 descriptors, imports and RPC metadata | Official messages, clients and server interfaces; unary and all streaming directions | Editions, broader official fixture coverage and additional output languages |
-| AsyncAPI → TS / Go / Rust / Python / Java | 2.6/3.0/3.1 native document and message blocks | 3.0/3.1 JSON Kafka clients with shared models | Other event languages, broader schemas/bindings, security and other brokers |
+| AsyncAPI → TS / Go / Rust / Python / Java / C# | 2.6/3.0/3.1 native document and message blocks | 3.0/3.1 JSON Kafka clients with shared models | Other event languages, broader schemas/bindings, security and other brokers |
 | Arazzo → TypeScript | Native document and explicit local source resolution | Sequential HTTP runners with local workflow dependencies | Actions/retries, richer expressions/criteria and additional source types |
 | Cap’n Proto → Rust | Official compiler request and capability/node blocks | Not implemented | Official capnpc Rust generation, capnp-rpc interfaces and local capability tests |
 
@@ -213,7 +213,7 @@ not claimed as supported generated Go packages.
 
 ## AsyncAPI → TypeScript / Kafka
 
-Go, Rust, Python and Java also provide tested Kafka clients using shared model packages. See the
+Go, Rust, Python, Java and C# also provide tested Kafka clients using shared model packages. See the
 [Kafka generation guide](../outputs/kafka.md) for composition, broker configuration,
 file layout and language-specific acknowledgement behavior. The details below describe
 the TypeScript transport.
@@ -298,7 +298,7 @@ one input source, and existing `openapi` recipes remain valid.
 
 Completed foundation: contracts, optional blocks, typed hooks, provenance/revision
 checks, OpenAPI input extraction and first-party HTTP output migration. GraphQL →
-all ten SDK languages, Protobuf → Go gRPC, AsyncAPI → TypeScript/Go/Rust/Python/Java Kafka and Arazzo → TypeScript
+all ten SDK languages, Protobuf → Go gRPC, AsyncAPI → TypeScript/Go/Rust/Python/Java/C# Kafka and Arazzo → TypeScript
 have usable, tested subsets described above.
 
 The frozen pre-output-migration HTTP corpus is **complete: 205 APIs × 10 languages,
@@ -315,11 +315,11 @@ These are the remaining implementation and release gaps:
 - [x] **EVENT-1:** Broker-independent AsyncAPI models-only packages from exposed
   rich schema blocks for all ten languages, within their documented model subsets.
   Complete collections are required; empty complete collections remain valid.
-- [x] **EVENT-SHARED:** TS/Go/Rust/Python/Java event generators accept `GeneratedModels<Language>`;
+- [x] **EVENT-SHARED:** TS/Go/Rust/Python/Java/C# event generators accept `GeneratedModels<Language>`;
   CLI/JS compose shared models with event clients. Native role IDs and revision checks
   protect payload/header/key references. Compilation and local Kafka tests passed.
-- [ ] **EVENT-LANGUAGES:** Add explicit event transports for the remaining five
-  languages (C#, PHP, Ruby, Swift and Elixir), beginning with a separately scoped language/broker implementation.
+- [ ] **EVENT-LANGUAGES:** Add explicit event transports for the remaining four
+  languages (PHP, Ruby, Swift and Elixir), beginning with a separately scoped language/broker implementation.
 - [ ] **EVENT-2:** Extend event schemas, correlation IDs and bindings; add explicit
   security support and failure tests before advertising them. Other brokers need
   their own tested transport adapter.

@@ -1,0 +1,595 @@
+{
+  "date": "2026-10-12",
+  "scope": "C# Kafka output; six-language event wiring and executable conformance baseline",
+  "conformance": {
+    "schema_version": 1,
+    "scope": "adapter execution across frozen source chunks; counts overlap workspace and nested generated tests",
+    "source_reports": [
+      "/private/tmp/poolster-kafka-conformance-go-rust.json",
+      "/private/tmp/poolster-kafka-conformance-ts-py-java.json",
+      "/private/tmp/poolster-kafka-conformance-csharp.json"
+    ],
+    "results": [
+      {
+        "language": "go",
+        "suite": "generation",
+        "tier": "generation",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-go",
+          "--offline",
+          "--locked",
+          "--test",
+          "events",
+          ""
+        ],
+        "cases": [
+          "provenance",
+          "regeneration"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 3,
+          "failed": 0,
+          "ignored": 2
+        },
+        "log": "/private/tmp/poolster-kafka-conformance/go-generation.log",
+        "reason": null
+      },
+      {
+        "language": "go",
+        "suite": "codec",
+        "tier": "native",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-go",
+          "--offline",
+          "--locked",
+          "--test",
+          "events",
+          "generated_package_compiles_and_validates_wire_messages",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cases": [
+          "package",
+          "outgoing-validation",
+          "incoming-validation",
+          "utf8"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        "log": "/private/tmp/poolster-kafka-conformance/go-codec.log",
+        "reason": null
+      },
+      {
+        "language": "go",
+        "suite": "broker",
+        "tier": "native",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-go",
+          "--offline",
+          "--locked",
+          "--test",
+          "events",
+          "generated_client_roundtrips_local_kafka",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cases": [
+          "package",
+          "roundtrip",
+          "acknowledgement",
+          "handler-replay",
+          "cancellation"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        "log": "/private/tmp/poolster-kafka-conformance/go-broker.log",
+        "reason": null
+      },
+      {
+        "language": "rust",
+        "suite": "generation",
+        "tier": "generation",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-rust",
+          "--offline",
+          "--locked",
+          "--lib",
+          "events::tests"
+        ],
+        "cases": [
+          "provenance",
+          "regeneration"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 4,
+          "failed": 0,
+          "ignored": 1
+        },
+        "log": "/private/tmp/poolster-kafka-conformance/rust-generation.log",
+        "reason": null
+      },
+      {
+        "language": "rust",
+        "suite": "broker",
+        "tier": "native",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-rust",
+          "--offline",
+          "--locked",
+          "--lib",
+          "events::tests::native_generated_kafka_package",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cases": [
+          "package",
+          "roundtrip",
+          "outgoing-validation",
+          "incoming-validation",
+          "acknowledgement",
+          "bindings",
+          "utf8",
+          "handler-replay",
+          "cancellation"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 5,
+          "failed": 0,
+          "ignored": 0
+        },
+        "log": "/private/tmp/poolster-kafka-conformance/rust-broker.log",
+        "reason": null
+      },
+      {
+        "language": "typescript",
+        "suite": "generation",
+        "tier": "generation",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-typescript",
+          "--offline",
+          "--locked",
+          "--lib",
+          "events::tests"
+        ],
+        "cases": [
+          "provenance",
+          "regeneration"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0
+        },
+        "log": "/private/tmp/poolster-kafka-conformance/typescript-generation.log",
+        "reason": null
+      },
+      {
+        "language": "typescript",
+        "suite": "broker",
+        "tier": "native",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-typescript",
+          "--offline",
+          "--locked",
+          "--test",
+          "asyncapi_native",
+          "generated_kafka_package_compiles_and_roundtrips_real_broker",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cases": [
+          "package",
+          "roundtrip",
+          "outgoing-validation",
+          "incoming-validation",
+          "acknowledgement",
+          "utf8"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        "log": "/private/tmp/poolster-kafka-conformance/typescript-broker.log",
+        "reason": null
+      },
+      {
+        "language": "python",
+        "suite": "generation",
+        "tier": "generation",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-python",
+          "--offline",
+          "--locked",
+          "--lib",
+          "events::tests"
+        ],
+        "cases": [
+          "provenance",
+          "regeneration"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 3,
+          "failed": 0,
+          "ignored": 1
+        },
+        "log": "/private/tmp/poolster-kafka-conformance/python-generation.log",
+        "reason": null
+      },
+      {
+        "language": "python",
+        "suite": "broker",
+        "tier": "native",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-python",
+          "--offline",
+          "--locked",
+          "--lib",
+          "events::tests::generated_python_codec_and_local_broker",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cases": [
+          "package",
+          "roundtrip",
+          "outgoing-validation",
+          "incoming-validation",
+          "acknowledgement",
+          "cancellation",
+          "bindings",
+          "utf8",
+          "handler-replay"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        "log": "/private/tmp/poolster-kafka-conformance/python-broker.log",
+        "reason": null
+      },
+      {
+        "language": "java",
+        "suite": "generation",
+        "tier": "generation",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-java",
+          "--offline",
+          "--locked",
+          "--test",
+          "events",
+          ""
+        ],
+        "cases": [
+          "provenance",
+          "regeneration"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 5,
+          "failed": 0,
+          "ignored": 2
+        },
+        "log": "/private/tmp/poolster-kafka-conformance/java-generation.log",
+        "reason": null
+      },
+      {
+        "language": "java",
+        "suite": "broker",
+        "tier": "native",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-java",
+          "--offline",
+          "--locked",
+          "--test",
+          "events",
+          "generated_package_roundtrips_local_kafka",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cases": [
+          "package",
+          "roundtrip",
+          "outgoing-validation",
+          "incoming-validation",
+          "acknowledgement",
+          "cancellation",
+          "bindings",
+          "utf8",
+          "handler-replay"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        "log": "/private/tmp/poolster-kafka-conformance/java-broker.log",
+        "reason": null
+      },
+      {
+        "language": "csharp",
+        "suite": "generation",
+        "tier": "generation",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-csharp",
+          "--offline",
+          "--locked",
+          "--test",
+          "events"
+        ],
+        "cases": [
+          "provenance",
+          "regeneration"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 8,
+          "failed": 0,
+          "ignored": 2
+        },
+        "log": "/private/tmp/poolster-kafka-conformance/csharp-generation.log",
+        "reason": null
+      },
+      {
+        "language": "csharp",
+        "suite": "broker",
+        "tier": "native",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "poolster-plugin-csharp",
+          "--offline",
+          "--locked",
+          "--test",
+          "events",
+          "generated_package_roundtrips_local_kafka",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cases": [
+          "package",
+          "roundtrip",
+          "outgoing-validation",
+          "incoming-validation",
+          "utf8",
+          "acknowledgement",
+          "handler-replay",
+          "cancellation",
+          "bindings"
+        ],
+        "status": "passed",
+        "exit_code": 0,
+        "tests": {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        "log": "/private/tmp/poolster-kafka-conformance/csharp-broker.log",
+        "reason": null
+      }
+    ],
+    "summary": {
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "checks": {
+    "format": "passed",
+    "workspace_clippy": "all-targets -D warnings passed; final C# render/test changes checked again with package all-targets Clippy",
+    "source_layout": {
+      "checked": 752,
+      "line_limit": 400,
+      "violations": []
+    },
+    "runner_unit_tests": 8,
+    "npm_full": {
+      "passed": 89,
+      "failed": 0,
+      "skipped": 2,
+      "gates": "Local GraphQL and Kafka server tests"
+    },
+    "npm_explicit_kafka": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "scope": "Rerun against final addon after C# type qualification"
+    },
+    "npm_configuration": {
+      "passed": 13,
+      "failed": 0
+    },
+    "cli_focused": "Six-language shared-model recipe passed, including emitted broker/client-ID overrides and regeneration",
+    "doc_tests": "passed; no runnable documentation tests; existing Node cdylib unsupported warning remains",
+    "npm_final_addon_focused": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 1,
+      "scope": "Final addon after C# selected-model name qualification; broker gate exercised separately"
+    }
+  },
+  "native_csharp": {
+    "events": {
+      "passed": 12,
+      "failed": 0,
+      "ignored": 0,
+      "scope": "Standalone and composed generated packages, validation, provider substitution, provenance, malformed inputs, bounded layout, regeneration and local Kafka"
+    },
+    "shared_models": {
+      "passed": 4,
+      "failed": 0,
+      "ignored": 0
+    },
+    "http_generated_compile": {
+      "passed": 1,
+      "failed": 0
+    },
+    "graphql_local_server": {
+      "passed": 1,
+      "failed": 0,
+      "styles": "raw, flat, idiomatic"
+    },
+    "dependencies": {
+      "Confluent.Kafka": "2.12.0",
+      "JsonSchema.Net": "7.3.4"
+    },
+    "toolchain": ".NET SDK 8.0.425"
+  },
+  "corrected_during_batch": [
+    "Incomplete cached .NET SDK repaired in temporary toolchain prefix",
+    "C# test probe corrected to actual generated namespace",
+    "Outgoing C# original UTF-16 strings validated before System.Text.Json can replace invalid code units",
+    "Generated C# shared scalar converter unreachable return removed",
+    "C# HTTP/GraphQL and Kafka runtimes reject mixed output packages in either registration order",
+    "Initial full workspace PHP executable lacked POOLSTER_TEST_PHP; rerun with existing local PHP container runner",
+    "Final review found selected C# model names could shadow Events runtime classes; emitted model references qualified to their actual package namespace and regression compilation added"
+  ],
+  "boundaries": [
+    "Adapter/native tests overlap workspace tests and are not added to workspace totals",
+    "Adapter-level case evidence, not per-assertion runtime instrumentation",
+    "Generation-suite ignored native tests remain ignored; explicit native suites passed without ignores",
+    "No new full 205-spec HTTP corpus run; existing HTTP golden and targeted C# native regressions checked",
+    "Static plaintext Kafka JSON subset only; schema/model restrictions differ by language",
+    "No TLS/SASL, schema registry, transactions or universal poison-record recovery claimed",
+    "TypeScript native autocommit differs from manual acknowledgements in other outputs",
+    "TypeScript dedicated cancellation/client-ID assertions and Go direct binding assertions remain test evidence gaps",
+    "Kafka PHP/Ruby/Swift/Elixir remain follow-up; all ten have models-only output",
+    "No push or release publication performed"
+  ],
+  "workspace": {
+    "fresh_compilation": "cargo test --workspace --offline --locked --no-run --message-format=json",
+    "execution": "103 freshly compiled test executables, four workers, each run from its crate directory",
+    "initial": {
+      "passed": 979,
+      "failed": 3,
+      "ignored": 197
+    },
+    "initial_failures": {
+      "executable": "poolster_plugin_php",
+      "tests": [
+        "graphql::tests::generated_php_compiles_and_executes",
+        "graphql::tests::nested_models_variables_mutations_and_no_variable_calls",
+        "graphql::tests::large_packages_use_bounded_files_and_regenerate"
+      ],
+      "cause": "POOLSTER_TEST_PHP omitted from the initial runner environment; no local php executable",
+      "fix": "Reran the same freshly compiled PHP executable with POOLSTER_TEST_PHP=/private/tmp/poolster-quality-php-runner",
+      "rerun": {
+        "passed": 33,
+        "failed": 0,
+        "ignored": 18
+      }
+    },
+    "final_effective": {
+      "passed": 983,
+      "remaining_failures": 0,
+      "ignored": 198
+    },
+    "counting": "Replace the initial PHP executable result (30 passed/3 failed/18 ignored) with its successful rerun (33/0/18); do not sum overlapping runs; replace C# events ordinary result (8/0/2) with its final-source rerun (9/0/3) after the namespace collision fix",
+    "http_golden": "Both all-language golden tests passed unchanged",
+    "post_review_rerun": {
+      "cause": "Qualified C# event model names after final review; added ordinary namespace collision and ignored native compilation regression",
+      "executable": "C# events",
+      "previous": {
+        "passed": 8,
+        "failed": 0,
+        "ignored": 2
+      },
+      "final": {
+        "passed": 9,
+        "failed": 0,
+        "ignored": 3
+      },
+      "native_all_cases": {
+        "passed": 12,
+        "failed": 0,
+        "ignored": 0
+      }
+    }
+  },
+  "logs": {
+    "workspace_build": "/private/tmp/poolster-kafka-six-workspace-build.log",
+    "workspace_initial_results": "/private/tmp/poolster-parallel-kafka-six-tests/results.json",
+    "php_rerun": "/private/tmp/poolster-kafka-six-php-retry.log",
+    "csharp_final_ordinary": "/private/tmp/poolster-csharp-kafka-ordinary-final.log",
+    "csharp_final_native": "/private/tmp/poolster-csharp-kafka-final.log",
+    "clippy_workspace": "/private/tmp/poolster-kafka-six-clippy.log",
+    "clippy_final_csharp": "/private/tmp/poolster-csharp-kafka-clippy-final.log",
+    "doc_tests": "/private/tmp/poolster-kafka-six-doc-tests.log",
+    "addon_final": "/private/tmp/poolster-kafka-six-addon-final-build.log",
+    "npm_full": "/private/tmp/poolster-kafka-six-js-full.log",
+    "npm_final_focused": "/private/tmp/poolster-kafka-six-js-final-focused.log",
+    "npm_final_broker": "/private/tmp/poolster-kafka-six-js-final-broker.log"
+  }
+}

@@ -256,7 +256,7 @@ async function generate(config, options = {}) {
       const modelPackages = packages.filter(p => p.mode === 'models');
       if (!loaded.api && packages.length && ['graphql','asyncapi'].includes(format)) {
         const compatibleModels = modelPackages.filter(p => modelsOutputCompatible(config.input,p));
-        const compatibleSdks = packages.filter(p => p.mode !== 'models' && (format === 'graphql' ? graphqlOutputCompatible(config.input,p) : ['typescript','go','rust','python','java'].includes(p.language)));
+        const compatibleSdks = packages.filter(p => p.mode !== 'models' && (format === 'graphql' ? graphqlOutputCompatible(config.input,p) : ['typescript','go','rust','python','java','csharp'].includes(p.language)));
         const compatible = new Set([...compatibleModels,...compatibleSdks]);
         for (const p of packages.filter(p => !compatible.has(p))) {
           const entry = { path:p.path, language:p.language, reason:`${format} output does not yet support this language or generation mode` };

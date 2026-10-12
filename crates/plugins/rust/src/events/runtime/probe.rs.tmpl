@@ -141,6 +141,104 @@ async fn local_broker_round_trip() {
     assert_eq!(received.message.payload, "hello Kafka");
     assert_eq!(received.message.headers.trace, "trace-id");
     assert_eq!(received.message.key.as_deref(), Some("message-id"));
-    subscription.ack(&received.metadata).unwrap();
+    // Simulate an application handler returning an error: no ack, close, and
+    // reopen the same generated consumer group. The exact offset must replay.
+    let first_offset = received.metadata.offset;
+    let topic = received.metadata.topic.clone();
+    drop(subscription);
+    let subscription = client.subscribe_receive_notice().unwrap();
+    let replayed = tokio::time::timeout(
+        std::time::Duration::from_secs(30),
+        subscription.receive_notice(),
+    )
+    .await
+    .unwrap()
+    .unwrap();
+    assert_eq!(replayed.metadata.offset, first_offset);
+    subscription.ack(&replayed.metadata).unwrap();
+
+    // Dropping a pending receive future is Rust's cancellation API. Subsequent
+    // receives must remain usable; producer sends are not retracted.
+    assert!(
+        tokio::time::timeout(
+            std::time::Duration::from_millis(250),
+            subscription.receive_notice()
+        )
+        .await
+        .is_err()
+    );
+    client.send_notice(&message).await.unwrap();
+    let next = tokio::time::timeout(
+        std::time::Duration::from_secs(30),
+        subscription.receive_notice(),
+    )
+    .await
+    .unwrap()
+    .unwrap();
+    assert!(next.metadata.offset > first_offset);
+    subscription.ack(&next.metadata).unwrap();
+
+    // Inject bytes below generated type/schema validation to exercise all wire
+    // fields through librdkafka. Test-owned poison records are explicitly skipped
+    // using their broker delivery metadata after rejection; this is not an
+    // automatic commit or poison-record handling promise for application code.
+    use rdkafka::{
+        ClientConfig,
+        message::{Header, OwnedHeaders},
+        producer::{FutureProducer, FutureRecord},
+    };
+    let raw: FutureProducer = ClientConfig::new()
+        .set("bootstrap.servers", "127.0.0.1:29092")
+        .create()
+        .unwrap();
+    for (field, payload, key, header) in [
+        (
+            "payload",
+            vec![0xff],
+            b"valid-key".to_vec(),
+            b"valid-header".to_vec(),
+        ),
+        (
+            "key",
+            b"\"valid-payload\"".to_vec(),
+            vec![0xff],
+            b"valid-header".to_vec(),
+        ),
+        (
+            "header",
+            b"\"valid-payload\"".to_vec(),
+            b"valid-key".to_vec(),
+            vec![0xff],
+        ),
+    ] {
+        let headers = OwnedHeaders::new().insert(Header {
+            key: "trace",
+            value: Some(header.as_slice()),
+        });
+        let delivery = raw
+            .send(
+                FutureRecord::<[u8], [u8]>::to(&topic)
+                    .payload(&payload)
+                    .key(&key)
+                    .headers(headers),
+                std::time::Duration::from_secs(5),
+            )
+            .await
+            .unwrap();
+        let rejected = tokio::time::timeout(
+            std::time::Duration::from_secs(30),
+            subscription.receive_notice(),
+        )
+        .await
+        .unwrap();
+        assert!(rejected.is_err(), "malformed {field} was accepted");
+        subscription
+            .ack(&MessageMetadata {
+                topic: topic.clone(),
+                partition: delivery.partition,
+                offset: delivery.offset,
+            })
+            .unwrap();
+    }
     client.close().unwrap();
 }

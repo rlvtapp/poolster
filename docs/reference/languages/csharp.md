@@ -1,6 +1,6 @@
 # C# output capabilities
 
-Audited against the current repository on **2026-10-11**. This describes implemented generated APIs, not the intended output specification or a promise about a previously published package. Examples show alternatives from different generation styles; do not paste all alternatives into one scope.
+Audited against the current repository on **2026-10-12**. This describes implemented generated APIs, not the intended output specification or a promise about a previously published package. Examples show alternatives from different generation styles; do not paste all alternatives into one scope.
 
 .NET 8, HttpClient and System.Text.Json.
 
@@ -11,7 +11,7 @@ Audited against the current repository on **2026-10-11**. This describes impleme
 | HTTP / OpenAPI | SDK, typed models and target-specific runtime helpers |
 | GraphQL | Selection-specific client, variables/results and HTTP runtime; optional advanced transports |
 | RPC / Protobuf | No service/client/server generator in this language; shared models are a separate subset |
-| Events / AsyncAPI | Shared model subset only; no producer/consumer runtime in this language |
+| Events / AsyncAPI | Plaintext Kafka JSON producer/consumer package with shared models |
 | Workflows / Arazzo | No workflow runner |
 | Capabilities / Cap’n Proto | No message/capability RPC generator |
 | Shared models | Neutral model package; supported schema subset and explicit rejection of unsupported shapes |
@@ -92,6 +92,46 @@ Selecting raw removes the convenience client facade; it does not remove typed va
 
 CLI: `poolster generate schema.graphql --input-format graphql --operation operations.graphql --language csharp --output generated` selects the pipeline. Recipes select the language output and its contract options. In the JS SDK use `pluginCSharp({ contracts: { graphql: { style: 'flat' } } })`; operation documents belong to the GraphQL input configuration. In the Rust composition SDK use `csharp::graphql(Some(input.handle())).flat()` / `.raw()` / `.idiomatic()` as appropriate. These select generated API shape, not the SDK implementation language.
 
+## Kafka event features
+
+.NET 8 packages pin **Confluent.Kafka 2.12.0** and **JsonSchema.Net 7.3.4**. Supported AsyncAPI 3.0/3.1 static Kafka JSON operations use shared canonical payload/header/key models; headers are closed nonnullable string objects and keys are optional nonnullable string aliases. Unsupported schema keywords, external references and bindings fail generation.
+
+| Feature | Responsibility / current behavior |
+| --- | --- |
+| API shape | Per-operation static `SendOrderEvent.SendAsync(runtime, ...)` / `ReceiveOrderEvent.Subscribe(runtime)`; no universal raw/flat/idiomatic switch for events |
+| Validation | Bundled Draft7 schemas validate before send and after receive; strict UTF-8/Unicode, duplicate JSON properties/headers, null headers and tombstones reject |
+| Send / retry | Native `Task<DeliveryResult<byte[], byte[]>>`; producer idempotence and `acks=all`, 30 s message timeout and 10 s request timeout. No application-call deduplication or transaction promise |
+| Acknowledgement | Auto-commit and auto-offset-store disabled. `record.Ack()` commits after processing; next poll requires acknowledgement of the pending record. `Run(handler)` acknowledges only after successful return |
+| Handler failure | Exception propagates, pending offset remains uncommitted; dispose and reopen the same group for replay |
+| Invalid incoming records | Error poisons the subscription without committing; dispose/reopen before retrying. No automatic skip or dead-letter policy |
+| Cancellation | `CancellationToken` for send waits and consumer polling; consumer checks at intervals up to 250 ms. Send cancellation does not retract queued publication |
+| Bindings / lifetime | Fixed group override conflicts reject. Producers cache per operation client ID; consumers retain their operation ID. Dispose subscriptions separately from producer runtime; poll/ack/dispose stay on one thread |
+| Security / registry / transactions | Generated TLS/SASL, schema registry and transactions unsupported |
+
+### Generated calls
+
+For the maintained `OrderCreated` fixture, generated classes include `OrderCreatedPayload`, `OrderCreatedHeaders`, `OrderCreatedKey`, `SendOrderEvent` and `ReceiveOrderEvent`. Namespace comes from package configuration.
+
+```csharp
+var payload = new OrderCreatedPayload { Id = "order-1", Quantity = 1 };
+var headers = new OrderCreatedHeaders { Trace = "trace-1" };
+var key = new OrderCreatedKey("account-1");
+using var runtime = KafkaDefaults.Connect();
+var delivery = await SendOrderEvent.SendAsync(runtime, payload, headers, key);
+using var subscription = ReceiveOrderEvent.Subscribe(runtime);
+var record = subscription.Poll(TimeSpan.FromSeconds(5), cancellationToken);
+if (record is not null) {
+    Process(record.Payload);
+    record.Ack();
+}
+```
+
+Select CLI/recipe language `csharp` with plugin `asyncapi`, or JS `pluginCSharp()` with AsyncAPI input. Rust composition uses `csharp::asyncapi(Some(input.handle())).using_models(models.handle())`. Files split into `Models/*.cs`, `Events/<Operation>Event.cs`, `Events/KafkaRuntime.cs`, `Events/KafkaSubscription.cs`, `Events/KafkaCodec.cs` and retained `asyncapi.json`; schemas are embedded in operation definitions, under one package `.csproj`. A 250-operation layout fixture checks splitting; operation source above the 128 KiB budget rejects before emission.
+
+Kafka and HTTP/GraphQL generation require separate C# output packages; mixed-package generation rejects rather than merging incompatible workspace assemblies.
+
+The explicitly enabled local-broker test compiles and executes the generated package, checks delivery metadata, operation IDs, fixed groups, exact failed-handler offset replay, duplicate acknowledgement, cross-thread cancellation, and nine invalid wire inputs. See [the conformance baseline](../outputs/kafka-conformance.md) for case evidence and remaining cross-language test gaps.
+
 ## Shared-model contract features
 
 | Feature | Current behavior |
@@ -115,9 +155,9 @@ The removed `dotnet` plugin is not a separate supported language plugin. Use `cs
 
 ## Gaps and evidence
 
-Events, RPC, workflows and capabilities still need language-specific runnable packages. GraphQL retry/idempotency policy, automatic pagination and dynamic typed selections are application work or future features, not enabled by the HTTP runtime. Shared-model support does not imply runtime schema-validation parity.
+RPC, workflows and capabilities still need language-specific runnable packages. GraphQL retry/idempotency policy, automatic pagination and dynamic typed selections are application work or future features, not enabled by the HTTP runtime. Shared-model support does not imply runtime schema-validation parity.
 
-This page audits code and existing tests; it does not report a new compiler or broker run. Native generated-code tests can be ignored by the ordinary workspace suite until their toolchains are explicitly enabled.
+Kafka generated compilation and local-broker execution were explicitly run on 12 October 2026; HTTP/GraphQL evidence remains linked below. Native generated-code tests can be ignored by the ordinary workspace suite until their toolchains are explicitly enabled.
 
 - [HTTP implementation](../../../crates/plugins/csharp/src/http/)
 - [HTTP operation tests](../../../crates/plugins/csharp/src/operation_tests.rs)
@@ -125,3 +165,7 @@ This page audits code and existing tests; it does not report a new compiler or b
 - [Generated GraphQL compilation/runtime tests](../../../crates/plugins/csharp/src/graphql/tests.rs)
 - [Shared-model implementation and tests](../../../crates/plugins/csharp/src/shared_models.rs)
 - [GraphQL usage and layout guide](../outputs/graphql-csharp.md)
+
+- [Kafka event implementation](../../../crates/plugins/csharp/src/events/)
+- [Kafka generation and native tests](../../../crates/plugins/csharp/tests/events.rs)
+- [Kafka runtime probe](../../../crates/plugins/csharp/tests/fixtures/events-wire.cs)

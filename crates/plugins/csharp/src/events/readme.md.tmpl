@@ -1,0 +1,38 @@
+# Kafka events
+
+Generated .NET 8 library using Confluent.Kafka 2.12.0 and JsonSchema.Net 7.3.4.
+Static plaintext JSON Kafka operations only. Provision topics separately.
+
+```csharp
+using __NAMESPACE__;
+using __NAMESPACE__.Events;
+using var runtime = KafkaDefaults.Connect();
+// await SendOrderEvent.SendAsync(runtime, payload, headers, key, cancellationToken);
+// using var subscription = ReceiveOrderEvent.Subscribe(runtime);
+// var record = subscription.Poll(TimeSpan.FromSeconds(5), cancellationToken);
+// Process(record.Payload); record.Ack();
+```
+
+Messages are shared canonical model declarations; operation classes live in `Events/`.
+Schemas validate before send and after receive. Unsupported schema keywords and bindings
+are rejected during generation. Headers are closed string objects; keys are optional UTF-8
+strings. Missing and explicit-null model fields retain the shared model presence semantics.
+
+Send returns native broker delivery metadata. Native idempotent producer retries are enabled;
+this does not deduplicate separate application calls or provide transactions/exactly-once.
+Cancellation stops waiting and does not retract queued messages. Producers are cached per
+operation client ID. Dispose runtime to flush producers, and dispose subscriptions separately.
+
+Consumers start new groups at earliest, auto-commit and auto-offset-store disabled. `Ack()`
+commits the delivered record only after processing. Acknowledge before the next poll; handler
+failure leaves pending records uncommitted. Close/reopen for replay. Malformed messages poison
+the subscription without committing; close/reopen before retrying. Poll, Ack and Dispose must
+run on one thread. CancellationToken cancellation is cooperative with <=250 ms poll intervals.
+A conflicting fixed group binding override is rejected.
+
+No TLS/SASL, schema registry, transactions, tombstones, automatic handler retry or other
+brokers are supported in this output. Runtime validation errors are JsonException; broker
+errors retain Confluent.Kafka exception types.
+
+Generate HTTP/GraphQL clients in separate output packages; combining their independently
+owned project files and model namespaces in one Kafka package is rejected.

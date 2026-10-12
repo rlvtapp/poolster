@@ -15,7 +15,8 @@ endpoints. Broker-independent [models-only packages](shared-models.md) remain av
     { "language": "go", "path": "go", "name": "example.com/acme/events", "plugins": [{ "name": "asyncapi" }] },
     { "language": "rust", "path": "rust", "name": "acme-events", "plugins": [{ "name": "asyncapi" }] },
     { "language": "python", "path": "python", "name": "acme-events", "plugins": [{ "name": "asyncapi" }] },
-    { "language": "java", "path": "java", "name": "com.acme.events", "plugins": [{ "name": "asyncapi" }] }
+    { "language": "java", "path": "java", "name": "com.acme.events", "plugins": [{ "name": "asyncapi" }] },
+    { "language": "csharp", "path": "csharp", "name": "Acme.Events", "plugins": [{ "name": "asyncapi" }] }
   ]
 }
 ```
@@ -35,7 +36,7 @@ Use `input.options.broker` to override the native broker configuration:
 
 ```js
 import { generate } from '@relevate/poolster';
-import { inputAsyncApi, pluginTypeScript, pluginGo, pluginRust, pluginPython, pluginJava } from '@relevate/poolster-plugins';
+import { inputAsyncApi, pluginTypeScript, pluginGo, pluginRust, pluginPython, pluginJava, pluginCSharp } from '@relevate/poolster-plugins';
 
 await generate({
   input: {
@@ -44,7 +45,7 @@ await generate({
     broker: { kind: 'kafka', brokers: ['127.0.0.1:29092'], client_id: 'acme' },
   },
   output: 'generated',
-  plugins: [pluginTypeScript(), pluginGo(), pluginRust(), pluginPython(), pluginJava()],
+  plugins: [pluginTypeScript(), pluginGo(), pluginRust(), pluginPython(), pluginJava(), pluginCSharp()],
 });
 ```
 
@@ -64,7 +65,7 @@ let package = poolster::ts::package("client")
 ```
 
 The same composition uses `poolster::go`, `poolster::rust`, `poolster::python` or
-`poolster::java`. Models and operations
+`poolster::java` or `poolster::csharp`. Models and operations
 bind to the same selected event contract. Payload/header/key roles resolve through
 stable native message IDs, rather than generated names. A changed contract revision,
 missing role or incompatible model provider fails generation. Keep the source identity
@@ -175,3 +176,11 @@ Payload/header/key JSON Schema constraints are validated before send and after r
 unsupported keywords, external references, dialects and bindings fail generation.
 UTF-8, duplicate JSON fields/headers and tombstones are checked explicitly. Runtime and
 subscriptions have independent ownership: close both.
+
+## Conformance and deployment boundaries
+
+See the [executable Kafka conformance baseline](kafka-conformance.md) for common cases, language-specific acknowledgement policies, evidence gaps, and TLS/SASL, schema registry and transaction follow-up work.
+
+## C# package details
+
+.NET 8 emits canonical shared models and per-operation event classes, with separate runtime, subscription and codec files. Dependencies pin **Confluent.Kafka 2.12.0** and **JsonSchema.Net 7.3.4**. Native sends return delivery metadata with idempotent producer retries; separate application calls are not deduplicated. Consumer offsets commit explicitly after processing, or after a successful handler helper. Failed decoding poisons the subscription without committing; dispose and reopen for replay. Consumer cancellation is cooperative, with polling intervals up to 250 ms. Kafka and HTTP/GraphQL require separate C# output packages. See [C# event features and generated calls](../languages/csharp.md#kafka-event-features).

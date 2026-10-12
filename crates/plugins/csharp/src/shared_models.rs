@@ -164,7 +164,7 @@ fn emit(
             for (_, source) in &mut parts {
                 *source = source.replace(&format!("=> new(JsonSerializer.Deserialize<{target}>(ref reader, options)!);"), &format!("{{\nif (reader.TokenType == JsonTokenType.Null) throw new JsonException(\"null nonnullable root model\");\nvar value = JsonSerializer.Deserialize<{target}>(ref reader, options)!;\n{}return new(value);\n}}", array_checks(&schema.value, "value", 0)));
                 *source = source.replace(
-                    "writer.WriteNullValue();",
+                    "writer.WriteNullValue();\n      return;",
                     "throw new JsonException(\"null nonnullable root model\");",
                 );
                 let mut checks = array_checks(&schema.value, "value.Value", 0);
@@ -203,7 +203,7 @@ fn emit(
         "Presence.cs",
         include_str!("../templates/presence.cs.tmpl").replace("__NAMESPACE__", &namespace),
     )?)?;
-    cx.files.emit(GeneratedFile::new("Models.csproj", "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>net8.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings></PropertyGroup></Project>\n")?)?;
+    cx.workspace.models = true;
     Ok(symbols)
 }
 

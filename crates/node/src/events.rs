@@ -91,6 +91,7 @@ fn generate(request: &str) -> AnyResult<String> {
             "rust" => append!(rust, package),
             "python" => append!(python, package),
             "java" => append!(java, package),
+            "csharp" => append!(csharp, package),
             _ => bail!(
                 "unsupported Kafka event output language {}",
                 package.language

@@ -8,14 +8,14 @@ const bundle=require('../../plugins-all/index.cjs');
 const {temporary}=require('../test-support/helpers.cjs');
 const fixture=path.resolve(__dirname,'../../../../crates/inputs/asyncapi/tests/fixtures/kafka-json.yaml');
 async function setup(t){const dir=await temporary(t);return {input:{path:fixture,plugin:bundle.inputAsyncApi()},output:path.join(dir,'out')};}
-test('AsyncAPI Kafka SDK packages reuse shared models in TS Go Rust Python and Java and regenerate',async(t)=>{
- const config=await setup(t);config.input.broker={kind:'kafka',brokers:['127.0.0.1:39092'],client_id:'all-five-js-client'};config.plugins=[bundle.pluginTypeScript(),bundle.pluginGo(),bundle.pluginRust(),bundle.pluginPython(),bundle.pluginJava()];
+test('AsyncAPI Kafka SDK packages reuse shared models in TS Go Rust Python Java and CSharp and regenerate',async(t)=>{
+ const config=await setup(t);config.input.broker={kind:'kafka',brokers:['127.0.0.1:39092'],client_id:'all-six-js-client'};config.plugins=[bundle.pluginTypeScript(),bundle.pluginGo(),bundle.pluginRust(),bundle.pluginPython(),bundle.pluginJava(),bundle.pluginCSharp()];
  const first=await generate(config);assert.deepEqual(first.skipped,[]);assert.equal(first.api,null);
- for(const lang of ['typescript','go','rust','python','java']) {
+ for(const lang of ['typescript','go','rust','python','java','csharp']) {
   const files=first.files.filter(f=>f.path.startsWith(lang+'/'));
   assert.ok(files.some(f=>f.contents.includes('OrderCreatedPayload')),lang);
   assert.ok(files.some(f=>f.contents.includes('127.0.0.1:39092')),lang+' broker override');
-  assert.ok(files.some(f=>f.contents.includes('all-five-js-client')),lang+' client ID override');
+  assert.ok(files.some(f=>f.contents.includes('all-six-js-client')),lang+' client ID override');
  }
  assert.ok(first.files.some(f=>f.path==='typescript/events.ts'));
  assert.equal(first.files.map(f=>f.contents).join('\n').match(/export type OrderCreatedPayload =/g).length,1);
@@ -32,7 +32,9 @@ test('AsyncAPI event and models-only packages compose with distinct owners',asyn
 test('AsyncAPI unsupported SDK languages skip and incompatible options fail',async(t)=>{
  const config=await setup(t);config.plugins=[bundle.pluginRuby()];
  const result=await generate(config,{write:false});assert.deepEqual(result.files,[]);assert.equal(result.skipped.length,1);
- config.plugins=[bundle.pluginTypeScript({style:'flat'})];await assert.rejects(()=>generate(config),/Kafka event SDK packages/);
+ for(const plugin of [bundle.pluginTypeScript,bundle.pluginCSharp]) {
+  config.plugins=[plugin({style:'flat'})];await assert.rejects(()=>generate(config),/Kafka event SDK packages/);
+ }
  config.plugins=[bundle.pluginTypeScript()];config.input.broker={kind:'rabbitmq',brokers:['localhost:9092']};await assert.rejects(()=>generate(config),/broker.kind/);
  config.input.broker={kind:'kafka',brokers:['bad']};await assert.rejects(()=>generate(config),/broker|host:port/);
  delete config.input.broker;config.input.plugin={...config.input.plugin,provider:'graphql.apollo'};await assert.rejects(()=>generate(config),/provider|format/);

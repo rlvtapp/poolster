@@ -98,6 +98,11 @@ impl Plugin<crate::CSharp> for Graphql {
         vec![Provision::of::<GraphqlClient>()]
     }
     fn generate(&self, cx: &mut PluginContext<'_, crate::CSharp>) -> Result<()> {
+        anyhow::ensure!(
+            !cx.workspace.events,
+            "C# Kafka and HTTP/GraphQL require separate output packages"
+        );
+        cx.workspace.native_api = true;
         self.render_into(cx)
     }
 }
@@ -235,6 +240,11 @@ macro_rules! incremental_plugin {
                 vec![Provision::of::<GraphqlClient>()]
             }
             fn generate(&self, cx: &mut PluginContext<'_, $language>) -> Result<()> {
+                anyhow::ensure!(
+                    !cx.workspace.events,
+                    "C# Kafka and HTTP/GraphQL require separate output packages"
+                );
+                cx.workspace.native_api = true;
                 self.render_into(cx)
             }
         }

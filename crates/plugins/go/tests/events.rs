@@ -136,6 +136,9 @@ func TestWire(t *testing.T){
  record.Headers=[]kgo.RecordHeader{{Key:"trace",Value:[]byte("x")},{Key:"trace",Value:[]byte("y")}};if _,err=DecodeReceiveOrder(record);err==nil{t.Fatal("duplicate headers")}
  record.Headers=[]kgo.RecordHeader{{Key:"trace",Value:[]byte("x")}};record.Key=[]byte("");if _,err=DecodeReceiveOrder(record);err==nil{t.Fatal("invalid key")}
  record.Key=nil;record.Value=nil;if _,err=DecodeReceiveOrder(record);err==nil{t.Fatal("tombstone")}
+ record.Value=[]byte{0xff};if _,err=DecodeReceiveOrder(record);err==nil{t.Fatal("invalid payload UTF-8")}
+ record.Value=[]byte(`{"id":"a","quantity":1}`);record.Key=[]byte{0xff};if _,err=DecodeReceiveOrder(record);err==nil{t.Fatal("invalid key UTF-8")}
+ record.Key=nil;record.Headers=[]kgo.RecordHeader{{Key:"trace",Value:[]byte{0xff}}};if _,err=DecodeReceiveOrder(record);err==nil{t.Fatal("invalid header UTF-8")}
  message.Payload.Quantity=0;if _,err=client.SendOrder(context.Background(),message);err==nil || producer.calls!=1{t.Fatal("invalid publish reached broker")}
 }
 "#;
@@ -186,9 +189,17 @@ func TestBroker(t *testing.T){
  ctx,cancel:=context.WithTimeout(context.Background(),35*time.Second);defer cancel()
  var message SendOrderMessage;if err=json.Unmarshal([]byte(`{"Payload":{"id":"broker","quantity":1},"Headers":{"trace":"local"},"Key":"account"}`),&message);err!=nil{t.Fatal(err)}
  if _,err=client.SendOrder(ctx,message);err!=nil{t.Fatal(err)}
+ // A failed handler must leave the first offset uncommitted. Reopen the same
+ // generated binding and require the same record, rather than only a new one.
+ failure:=errors.New("handler rejected record")
+ var failedOffset int64=-1
+ err=client.ReceiveOrder(ctx,func(_ context.Context,message ReceiveOrderMessage,record *kgo.Record) error {
+   failedOffset=record.Offset;return failure
+ },KafkaConsumeOptions{FromBeginning:true})
+ if !errors.Is(err,failure) || failedOffset<0 {t.Fatalf("failed handler result offset=%d err=%v",failedOffset,err)}
  seen:=false
  err=client.ReceiveOrder(ctx,func(_ context.Context,message ReceiveOrderMessage,record *kgo.Record) error {
-   if message.Payload.ID!="broker" || message.Key==nil || string(*message.Key)!="account" || record.Offset<0 {t.Fatal("incorrect broker delivery")};seen=true;cancel();return nil
+   if message.Payload.ID!="broker" || message.Key==nil || string(*message.Key)!="account" || record.Offset!=failedOffset {t.Fatal("incorrect broker delivery or failed-handler offset was committed")};seen=true;cancel();return nil
  },KafkaConsumeOptions{FromBeginning:true})
  if !seen || !errors.Is(err,context.Canceled){t.Fatalf("broker receive seen=%v err=%v",seen,err)}
 }

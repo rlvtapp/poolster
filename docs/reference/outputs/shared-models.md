@@ -111,6 +111,6 @@ constraint at runtime. Go and Swift currently preserve optional nullable field p
 through decoding; their direct-construction APIs do not yet offer complete presence
 controls for every model.
 
-TypeScript, Go, Rust, Python and Java Kafka event clients can consume these shared models through
+TypeScript, Go, Rust, Python, Java and C# Kafka event clients can consume these shared models through
 `using_models`. CLI and JavaScript SDK AsyncAPI generation compose them automatically.
 See [Kafka clients](kafka.md) for the supported transport subset and examples.

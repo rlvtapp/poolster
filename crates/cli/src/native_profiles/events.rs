@@ -33,6 +33,7 @@ pub(super) fn append(
         "rust" => output!(rust),
         "python" => output!(python),
         "java" => output!(java),
+        "csharp" => output!(csharp),
         _ => bail!("unsupported Kafka event output {language}"),
     })
 }

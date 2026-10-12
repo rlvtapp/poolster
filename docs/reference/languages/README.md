@@ -9,7 +9,7 @@ Choose a language to see **what Poolster currently generates**, contract by cont
 | Go | [Go](go.md) | Protobuf gRPC clients/server interfaces, including streaming; Kafka events |
 | Python | [Python](python.md) | Kafka events |
 | Java | [Java](java.md) | Kafka events |
-| C# | [C#](csharp.md) | Shared model packages; no event transport |
+| C# | [C#](csharp.md) | Kafka events |
 | PHP / Symfony | [PHP](php.md) | Shared model packages; Symfony integration has its own boundary |
 | Ruby | [Ruby](ruby.md) | Shared model packages; no event transport |
 | Swift | [Swift](swift.md) | Shared model packages; no event transport |

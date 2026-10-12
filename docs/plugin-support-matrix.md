@@ -46,7 +46,7 @@ limitations still apply. GraphQL is a separate contract even when its transport 
 | Rust | HTTP/GraphQL SDK; Kafka JSON client | ✅ | ✅ | — | ✅ | — | — |
 | Python | HTTP SDK; synchronous GraphQL client; Kafka JSON client | ✅ | ✅ | — | ✅ | — | — |
 | Java | Java HTTP SDK; GraphQL client; Kafka JSON client | ✅ | ✅ | — | ✅ | — | — |
-| C# | C# HTTP SDK; GraphQL client | ✅ | ✅ | — | — | — | — |
+| C# | C# HTTP SDK; GraphQL client; Kafka JSON client | ✅ | ✅ | — | ✅ | — | — |
 | PHP | PHP HTTP SDK; GraphQL client | ✅ | ✅ | — | — | — | — |
 | Symfony | HTTP integration; PHP GraphQL SDK, HttpClient transport and bundle | ✅ | ✅ | — | — | — | — |
 | Ruby | Ruby HTTP SDK; GraphQL client with RBS | ✅ | ✅ | — | — | — | — |
@@ -120,16 +120,16 @@ checks do not establish general JSON Schema runtime validation; constraints rema
 the semantic manifest. Go and Swift direct-construction APIs still have limited controls
 for optional nullable field presence. See the [detailed boundaries](reference/outputs/shared-models.md#boundaries).
 
-Event transports are implemented for **TypeScript, Go, Rust, Python and Java**, separately from
+Event transports are implemented for **TypeScript, Go, Rust, Python, Java and C#**, separately from
 models-only coverage. CLI and JS event generation assemble event-derived shared models;
 Rust plugin authors select them with `asyncapi(provider).using_models(models.handle())`.
 Stable message IDs bind payload/header/key roles, and stale contract revisions are rejected.
 The direct TypeScript factory retains its legacy standalone rendering path for compatibility.
 
-All five have generated compilation/runtime and real local Kafka round-trip checks.
+All six have generated compilation/runtime and real local Kafka round-trip checks.
 TypeScript uses KafkaJS 2.2.4/AJV 8.17.1, Go franz-go 1.18.1/jsonschema v5.3.1,
 Rust rust-rdkafka 0.38.0/jsonschema 0.33.0, Python kafka-python 3.0.11/jsonschema 4.26.0,
-and Java Apache Kafka 3.9.1/networknt 1.5.6/Jackson 2.18.3. The broker is pinned Redpanda 25.3.11.
+Java Apache Kafka 3.9.1/networknt 1.5.6/Jackson 2.18.3, and C# Confluent.Kafka 2.12.0/JsonSchema.Net 7.3.4. The broker is pinned Redpanda 25.3.11.
 Generation does not contact a broker. Tests provision unique topics; clients do not
 provision broker infrastructure. See [Kafka usage](reference/outputs/kafka.md).
 
@@ -147,7 +147,7 @@ runtime, operations and models occupy separate files in one `models` package; th
 configured name sets its module path. See [Go package details](reference/outputs/kafka.md#go-package-details).
 
 More brokers, declared security/authentication, dynamic channels, traits, replies,
-broader schema coverage and event transports for C#, PHP, Ruby, Swift and Elixir remain work.
+broader schema coverage and event transports for PHP, Ruby, Swift and Elixir remain work.
 This is not full AsyncAPI support. Broker/delegate/native tests overlap ordinary suites
 and are reported separately in the [verification log](verification/verification.md).
 
@@ -160,6 +160,18 @@ validate JSON/UTF-8 and invalidate subscriptions after decoding failures. Closed
 string headers and each language's shared-model limits apply. See the
 [Python](reference/languages/python.md#kafka-events) and
 [Java](reference/languages/java.md#kafka-event-features) capability pages.
+
+C# emits per-operation static event classes and a .NET 8 runtime. Consumers require
+explicit acknowledgement before polling again, or use handler-success commits.
+Native idempotent producer retries do not deduplicate application calls. Cancellation
+uses native tokens with bounded polling; invalid wire data poisons the subscription
+without committing. See [C# Kafka features](reference/languages/csharp.md#kafka-event-features).
+
+The [executable conformance baseline](reference/outputs/kafka-conformance.md) registers
+all six adapters, actual generated-package broker tests and explicit test-evidence gaps.
+TypeScript retains native KafkaJS commit/skip policy; the suite does not imply identical
+acknowledgement semantics. TLS/SASL, registry integration and transactions remain
+separate follow-up work.
 
 ## GraphQL capability chart
 
@@ -233,6 +245,16 @@ report. An all-skipped run leaves existing files untouched. Invalid input and
 unsupported features in an otherwise supported pipeline still fail explicitly.
 
 ## Verification and release checks
+
+C# / six-language Kafka conformance batch: **983 effective workspace passes, 0 remaining failures,
+198 ignored**. The initial run omitted the cached PHP runner; its three failures passed
+on rerun. Final C# model-name collision checks passed after qualifying selected types.
+All six local broker adapters passed (**13 suites, 0 failures, 0 skips**); C# explicitly
+ran all **12** event tests, including native compilation. Full npm passed **89 tests**,
+with **2 server-gated skips**; its Kafka probe passed separately. Counts overlap and
+are kept separate in the [verification record](verification-results/kafka-csharp-conformance-2026-10-12.json).
+The [Kafka comparison chart](reference/outputs/kafka-conformance.md#compare-generated-kafka-outputs)
+shows native policy differences and the maintained test-evidence gaps.
 
 Python/Java Kafka batch: **974 effective workspace passes, 0 remaining failures,
 195 ignored**. The initial run found one stale C# documentation snapshot from the
