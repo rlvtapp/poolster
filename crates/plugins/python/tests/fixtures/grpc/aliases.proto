@@ -1,0 +1,8 @@
+syntax = "proto3";
+package aliases;
+enum Color { COLOR_UNSPECIFIED = 0; COLOR_RED = 1; }
+message Item {
+  enum State { STATE_UNKNOWN = 0; STATE_READY = 1; }
+  Color color = 1;
+  State state = 2;
+}

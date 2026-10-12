@@ -117,7 +117,66 @@ export interface SdkPackageOptions {
   jobs?: number;
 }
 
+/** Protocol surfaces and resource policies; native message APIs remain available. */
+export interface ProtobufBatchMapping {
+  singleMethod: string;
+  batchMethod: string;
+  inputField: string;
+  batchInputField: string;
+  batchOutputField: string;
+  outputKey?: string;
+  cache?: boolean;
+  maxBatchSize?: number;
+}
+export interface ProtobufRepresentations {
+  int64?: 'native' | 'string' | 'numberExact';
+  bytes?: 'native' | 'base64';
+  maps?: 'native' | 'entries' | 'map';
+  enums?: 'native' | 'name';
+  optional?: 'native' | 'nullable';
+  timestamp?: 'native' | 'dateTime' | 'rfc3339';
+  duration?: 'native' | 'timeDelta' | 'secondsExact';
+}
+export interface ProtobufGenerationOptions {
+  enumStyle?: 'native' | 'const' | 'literal';
+  removeEnumPrefix?: boolean;
+  /** Display label; the original unknown wire number is retained. */
+  unknownEnumName?: string;
+  nestjsRestParameter?: boolean;
+  representations?: ProtobufRepresentations;
+  typePrefix?: string;
+  typeSuffix?: string;
+  snakeTypeNames?: boolean;
+  lowerCaseServiceMethods?: boolean;
+  fileSuffix?: string;
+  emitImportedFiles?: boolean;
+  /** Externally supplied modules keyed by descriptor filename; mapped files are not emitted. */
+  importMappings?: Record<string, string>;
+  /** Fully qualified message identities; empty means all. */
+  encodeIncludeTypes?: string[];
+  decodeIncludeTypes?: string[];
+  emitIndex?: boolean;
+  comments?: boolean;
+  annotateFilesWithVersion?: boolean;
+  frameworks?: Array<'native' | 'niceGrpc' | 'nestJs'>;
+  immutableViews?: boolean;
+  reactiveStreams?: boolean;
+  valueAdapters?: boolean;
+  batching?: ProtobufBatchMapping[];
+  transports?: Array<'grpc' | 'grpcWeb' | 'twirp'>;
+  clientStyle?: 'raw' | 'flat' | 'idiomatic' | 'namespaced' | 'grouped';
+  emitTypes?: boolean;
+  emitBinary?: boolean;
+  emitJson?: boolean;
+  emitClients?: boolean;
+  emitServers?: boolean;
+  emitReflection?: boolean;
+  unknownFields?: 'preserve' | 'discard';
+  maxMessageBytes?: number;
+  maxDepth?: number;
+}
 export interface ProtobufOutputOptions {
+  generation?: ProtobufGenerationOptions;
   /** Required Go module import path. */
   module?: string;
   /** Python distribution name, default poolster-rpc. Import paths follow the proto files. */

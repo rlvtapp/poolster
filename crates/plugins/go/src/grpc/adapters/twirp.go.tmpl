@@ -1,0 +1,162 @@
+type TwirpHTTPClient interface {
+	Do(*http.Request) (*http.Response, error)
+}
+type TwirpError struct {
+	Code    string            `json:"code"`
+	Message string            `json:"msg"`
+	Meta    map[string]string `json:"meta,omitempty"`
+}
+
+func (e *TwirpError) Error() string { return e.Code + ": " + e.Message }
+func poolsterTwirpEncode(message proto.Message, isJSON bool) ([]byte, error) {
+	if err := poolsterAdapterCheckDepth(message, MAX_DEPTH, map[proto.Message]bool{}); err != nil {
+		return nil, err
+	}
+	if isJSON {
+		return protojson.Marshal(message)
+	}
+	return proto.Marshal(message)
+}
+func poolsterTwirpDecode(data []byte, message proto.Message, isJSON bool) error {
+	if isJSON {
+		return (protojson.UnmarshalOptions{RecursionLimit: MAX_DEPTH, DiscardUnknown: DISCARD_UNKNOWN}).Unmarshal(data, message)
+	}
+	return (proto.UnmarshalOptions{RecursionLimit: MAX_DEPTH, DiscardUnknown: DISCARD_UNKNOWN}).Unmarshal(data, message)
+}
+func poolsterTwirpBody(body io.Reader) ([]byte, error) {
+	data, err := io.ReadAll(io.LimitReader(body, MAX_BYTES+1))
+	if err != nil {
+		return nil, err
+	}
+	if len(data) > MAX_BYTES {
+		return nil, fmt.Errorf("Twirp message exceeds maximum size")
+	}
+	return data, nil
+}
+func poolsterTwirpCall(ctx context.Context, client TwirpHTTPClient, url string, input, output proto.Message, headers http.Header, isJSON bool) (http.Header, error) {
+	data, err := poolsterTwirpEncode(input, isJSON)
+	if err != nil {
+		return nil, err
+	}
+	if len(data) > MAX_BYTES {
+		return nil, fmt.Errorf("Twirp message exceeds maximum size")
+	}
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(data))
+	if err != nil {
+		return nil, err
+	}
+	request.Header = headers.Clone()
+	if request.Header == nil {
+		request.Header = make(http.Header)
+	}
+	content := "application/protobuf"
+	if isJSON {
+		content = "application/json"
+	}
+	request.Header.Set("Content-Type", content)
+	response, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+	data, err = poolsterTwirpBody(response.Body)
+	if err != nil {
+		return response.Header, err
+	}
+	if response.StatusCode != 200 {
+		var protocol TwirpError
+		if err = json.Unmarshal(data, &protocol); err != nil {
+			return response.Header, fmt.Errorf("invalid Twirp error response: %w", err)
+		}
+		return response.Header, &protocol
+	}
+	if response.Header.Get("Content-Type") != content {
+		return response.Header, fmt.Errorf("unexpected Twirp content type")
+	}
+	return response.Header, poolsterTwirpDecode(data, output, isJSON)
+}
+func poolsterTwirpError(w http.ResponseWriter, code, message string, httpCode int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(httpCode)
+	_ = json.NewEncoder(w).Encode(&TwirpError{Code: code, Message: message})
+}
+func poolsterTwirpStatus(w http.ResponseWriter, err error) {
+	code := "internal"
+	httpCode := 500
+	switch status.Code(err) {
+	case codes.InvalidArgument:
+		code = "invalid_argument"
+		httpCode = 400
+	case codes.NotFound:
+		code = "not_found"
+		httpCode = 404
+	case codes.PermissionDenied:
+		code = "permission_denied"
+		httpCode = 403
+	case codes.Unauthenticated:
+		code = "unauthenticated"
+		httpCode = 401
+	case codes.Unimplemented:
+		code = "unimplemented"
+		httpCode = 501
+	case codes.DeadlineExceeded:
+		code = "deadline_exceeded"
+		httpCode = 408
+	case codes.Canceled:
+		code = "canceled"
+		httpCode = 408
+	case codes.ResourceExhausted:
+		code = "resource_exhausted"
+		httpCode = 429
+	case codes.Unavailable:
+		code = "unavailable"
+		httpCode = 503
+	case codes.AlreadyExists:
+		code = "already_exists"
+		httpCode = 409
+	case codes.FailedPrecondition:
+		code = "failed_precondition"
+		httpCode = 412
+	case codes.Aborted:
+		code = "aborted"
+		httpCode = 409
+	case codes.OutOfRange:
+		code = "out_of_range"
+		httpCode = 400
+	}
+	poolsterTwirpError(w, code, status.Convert(err).Message(), httpCode)
+}
+func poolsterTwirpRead(w http.ResponseWriter, r *http.Request, message proto.Message) bool {
+	if r.Method != http.MethodPost {
+		poolsterTwirpError(w, "bad_route", "POST required", 404)
+		return false
+	}
+	content := r.Header.Get("Content-Type")
+	if content != "application/protobuf" && content != "application/json" {
+		poolsterTwirpError(w, "invalid_argument", "unsupported content type", 400)
+		return false
+	}
+	data, err := poolsterTwirpBody(r.Body)
+	if err != nil {
+		poolsterTwirpError(w, "resource_exhausted", err.Error(), 429)
+		return false
+	}
+	if err = poolsterTwirpDecode(data, message, content == "application/json"); err != nil {
+		poolsterTwirpError(w, "invalid_argument", err.Error(), 400)
+		return false
+	}
+	return true
+}
+func poolsterTwirpWrite(w http.ResponseWriter, r *http.Request, message proto.Message) {
+	data, err := poolsterTwirpEncode(message, r.Header.Get("Content-Type") == "application/json")
+	if err != nil {
+		poolsterTwirpStatus(w, err)
+		return
+	}
+	if len(data) > MAX_BYTES {
+		poolsterTwirpError(w, "resource_exhausted", "message exceeds maximum size", 429)
+		return
+	}
+	w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+	_, _ = w.Write(data)
+}

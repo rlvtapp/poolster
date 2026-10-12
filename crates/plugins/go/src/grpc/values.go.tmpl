@@ -1,0 +1,98 @@
+// Decimal strings and native widths preserve the full integer range.
+func Int64String(value int64) string                 { return strconv.FormatInt(value, 10) }
+func ParseInt64String(value string) (int64, error)   { return strconv.ParseInt(value, 10, 64) }
+func Uint64String(value uint64) string               { return strconv.FormatUint(value, 10) }
+func ParseUint64String(value string) (uint64, error) { return strconv.ParseUint(value, 10, 64) }
+
+// Float adapters require the portable exact integer range, never silent rounding.
+func Int64Float64(value int64) (float64, error) {
+	if value < -9007199254740991 || value > 9007199254740991 {
+		return 0, fmt.Errorf("integer exceeds exact float64 range")
+	}
+	return float64(value), nil
+}
+func Float64Int64(value float64) (int64, error) {
+	if math.IsNaN(value) || math.IsInf(value, 0) || math.Trunc(value) != value || value < -9007199254740991 || value > 9007199254740991 {
+		return 0, fmt.Errorf("invalid exact float64 integer")
+	}
+	return int64(value), nil
+}
+func Uint64Float64(value uint64) (float64, error) {
+	if value > 9007199254740991 {
+		return 0, fmt.Errorf("integer exceeds exact float64 range")
+	}
+	return float64(value), nil
+}
+func Float64Uint64(value float64) (uint64, error) {
+	if math.IsNaN(value) || math.IsInf(value, 0) || math.Trunc(value) != value || value < 0 || value > 9007199254740991 {
+		return 0, fmt.Errorf("invalid exact float64 unsigned integer")
+	}
+	return uint64(value), nil
+}
+func BytesBase64(value []byte) string { return base64.StdEncoding.EncodeToString(value) }
+func ParseBytesBase64(value string) ([]byte, error) {
+	return base64.StdEncoding.Strict().DecodeString(value)
+}
+func TimestampTime(value *timestamppb.Timestamp) (time.Time, error) {
+	if err := value.CheckValid(); err != nil {
+		return time.Time{}, err
+	}
+	return value.AsTime(), nil
+}
+func TimeTimestamp(value time.Time) (*timestamppb.Timestamp, error) {
+	result := timestamppb.New(value)
+	return result, result.CheckValid()
+}
+func DurationTime(value *durationpb.Duration) (time.Duration, error) {
+	if err := value.CheckValid(); err != nil {
+		return 0, err
+	}
+	seconds := value.Seconds
+	if seconds > math.MaxInt64/int64(time.Second) || seconds < math.MinInt64/int64(time.Second) {
+		return 0, fmt.Errorf("duration exceeds Go time.Duration range")
+	}
+	base := seconds * int64(time.Second)
+	nanos := int64(value.Nanos)
+	if (nanos > 0 && base > math.MaxInt64-nanos) || (nanos < 0 && base < math.MinInt64-nanos) {
+		return 0, fmt.Errorf("duration exceeds Go time.Duration range")
+	}
+	return time.Duration(base + nanos), nil
+}
+func TimeDuration(value time.Duration) (*durationpb.Duration, error) {
+	result := durationpb.New(value)
+	return result, result.CheckValid()
+}
+
+// ValueAdapter is an explicit mapping at the native Protobuf codec boundary.
+type ValueAdapter[N proto.Message, V any] struct {
+	ToNative   func(V) (N, error)
+	FromNative func(N) (V, error)
+	NewNative  func() N
+}
+
+func (adapter ValueAdapter[N, V]) Marshal(value V) ([]byte, error) {
+	if adapter.ToNative == nil { return nil, fmt.Errorf("ValueAdapter requires ToNative") }
+ message, err := adapter.ToNative(value)
+	if err != nil {
+		return nil, err
+	}
+	if err = poolsterValueCheckDepth(message, MAX_DEPTH, map[proto.Message]bool{}); err != nil {
+		return nil, err
+	}
+	if proto.Size(message) > MAX_BYTES {
+		return nil, fmt.Errorf("adapted message exceeds byte limit")
+	}
+	return proto.Marshal(message)
+}
+func (adapter ValueAdapter[N, V]) Unmarshal(data []byte) (V, error) {
+	var zero V
+ if adapter.NewNative == nil || adapter.FromNative == nil { return zero, fmt.Errorf("ValueAdapter requires NewNative and FromNative") }
+	if len(data) > MAX_BYTES {
+		return zero, fmt.Errorf("adapted message exceeds byte limit")
+	}
+	message := adapter.NewNative()
+	if err := (proto.UnmarshalOptions{RecursionLimit: MAX_DEPTH, DiscardUnknown: DISCARD}).Unmarshal(data, message); err != nil {
+		return zero, err
+	}
+	return adapter.FromNative(message)
+}

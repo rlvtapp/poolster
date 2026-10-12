@@ -12,6 +12,10 @@ fn generate(tools: &Path) -> anyhow::Result<poolster_core::GeneratedTree> {
     let input = InputProvider::<RpcContract>::new(Arc::new(registry), "protobuf", source);
     let output = grpc("example.com/poolster/grpc")
         .input(input.handle())
+        .options(poolster_core::native::rpc::RpcGenerationOptions {
+            reactive_streams: true,
+            ..Default::default()
+        })
         .toolchain(GrpcToolchain {
             protoc: tools.join("protoc"),
             protoc_gen_go: tools.join("protoc-gen-go"),
@@ -23,7 +27,7 @@ fn generate(tools: &Path) -> anyhow::Result<poolster_core::GeneratedTree> {
 }
 #[test]
 #[ignore = "requires Go and pinned protoc/protoc-gen-go/protoc-gen-go-grpc in POOLSTER_GRPC_TOOLS; fetches pinned Go module dependencies"]
-fn official_grpc_package_compiles_and_runs_all_streams_against_local_server() {
+fn owned_grpc_package_compiles_and_runs_all_streams_against_local_server() {
     let tools = std::env::var("POOLSTER_GRPC_TOOLS").expect("POOLSTER_GRPC_TOOLS");
     let tree = generate(Path::new(&tools)).unwrap();
     assert!(
@@ -32,7 +36,7 @@ fn official_grpc_package_compiles_and_runs_all_streams_against_local_server() {
             .contains("StoreClient")
     );
     assert!(
-        tree.get("sdk/storev1/common.pb.go")
+        tree.get("sdk/storev1/common_Item.pb.go")
             .unwrap()
             .contains("Note")
     );
@@ -44,6 +48,11 @@ fn official_grpc_package_compiles_and_runs_all_streams_against_local_server() {
     std::fs::write(
         root.path().join("sdk/storev1/runtime_test.go"),
         include_str!("fixtures/grpc/runtime_test.go"),
+    )
+    .unwrap();
+    std::fs::write(
+        root.path().join("sdk/storev1/security_test.go"),
+        include_str!("fixtures/grpc/security_test.go"),
     )
     .unwrap();
     // A handwritten implementation remains untouched across regeneration.
@@ -72,12 +81,12 @@ fn official_grpc_package_compiles_and_runs_all_streams_against_local_server() {
     again.write_to(root.path()).unwrap();
     let mut wrong = Path::new(&tools).to_path_buf();
     wrong.push("missing");
-    assert!(generate(&wrong).is_err());
+    assert_eq!(generate(&wrong).unwrap(), again);
 }
 
 #[test]
 #[ignore = "requires Go and pinned official gRPC generators in POOLSTER_GRPC_TOOLS; fetches Go module dependencies"]
-fn pinned_upstream_proto2_package_compiles_with_official_generators() {
+fn pinned_upstream_proto2_package_compiles_with_owned_renderer() {
     use poolster_core::input::InputOptions;
     let tools = std::env::var("POOLSTER_GRPC_TOOLS").expect("POOLSTER_GRPC_TOOLS");
     let tools = Path::new(&tools);

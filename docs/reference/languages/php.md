@@ -183,3 +183,10 @@ Symfony is a framework-specific PHP output plugin, not an additional language. I
 Evidence: [bundle generator](../../../crates/plugins/symfony/src/graphql/mod.rs), [emitted configuration/usage](../../../crates/plugins/symfony/src/graphql/readme.md.tmpl), [generated bundle runtime tests](../../../crates/plugins/symfony/src/graphql/tests.rs), [HTTP integration](../../../crates/plugins/symfony/src/http.rs).
 
 Symfony Kafka uses `symfony::asyncapi()` to produce a self-contained PHP SDK and DI bundle. Register the generated `PoolsterKafkaBundle`, configure its `<package>_kafka.brokers` setting and inject `KafkaRuntime`. Application worker services own consumer loops and shutdown; DI registration starts no consumers. Symfony models in this pipeline are bundled PHP models, not a separate Symfony models-only output.
+
+## Protobuf conformance audit
+
+Protobuf output is not implemented in this language. All 29 requirements remain
+unsupported; the rollout and per-language assessments are recorded in the
+[Protobuf audit](../outputs/protobuf-conformance.md) and
+[requirements](../../specifications/protobuf-conformance.md).

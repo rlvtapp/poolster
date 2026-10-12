@@ -185,7 +185,8 @@ pub(super) fn validate_recipe(document: &serde_json::Value, config: &ProjectConf
         document.get("defaults").is_none_or(|value| value
             .as_object()
             .is_some_and(|object| object.is_empty()
-                || (input.format == "graphql" && object.keys().all(|key| key == "client_style")))),
+                || (["graphql", "protobuf"].contains(&input.format.as_str())
+                    && object.keys().all(|key| key == "client_style")))),
         "native recipes do not support HTTP defaults"
     );
     for (raw, package) in document
@@ -229,8 +230,16 @@ pub(super) fn validate_recipe(document: &serde_json::Value, config: &ProjectConf
                 "groups",
                 "contracts",
             ],
-            ("protobuf", "go") => &["name", "module", "toolchain", "go_packages"],
-            ("protobuf", _) => &["name"],
+            ("protobuf", "go") => &[
+                "name",
+                "module",
+                "toolchain",
+                "go_packages",
+                "generation",
+                "style",
+                "raw",
+            ],
+            ("protobuf", _) => &["name", "generation", "style", "raw"],
             _ => &["name"],
         };
         for (raw_plugin, plugin) in raw["plugins"]
@@ -284,8 +293,9 @@ pub(super) fn validate_recipe(document: &serde_json::Value, config: &ProjectConf
             "GraphQL raw and explicit default client_style are mutually exclusive"
         );
         ensure!(
-            input.format == "graphql" || (package.client_style.is_none() && !package.sdk_raw),
-            "native client style/raw applies only to GraphQL"
+            ["graphql", "protobuf"].contains(&input.format.as_str())
+                || (package.client_style.is_none() && !package.sdk_raw),
+            "native client style/raw applies only to GraphQL and Protobuf"
         );
         if input.format == "graphql"
             && [
@@ -306,6 +316,9 @@ pub(super) fn validate_recipe(document: &serde_json::Value, config: &ProjectConf
             );
         }
         if input.format == "protobuf" {
+            if let Some(generation) = &plugin.generation {
+                generation.validate()?;
+            }
             if package.language != "go" {
                 ensure!(
                     plugin.module.is_none() && plugin.go_packages.is_empty(),

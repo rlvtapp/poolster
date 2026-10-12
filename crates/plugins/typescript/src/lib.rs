@@ -4,7 +4,7 @@ pub mod contracts;
 mod events;
 pub use events::{AsyncApi, KafkaClient, KafkaOperationSymbols, asyncapi};
 mod grpc;
-pub use grpc::{Grpc, grpc};
+pub use grpc::{Grpc, GrpcOptions, ProtobufMessageSymbols, ProtobufSymbols, grpc};
 mod workflow;
 pub use workflow::{WorkflowClient, WorkflowRunner, workflow};
 mod graphql;

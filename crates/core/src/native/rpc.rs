@@ -4,7 +4,20 @@
 //! extensions remain in FileDescriptorSet bytes. They are not flattened into
 //! HTTP schemas or interpreted as GraphQL nullable fields.
 use serde::{Deserialize, Serialize};
+mod batching;
+pub use batching::RpcBatchMapping;
+mod generation;
+mod generation_validation;
+mod representations;
+pub use generation::{
+    RpcClientStyle, RpcFramework, RpcGenerationOptions, RpcTransport, RpcUnknownFields,
+};
+pub use representations::*;
+mod wire_metadata;
 mod wire_projection;
+pub use wire_metadata::{
+    RpcDefinitionKind, RpcDefinitionMetadata, RpcFileMetadata, RpcJavaScriptType,
+};
 mod wire_schema;
 mod wire_types;
 pub use wire_types::*;

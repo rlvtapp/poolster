@@ -135,3 +135,10 @@ No RPC, workflow or capability client is bundled for this language. GraphQL sele
 - [HTTP native/runtime/style tests](../../../crates/plugins/elixir/src/http/tests.rs).
 - [GraphQL emission](../../../crates/plugins/elixir/src/graphql/emission.rs), [tests](../../../crates/plugins/elixir/src/graphql/tests.rs), [generated native probe](../../../crates/plugins/elixir/src/graphql/runtime_test.exs.tmpl).
 - [Shared-model subset](../../../crates/plugins/elixir/src/shared_models.rs) and [tests](../../../crates/plugins/elixir/src/shared_models/tests.rs).
+
+## Protobuf conformance audit
+
+Protobuf output is not implemented in this language. All 29 requirements remain
+unsupported; the rollout and per-language assessments are recorded in the
+[Protobuf audit](../outputs/protobuf-conformance.md) and
+[requirements](../../specifications/protobuf-conformance.md).

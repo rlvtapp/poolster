@@ -1,0 +1,31 @@
+function checkBytes(bytes:Uint8Array):void {if(bytes.byteLength>maxBytes)throw new Error(`Protobuf message exceeds ${maxBytes} bytes`);}
+function checkDepth(schema:DescMessage,message:unknown,depth=0,seen=new Set<unknown>()):void {
+  if(depth>maxDepth)throw new Error(`Protobuf message exceeds depth ${maxDepth}`);
+  if(message===null||typeof message!=='object')return;
+  if(seen.has(message))throw new Error('Protobuf message contains a reference cycle');
+  seen.add(message);
+  const value=message as Record<string,unknown>;
+  for(const field of schema.fields) {
+    if(field.presence===3&&!isFieldSet(message as MessageShape<typeof schema>,field))throw new Error(`Required Protobuf field is unset: ${schema.typeName}.${field.name}`);
+    const candidate=field.oneof?(value[field.oneof.localName] as {case?:string;value?:unknown}|undefined)?.case===field.localName?(value[field.oneof.localName] as {value:unknown}).value:undefined:value[field.localName];
+    if(candidate===undefined)continue;
+    if(field.fieldKind==='message')checkDepth(field.message,candidate,depth+1,seen);
+    else if(field.fieldKind==='list'&&field.listKind==='message')for(const entry of candidate as unknown[])checkDepth(field.message,entry,depth+1,seen);
+    else if(field.fieldKind==='map'&&field.mapKind==='message')for(const entry of Object.values(candidate as Record<string,unknown>))checkDepth(field.message,entry,depth+1,seen);
+  }
+  for(const extension of registry)if(extension.kind==='extension'&&extension.extendee.typeName===schema.typeName&&hasExtension(message as MessageShape<typeof schema>,extension)) {
+    const candidate=getExtension(message as MessageShape<typeof schema>,extension,{recursionLimit:maxDepth});
+    if(extension.fieldKind==='message')checkDepth(extension.message,candidate,depth+1,seen);
+    else if(extension.fieldKind==='list'&&extension.listKind==='message')for(const entry of candidate as unknown[])checkDepth(extension.message,entry,depth+1,seen);
+  }
+  seen.delete(message);
+}
+export function encode<S extends DescMessage>(schema:S,message:MessageShape<S>):Uint8Array {checkDepth(schema,message);const bytes=toBinary(schema,message,{writeUnknownFields:{{RETAIN}}});checkBytes(bytes);return bytes;}
+export function decode<S extends DescMessage>(schema:S,bytes:Uint8Array):MessageShape<S> {checkBytes(bytes);const message=fromBinary(schema,bytes,{readUnknownFields:{{RETAIN}},recursionLimit:maxDepth});checkDepth(schema,message);return message;}
+export function parseJson<S extends DescMessage>(schema:S,input:string|JsonValue,options?:Partial<JsonReadOptions>):MessageShape<S> {
+  if(typeof input==='string')checkBytes(new TextEncoder().encode(input));
+  const effective={...options,registry,recursionLimit:maxDepth};
+  const message=typeof input==='string'?fromJsonString(schema,input,effective):fromJson(schema,input,effective);
+  checkDepth(schema,message);return message;
+}
+export function stringifyJson<S extends DescMessage>(schema:S,message:MessageShape<S>,options?:Partial<JsonWriteOptions>):string {checkDepth(schema,message);const json=toJsonString(schema,message,{...options,registry});checkBytes(new TextEncoder().encode(json));return json;}

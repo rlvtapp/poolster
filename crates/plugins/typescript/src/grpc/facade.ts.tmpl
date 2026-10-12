@@ -1,0 +1,58 @@
+import {Metadata,type CallOptions,type ClientUnaryCall,type ClientReadableStream,type ClientWritableStream,type ClientDuplexStream,type StatusObject,type ServiceError} from '@grpc/grpc-js';
+export interface RpcContext {metadata?:Metadata;options?:CallOptions;signal?:AbortSignal;}
+export type RpcUnary<T>=Promise<T>&{readonly call:ClientUnaryCall;readonly headers:Promise<Metadata>;readonly status:Promise<StatusObject>;cancel():void;};
+export interface RpcStream<T> extends AsyncIterable<T> {readonly call:ClientReadableStream<T>|ClientDuplexStream<unknown,T>;readonly headers:Promise<Metadata>;readonly status:Promise<StatusObject>;cancel():void;}
+function capture(call:ClientUnaryCall|ClientReadableStream<unknown>,signal?:AbortSignal) {
+  let resolveHeaders!:(metadata:Metadata)=>void;let resolveStatus!:(status:StatusObject)=>void;
+  const headers=new Promise<Metadata>(resolve=>{resolveHeaders=resolve;});
+  const status=new Promise<StatusObject>(resolve=>{resolveStatus=resolve;});
+  const abort=()=>call.cancel();
+  call.on('metadata',resolveHeaders);
+  call.on('status',(value:StatusObject)=>{resolveHeaders(new Metadata());resolveStatus(value);signal?.removeEventListener('abort',abort);});
+  if(signal?.aborted)call.cancel();else signal?.addEventListener('abort',abort,{once:true});
+  return {headers,status,cancel:()=>call.cancel()};
+}
+export function unary<I,O>(invoke:(input:I,metadata:Metadata,options:CallOptions,callback:(error:ServiceError|null,value:O)=>void)=>ClientUnaryCall,input:I,context:RpcContext={}):RpcUnary<O> {
+  let resolve!:(value:O)=>void;let reject!:(error:unknown)=>void;
+  const result=new Promise<O>((res,rej)=>{resolve=res;reject=rej;});
+  const call=invoke(input,context.metadata??new Metadata(),context.options??{},(error,value)=>error?reject(error):resolve(value));
+  return Object.assign(result,{call,...capture(call,context.signal)});
+}
+export function stream<O>(call:ClientReadableStream<O>|ClientDuplexStream<unknown,O>,context:RpcContext={}):RpcStream<O> {
+  const details=capture(call,context.signal);
+  return {call,...details,async *[Symbol.asyncIterator]() {let completed=false;try {for await(const value of call){yield value as O;}completed=true;}finally {if(!completed)call.cancel();}}};
+}
+async function send<I>(call:ClientWritableStream<I>|ClientDuplexStream<I,unknown>,source:AsyncIterable<I>|Iterable<I>):Promise<void> {
+  const iterator=Symbol.asyncIterator in source?source[Symbol.asyncIterator]():source[Symbol.iterator]();
+  let rejectClosed!:(error:unknown)=>void;
+  const closed=new Promise<never>((_,reject)=>{rejectClosed=reject;});
+  // Attach immediately so cancellation while an input iterator is awaiting cannot leak a rejection.
+  void closed.catch(()=>{});
+  const error=(value:unknown)=>rejectClosed(value);
+  const close=()=>rejectClosed(new Error('RPC stream closed before its input completed'));
+  call.on('error',error);call.on('close',close);
+  let completed=false;
+  try {
+    while(true) {
+      const next=await Promise.race([Promise.resolve(iterator.next()),closed]);
+      if(next.done){completed=true;call.end();break;}
+      if(!call.write(next.value))await Promise.race([new Promise<void>(resolve=>call.once('drain',resolve)),closed]);
+    }
+  } finally {
+    call.removeListener('error',error);call.removeListener('close',close);
+    if(!completed&&iterator.return)void Promise.resolve(iterator.return()).catch(()=>{});
+  }
+}
+export function upload<I,O>(invoke:(metadata:Metadata,options:CallOptions,callback:(error:ServiceError|null,value:O)=>void)=>ClientWritableStream<I>,source:AsyncIterable<I>|Iterable<I>,context:RpcContext={}):RpcUnary<O> {
+  let resolve!:(value:O)=>void;let reject!:(error:unknown)=>void;
+  const result=new Promise<O>((res,rej)=>{resolve=res;reject=rej;});
+  const call=invoke(context.metadata??new Metadata(),context.options??{},(error,value)=>error?reject(error):resolve(value));
+  void send(call,source).catch(error=>{reject(error);call.cancel();});
+  return Object.assign(result,{call,...capture(call,context.signal)});
+}
+export function duplex<I,O>(call:ClientDuplexStream<I,O>,source:AsyncIterable<I>|Iterable<I>,context:RpcContext={}):RpcStream<O> {
+  let inputError:unknown;
+  void send(call,source).catch(error=>{inputError=error;call.cancel();});
+  const output=stream(call,context);
+  return {...output,async *[Symbol.asyncIterator](){try {yield* output;}catch(error){throw inputError??error;}}};
+}

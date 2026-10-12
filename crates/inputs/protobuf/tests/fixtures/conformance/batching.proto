@@ -1,0 +1,11 @@
+syntax = "proto3";
+package poolster.conformance.batch;
+option go_package = "example.com/poolster/conformance/batch;batch";
+message ReadRequest { string id = 1; }
+message Entity { string id = 1; string value = 2; }
+message ReadManyRequest { repeated string ids = 1; }
+message ReadManyResponse { repeated Entity entities = 1; }
+service Reader {
+  rpc Read(ReadRequest) returns (Entity);
+  rpc ReadMany(ReadManyRequest) returns (ReadManyResponse);
+}

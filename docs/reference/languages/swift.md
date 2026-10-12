@@ -164,3 +164,10 @@ Kafka generated packages have been compiled and executed against the local broke
 - [Generated GraphQL compilation/runtime tests](../../../crates/plugins/swift/src/graphql/tests.rs)
 - [Shared-model implementation and tests](../../../crates/plugins/swift/src/shared_models.rs)
 - [GraphQL usage and layout guide](../outputs/graphql-swift.md)
+
+## Protobuf conformance audit
+
+Protobuf output is not implemented in this language. All 29 requirements remain
+unsupported; the rollout and per-language assessments are recorded in the
+[Protobuf audit](../outputs/protobuf-conformance.md) and
+[requirements](../../specifications/protobuf-conformance.md).

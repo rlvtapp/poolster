@@ -14,7 +14,7 @@ are erased at build time. [Compare languages](README.md).
 | GraphQL incremental | Separate experimental raw multipart generator | `deferSpec=20220824`; not ordinary GraphQL client parity |
 | Events / AsyncAPI | Shared message models and Kafka producers/consumers | AsyncAPI 3.0/3.1 static plaintext Kafka JSON subset |
 | Workflows / Arazzo | Source-resolved sequential HTTP workflow runners | Explicit local sources; limited expressions/criteria; no actions/retry policies |
-| RPC / Protobuf | Poolster-owned message types/schemas and gRPC clients/server interfaces | Node gRPC; groups/extensions and editions unsupported |
+| RPC / Protobuf | Poolster-owned message types/schemas and gRPC clients/server interfaces | Native gRPC and optional HTTP adapters; editions unsupported |
 | Capabilities / Cap’n Proto | No maintained TypeScript capability generator | Native document retention does not imply output support |
 | Shared models | Models-only packages from exposed schema blocks | No transport or runtime validation merely from generating types |
 
@@ -272,9 +272,19 @@ discriminated unions and explicit field presence is retained.
 
 `<Service>Client`, `<Service>Server` and `<Service>Service` expose unary and all
 streaming directions. Metadata, deadlines, status errors and cancellation follow
-grpc-js. This is Node gRPC; browser grpc-web, groups, extensions and editions are
-unsupported. Naming collisions fail explicitly.
+grpc-js. Separate binary gRPC-web and unary Twirp adapters are opt-in. Proto2 groups/extensions are covered by native fixtures; editions remain unsupported. Naming collisions fail explicitly.
 
-These APIs use the native gRPC surface; HTTP/GraphQL raw, flat and idiomatic
-settings do not apply. See the [Protobuf guide](../outputs/protobuf.md) for recipe,
+Native gRPC APIs remain available alongside selectable raw, flat and idiomatic facades. See the [Protobuf guide](../outputs/protobuf.md) for recipe,
 SDK and call examples.
+
+## Protobuf conformance audit
+
+The existing gRPC output is partial against the all-language target. No complete
+conformance profile is certified yet; see current evidence and native boundaries in the
+[Protobuf audit](../outputs/protobuf-conformance.md) and
+[requirements](../../specifications/protobuf-conformance.md).
+
+Browser consumers use the generated `/browser` entry. The package root includes
+native Node gRPC clients. Checked alternate value models expose explicit
+`ValueCodec` conversions and provenance-preserving `clone`; external import
+mappings currently require native representations.

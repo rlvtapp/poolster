@@ -1,15 +1,13 @@
-//! Go gRPC code generation using the pinned official Protobuf tools.
+//! Poolster-owned Go messages and gRPC rendering using native runtime libraries.
 use anyhow::{Context, Result, ensure};
 use poolster_core::{
     GeneratedFile,
-    engine::{Handle, Meta, Plugin, PluginContext, Requirement},
+    engine::{Handle, Meta, Plugin, PluginContext, Provision, Requirement},
     native::rpc::RpcContract,
 };
 use std::{
     collections::BTreeMap,
-    fs,
     path::{Path, PathBuf},
-    process::Command,
 };
 
 pub const PROTOC_VERSION: &str = "34.2";
@@ -32,12 +30,12 @@ impl Default for GrpcToolchain {
         }
     }
 }
-/// Official message types, gRPC client stubs and server interfaces in one module.
+/// Native message types, gRPC client stubs and server interfaces in one module.
 pub struct Grpc {
     meta: Meta,
     input: Option<Handle<RpcContract>>,
     module_path: String,
-    tools: GrpcToolchain,
+    options: poolster_core::native::rpc::RpcGenerationOptions,
     go_packages: BTreeMap<String, String>,
 }
 pub fn grpc(module_path: impl Into<String>) -> Grpc {
@@ -45,17 +43,25 @@ pub fn grpc(module_path: impl Into<String>) -> Grpc {
         meta: Meta::new(),
         input: None,
         module_path: module_path.into(),
-        tools: Default::default(),
+        options: Default::default(),
         go_packages: BTreeMap::new(),
     }
 }
 impl Grpc {
+    pub fn handle(&self) -> Handle<GrpcApi> {
+        self.meta.handle()
+    }
     pub fn input(mut self, input: Handle<RpcContract>) -> Self {
         self.input = Some(input);
         self
     }
-    pub fn toolchain(mut self, tools: GrpcToolchain) -> Self {
-        self.tools = tools;
+    pub fn toolchain(self, tools: GrpcToolchain) -> Self {
+        let _ = tools;
+        self
+    }
+    /// Select native emission surfaces and bounded codec helpers.
+    pub fn options(mut self, options: poolster_core::native::rpc::RpcGenerationOptions) -> Self {
+        self.options = options;
         self
     }
     /// Explicit equivalent of protoc's Mfile.proto=import/path;package mapping.
@@ -64,156 +70,27 @@ impl Grpc {
         self
     }
 }
-fn portable_name(value: &str) -> bool {
-    !value.is_empty()
-        && !value.starts_with('/')
-        && !value.contains(['\\', ':', '\0', '\r', '\n', ' ', '='])
-        && value.split('/').all(|part| {
-            !part.is_empty()
-                && part != "."
-                && part != ".."
-                && part
-                    .chars()
-                    .all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '-'))
-        })
-}
-fn validate(
-    contract: &RpcContract,
-    module: &str,
-    mappings: &BTreeMap<String, String>,
-) -> Result<Vec<String>> {
-    ensure!(
-        portable_name(module),
-        "gRPC Go module must be a portable import path"
-    );
-    ensure!(
-        !contract.root_files.is_empty(),
-        "gRPC input has no root files"
-    );
-    ensure!(
-        !contract.services.is_empty(),
-        "gRPC input has no RPC services"
-    );
-    ensure!(
-        !contract.descriptor_set.is_empty(),
-        "gRPC input has no descriptor set"
-    );
-    let mut generation = Vec::new();
-    for root in &contract.root_files {
-        ensure!(
-            contract.files.iter().any(|f| &f.name == root),
-            "missing root descriptor {root}"
-        );
-    }
-    for name in mappings.keys() {
-        ensure!(
-            contract.files.iter().any(|f| &f.name == name),
-            "Go package mapping refers to unknown file {name}"
-        );
-    }
-    let mut package_names = BTreeMap::new();
-    for file in &contract.files {
-        ensure!(
-            portable_name(&file.name) && file.name.ends_with(".proto"),
-            "unsafe Protobuf file name {:?}",
-            file.name
-        );
-        // Google's built-ins come from the pinned protobuf runtime, not this module.
-        if file.name.starts_with("google/protobuf/") && file.source.is_none() {
-            ensure!(
-                !mappings.contains_key(&file.name),
-                "overriding built-in Go package mappings is unsupported: {}",
-                file.name
-            );
-            continue;
-        }
-        let mapping = mappings
-            .get(&file.name)
-            .or(file.go_package.as_ref())
-            .with_context(|| {
-                format!(
-                    "{} needs option go_package or an explicit Go package mapping",
-                    file.name
-                )
-            })?;
-        let mut parts = mapping.split(';');
-        let import = parts.next().unwrap();
-        let package = parts.next();
-        ensure!(
-            parts.next().is_none() && portable_name(import),
-            "invalid Go package mapping for {}",
-            file.name
-        );
-        if let Some(package) = package {
-            ensure!(
-                !package.is_empty()
-                    && package.chars().enumerate().all(|(i, c)| c == '_'
-                        || c.is_ascii_alphabetic()
-                        || (i > 0 && c.is_ascii_digit())),
-                "invalid Go package name for {}",
-                file.name
-            );
-        }
-        ensure!(
-            import == module || import.starts_with(&format!("{module}/")),
-            "Go package for {} ({import}) lies outside module {module}",
-            file.name
-        );
-        if let Some(package) = package {
-            if let Some(old) = package_names.insert(import, package) {
-                ensure!(old == package, "conflicting Go package names for {import}");
-            }
-        }
-        generation.push(file.name.clone());
-    }
-    generation.sort();
-    generation.dedup();
-    ensure!(
-        !generation.is_empty(),
-        "gRPC input has no local files to generate"
-    );
-    Ok(generation)
-}
-fn tool_version(program: &Path, expected: &str) -> Result<PathBuf> {
-    // Resolve executables before changing process directories; relative configured paths
-    // remain relative to the caller's working directory.
-    let executable = if program.is_absolute() {
-        program.to_path_buf()
-    } else if program.components().count() > 1 {
-        fs::canonicalize(program)?
-    } else {
-        let executable_name = if cfg!(windows) && program.extension().is_none() {
-            program.with_extension("exe")
-        } else {
-            program.to_path_buf()
-        };
-        std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default())
-            .map(|directory| directory.join(&executable_name))
-            .find(|candidate| candidate.is_file())
-            .with_context(|| format!("find pinned gRPC generator {} on PATH", program.display()))?
-    };
-    let output = Command::new(&executable)
-        .arg("--version")
-        .output()
-        .with_context(|| {
-            format!(
-                "start {} (install pinned gRPC generator {expected})",
-                program.display()
-            )
-        })?;
-    ensure!(
-        output.status.success(),
-        "{} --version failed",
-        program.display()
-    );
-    let actual = String::from_utf8(output.stdout)?.trim().to_owned();
-    ensure!(
-        actual == expected,
-        "gRPC tool version mismatch for {}: expected {expected:?}, got {actual:?}",
-        program.display()
-    );
-    Ok(executable)
-}
+
+mod adapters;
+mod batching;
+mod codecs;
+mod descriptors;
+mod documentation;
+mod enums;
+mod facade;
+mod messages;
+mod output;
+mod plan;
+mod reactive;
+mod representations;
+mod services;
+mod symbols;
+mod validation;
+mod values;
+mod views;
+pub use symbols::{GrpcApi, RpcMessageSymbol, RpcServiceSymbol, RpcValueSymbol};
+#[cfg(test)]
+use validation::validate;
 impl Plugin<crate::Go> for Grpc {
     fn kind(&self) -> &'static str {
         "go-grpc"
@@ -227,85 +104,100 @@ impl Plugin<crate::Go> for Grpc {
     fn requires(&self) -> Vec<Requirement> {
         vec![Requirement::on(self.input)]
     }
+    fn provides(&self) -> Vec<Provision> {
+        vec![Provision::of::<GrpcApi>()]
+    }
     fn generate(&self, cx: &mut PluginContext<'_, crate::Go>) -> Result<()> {
-        let contract = cx.inputs.get::<RpcContract>()?;
-        let generation = validate(contract, &self.module_path, &self.go_packages)?;
-        let protoc = tool_version(&self.tools.protoc, &format!("libprotoc {PROTOC_VERSION}"))?;
-        let go = tool_version(
-            &self.tools.protoc_gen_go,
-            &format!("protoc-gen-go v{GO_PROTOBUF_VERSION}"),
-        )?;
-        let grpc = tool_version(
-            &self.tools.protoc_gen_go_grpc,
-            &format!("protoc-gen-go-grpc {GO_GRPC_PLUGIN_VERSION}"),
-        )?;
-        let temporary = tempfile::tempdir()?;
-        let descriptors = temporary.path().join("input.pb");
-        let output = temporary.path().join("output");
-        fs::create_dir(&output)?;
-        fs::write(&descriptors, &contract.descriptor_set)?;
-        let mut command = Command::new(protoc);
-        command
-            .arg(format!("--descriptor_set_in={}", descriptors.display()))
-            .arg(format!("--plugin=protoc-gen-go={}", go.display()))
-            .arg(format!("--plugin=protoc-gen-go-grpc={}", grpc.display()))
-            .arg(format!("--go_out={}", output.display()))
-            .arg(format!("--go-grpc_out={}", output.display()))
-            .arg(format!("--go_opt=module={}", self.module_path))
-            .arg(format!("--go-grpc_opt=module={}", self.module_path));
-        for (file, package) in &self.go_packages {
-            command
-                .arg(format!("--go_opt=M{file}={package}"))
-                .arg(format!("--go-grpc_opt=M{file}={package}"));
-        }
-        command.args(&generation);
-        let result = command
-            .output()
-            .context("run pinned official Go gRPC generators")?;
+        self.options.validate()?;
         ensure!(
-            result.status.success(),
-            "Go gRPC code generation failed: {}",
-            String::from_utf8_lossy(&result.stderr)
+            self.options.emit_types || !self.options.emit_servers,
+            "Go server interfaces require exported message types; disable emitServers for codec-only/internal-type packages"
         );
-        fn emit(
-            directory: &Path,
-            root: &Path,
-            files: &mut poolster_core::engine::Emitter<'_>,
-        ) -> Result<()> {
-            let mut paths = fs::read_dir(directory)?
-                .map(|e| e.map(|e| e.path()))
-                .collect::<std::io::Result<Vec<_>>>()?;
-            paths.sort();
-            for path in paths {
-                let metadata = fs::symlink_metadata(&path)?;
-                ensure!(
-                    !metadata.file_type().is_symlink(),
-                    "gRPC generator emitted a symlink"
-                );
-                if metadata.is_dir() {
-                    emit(&path, root, files)?;
-                } else {
-                    ensure!(
-                        metadata.is_file() && path.extension().is_some_and(|e| e == "go"),
-                        "gRPC generator emitted unsupported output"
-                    );
-                    files.emit(GeneratedFile::new(
-                        path.strip_prefix(root)?,
-                        fs::read_to_string(&path)?,
-                    )?)?;
-                }
-            }
-            Ok(())
+        let provenance = cx.inputs.reference::<RpcContract>()?.cloned();
+        let contract = cx.inputs.get::<RpcContract>()?.clone();
+        let mut mappings = self.go_packages.clone();
+        for (file, mapping) in &self.options.import_mappings {
+            ensure!(
+                !mappings.contains_key(file),
+                "Go external importMappings conflicts with legacy goPackage override: {file}"
+            );
+            mappings.insert(file.clone(), mapping.clone());
         }
-        emit(&output, &output, &mut cx.files)?;
-        let manifest = include_str!("../templates/grpc_go.mod.tmpl")
+        let generation =
+            validation::validate_options(&contract, &self.module_path, &mappings, &self.options)?;
+        let schema = contract.wire_schema()?;
+        self.options.validate_for(&schema)?;
+        ensure!(
+            self.options.emit_types || self.options.representations.is_native(),
+            "Go alternate value representations require emitTypes for public value models and converters"
+        );
+        ensure!(
+            !self.options.nestjs_rest_parameter,
+            "Go does not support NestJS rest parameters; select the Native grpc-go framework"
+        );
+        ensure!(
+            !self.options.reactive_streams || self.options.emit_clients,
+            "Go reactive subscriptions require emitClients"
+        );
+        ensure!(
+            self.options
+                .frameworks
+                .iter()
+                .all(|framework| *framework == poolster_core::native::rpc::RpcFramework::Native),
+            "Go Protobuf supports the Native grpc-go framework; NiceGrpc and NestJs are TypeScript frameworks"
+        );
+        let plan = plan::Plan::new(
+            &contract,
+            &schema,
+            &self.module_path,
+            &mappings,
+            &self.options,
+        )?;
+        let mut value_packages = std::collections::BTreeSet::new();
+        for file in &schema.files {
+            if !generation.contains(&file.name) {
+                continue;
+            }
+            let context = plan.context(file)?;
+            messages::emit(cx, file, &context)?;
+            descriptors::emit(cx, file, &context, self.options.emit_reflection)?;
+            services::emit(cx, file, &context, &self.options)?;
+            codecs::emit(cx, file, &context, &self.options)?;
+            if self.options.immutable_views {
+                views::emit(cx, file, &context)?;
+            }
+            if (self.options.value_adapters || !self.options.representations.is_native())
+                && value_packages.insert(context.import.clone())
+            {
+                values::emit(cx, &context, &self.options)?;
+            }
+        }
+        if self.options.emit_clients && self.options.emit_index {
+            facade::emit(cx, &schema, &plan, self.options.client_style)?;
+        }
+        adapters::emit(cx, &schema, &plan, &self.options)?;
+        batching::emit(cx, &schema, &plan, &self.options)?;
+        if !self.options.representations.is_native() {
+            representations::emit(cx, &schema, &plan, &generation)?;
+        }
+        if self.options.reactive_streams && self.options.emit_clients {
+            reactive::emit(cx, &schema, &plan)?;
+        }
+        let mut manifest = include_str!("../templates/grpc_go.mod.tmpl")
             .replace("{{MODULE_PATH}}", &self.module_path)
             .replace("{{GRPC_VERSION}}", GO_GRPC_VERSION)
             .replace("{{PROTOBUF_VERSION}}", GO_PROTOBUF_VERSION);
+        if self
+            .options
+            .transports
+            .contains(&poolster_core::native::rpc::RpcTransport::GrpcWeb)
+        {
+            manifest.push_str("\nrequire connectrpc.com/connect v1.18.1\n");
+        }
         cx.files.emit(GeneratedFile::new("go.mod", manifest)?)?;
         cx.files.emit(GeneratedFile::new(
             "go.sum",
-            include_str!("../templates/grpc_go.sum.tmpl"),
+            format!("{}{}", include_str!("../templates/grpc_go.sum.tmpl"), if self.options.transports.contains(&poolster_core::native::rpc::RpcTransport::GrpcWeb) { "connectrpc.com/connect v1.18.1 h1:PAg7CjSAGvscaf6YZKUefjoih5Z/qYkyaTrBW8xvYPw=\nconnectrpc.com/connect v1.18.1/go.mod h1:0292hj1rnx8oFrStN7cB4jjVBeqs+Yx5yDIC2prWDO8=\n" } else { "" }),
         )?)?;
         for file in &contract.files {
             if let Some(source) = &file.source {
@@ -315,74 +207,16 @@ impl Plugin<crate::Go> for Grpc {
                 )?)?;
             }
         }
-        cx.files.emit(GeneratedFile::new("README.md",format!("# Go gRPC package\n\nGenerated by Poolster using protoc {PROTOC_VERSION}, protoc-gen-go {GO_PROTOBUF_VERSION}, and protoc-gen-go-grpc {GO_GRPC_PLUGIN_VERSION}.\n\nThe generated `.pb.go` files expose official message types. `_grpc.pb.go` files expose client constructors, server interfaces, registration functions and all unary/client/server/bidirectional streaming methods. Embed the generated `Unimplemented<Service>Server` in your server implementation. Configure transport credentials when constructing a `grpc.ClientConn`; transport security, status errors, contexts and deadlines follow grpc-go.\n\nRun `go test ./...` with Go 1.25 or newer. The generated module includes pinned direct/indirect dependencies and checksums; normal compilation can download those dependencies but does not rewrite its manifests. Source documents remain under `proto/`. Regenerate through the same Poolster recipe with the pinned toolchain; generated files use ordinary Poolster ownership/customization.\n\nMessage field presence, oneofs, maps, defaults and wire numbers are supplied to official generators through the retained FileDescriptorSet. Poolster RPC metadata describes services and streaming; it does not reinterpret Protobuf messages as HTTP schemas. Protobuf editions are not supported by the current input parser.\n"))?)?;
-        Ok(())
+        cx.files.emit(GeneratedFile::new("README.md","# Go Protobuf and gRPC package\n\nPoolster renders native Go source directly. Binary codecs, ProtoJSON, reflection, registries, unknown fields and extension access use google.golang.org/protobuf. Clients and servers use grpc-go, including all four stream directions, metadata, deadlines, cancellation and runtime interceptors. No upstream source generator runs during generation.\n\nUse proto.Marshal/proto.Unmarshal and protojson.MarshalOptions/UnmarshalOptions; these native options provide required-field checks, unknown retention/discard, bounded recursion and JSON policy. Embed Unimplemented<Service>Server for service implementations. Configure credentials and interceptors when creating native grpc connections/servers. Legacy toolchain paths are accepted for configuration compatibility and are not executed.\n\nRun go test ./... with Go 1.25+. Retained source documents are under proto/. Optional transports add Connect-backed gRPC-web unary/server-stream APIs and unary Twirp protobuf/ProtoJSON APIs; unsupported adapter streams fail before I/O and are listed in .poolster/rpc-capabilities.json. Optional batch mappings create explicit request-owned queues and positive caches. Immutable views return defensive copies; reactive subscriptions use bounded channels and native contexts; value adapters reject precision/range loss. Generated helper/adaptor bounds do not change direct calls to native proto/grpc runtime APIs. This profile does not implement every conformance option.\n")?)?;
+        cx.publish(symbols::collect(
+            &plan,
+            &schema,
+            &generation,
+            &self.options,
+            provenance,
+        )?)
     }
 }
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use poolster_core::native::rpc::{RpcFile, RpcService};
-    fn contract() -> RpcContract {
-        RpcContract {
-            root_files: vec!["api.proto".into()],
-            descriptor_set: vec![1],
-            files: vec![RpcFile {
-                name: "api.proto".into(),
-                package: "demo".into(),
-                syntax: "proto3".into(),
-                go_package: Some("example.com/demo/api;api".into()),
-                imports: vec![],
-                source: Some(String::new()),
-            }],
-            services: vec![RpcService {
-                full_name: "demo.Store".into(),
-                file: "api.proto".into(),
-                methods: vec![],
-            }],
-        }
-    }
-    #[test]
-    fn malformed_contract_names_and_unknown_mappings_are_rejected() {
-        let mut c = contract();
-        c.files[0].name = "../outside.proto".into();
-        assert!(validate(&c, "example.com/demo", &BTreeMap::new()).is_err());
-        let c = contract();
-        assert!(
-            validate(
-                &c,
-                "example.com/demo",
-                &BTreeMap::from([("unknown.proto".into(), "example.com/demo/api".into())])
-            )
-            .is_err()
-        );
-        let mut c = c;
-        c.descriptor_set.clear();
-        assert!(validate(&c, "example.com/demo", &BTreeMap::new()).is_err());
-        let mut c = contract();
-        c.services.clear();
-        assert!(validate(&c, "example.com/demo", &BTreeMap::new()).is_err());
-    }
-
-    #[test]
-    fn mappings_and_modules_fail_before_tools_run() {
-        let c = contract();
-        assert_eq!(
-            validate(&c, "example.com/demo", &BTreeMap::new()).unwrap(),
-            vec!["api.proto"]
-        );
-        assert!(validate(&c, "../escape", &BTreeMap::new()).is_err());
-        assert!(validate(&c, "example.com/other", &BTreeMap::new()).is_err());
-        let mut c = c;
-        c.files[0].go_package = None;
-        assert!(validate(&c, "example.com/demo", &BTreeMap::new()).is_err());
-        assert!(
-            validate(
-                &c,
-                "example.com/demo",
-                &BTreeMap::from([("api.proto".into(), "example.com/demo/api;api".into())])
-            )
-            .is_ok()
-        );
-    }
-}
+#[path = "grpc/tests.rs"]
+mod tests;

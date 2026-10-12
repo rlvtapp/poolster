@@ -1,0 +1,129 @@
+// RpcEnumName carries unknown numbers without inventing an enum member.
+type RpcEnumName struct {
+	Name   string
+	Number int32
+    DisplayName string
+}
+type RpcEntry[K comparable, V any] struct {
+	Key   K
+	Value V
+}
+
+func poolsterConvertOptional[A, B any](input *A, convert func(A) (B, error)) (*B, error) {
+	if input == nil {
+		return nil, nil
+	}
+	value, err := convert(*input)
+	if err != nil {
+		return nil, err
+	}
+	return &value, nil
+}
+func poolsterConvertList[A, B any](input []A, convert func(A) (B, error)) ([]B, error) {
+	if input == nil {
+		return nil, nil
+	}
+	output := make([]B, len(input))
+	for index, value := range input {
+		converted, err := convert(value)
+		if err != nil {
+			return nil, err
+		}
+		output[index] = converted
+	}
+	return output, nil
+}
+func poolsterConvertMap[K comparable, V any, K2 comparable, V2 any](input map[K]V, keyConvert func(K) (K2, error), valueConvert func(V) (V2, error)) (map[K2]V2, error) {
+	if input == nil {
+		return nil, nil
+	}
+	output := make(map[K2]V2, len(input))
+	for key, value := range input {
+		convertedKey, err := keyConvert(key)
+		if err != nil {
+			return nil, err
+		}
+		if _, exists := output[convertedKey]; exists {
+			return nil, fmt.Errorf("converted map key collision")
+		}
+		convertedValue, err := valueConvert(value)
+		if err != nil {
+			return nil, err
+		}
+		output[convertedKey] = convertedValue
+	}
+	return output, nil
+}
+func poolsterMapEntries[K comparable, V any, K2 comparable, V2 any](input map[K]V, keyConvert func(K) (K2, error), valueConvert func(V) (V2, error)) ([]RpcEntry[K2, V2], error) {
+	if input == nil {
+		return nil, nil
+	}
+	keys := make([]K, 0, len(input))
+	for key := range input {
+		keys = append(keys, key)
+	}
+	sort.Slice(keys, func(a, b int) bool { return fmt.Sprint(keys[a]) < fmt.Sprint(keys[b]) })
+	output := make([]RpcEntry[K2, V2], 0, len(input))
+	for _, key := range keys {
+		convertedKey, err := keyConvert(key)
+		if err != nil {
+			return nil, err
+		}
+		convertedValue, err := valueConvert(input[key])
+		if err != nil {
+			return nil, err
+		}
+		output = append(output, RpcEntry[K2, V2]{Key: convertedKey, Value: convertedValue})
+	}
+	return output, nil
+}
+func poolsterEntriesMap[K comparable, V any, K2 comparable, V2 any](input []RpcEntry[K, V], keyConvert func(K) (K2, error), valueConvert func(V) (V2, error)) (map[K2]V2, error) {
+	if input == nil {
+		return nil, nil
+	}
+	output := make(map[K2]V2, len(input))
+	for _, entry := range input {
+		key, err := keyConvert(entry.Key)
+		if err != nil {
+			return nil, err
+		}
+		if _, exists := output[key]; exists {
+			return nil, fmt.Errorf("duplicate map entry key")
+		}
+		value, err := valueConvert(entry.Value)
+		if err != nil {
+			return nil, err
+		}
+		output[key] = value
+	}
+	return output, nil
+}
+func poolsterSecondsDuration(value float64) (*durationpb.Duration, error) {
+	if math.IsNaN(value) || math.IsInf(value, 0) || math.Abs(value) > 315576000000 {
+		return nil, fmt.Errorf("duration seconds outside Protobuf range")
+	}
+	seconds, fraction := math.Modf(value)
+	nanos := math.Round(fraction * 1e9)
+	result := &durationpb.Duration{Seconds: int64(seconds), Nanos: int32(nanos)}
+	if err := result.CheckValid(); err != nil {
+		return nil, err
+	}
+	if float64(result.Seconds)+float64(result.Nanos)/1e9 != value {
+		return nil, fmt.Errorf("duration seconds lose precision")
+	}
+	return result, nil
+}
+func poolsterDurationSeconds(value *durationpb.Duration) (float64, error) {
+	if err := value.CheckValid(); err != nil {
+		return 0, err
+	}
+	seconds := float64(value.Seconds) + float64(value.Nanos)/1e9
+	restored, err := poolsterSecondsDuration(seconds)
+	if err != nil {
+		return 0, err
+	}
+	if restored.Seconds != value.Seconds || restored.Nanos != value.Nanos {
+		return 0, fmt.Errorf("duration seconds lose nanosecond precision")
+	}
+	return seconds, nil
+}

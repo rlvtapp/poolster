@@ -1,0 +1,105 @@
+"""Explicit native-message views and checked value adapters."""
+from types import MappingProxyType as _MappingProxy
+from collections.abc import Mapping as _Mapping
+from google.protobuf.message import Message as _Message
+import {{RUNTIME}} as _runtime
+
+def _clone(value):
+    result=type(value)(); result.CopyFrom(value); return result
+
+def _frozen(value):
+    if isinstance(value,_Message): return globals().get("_FROZEN_MODELS",{}).get(value.DESCRIPTOR.full_name,FrozenMessage)(value)
+    if isinstance(value,_Mapping): return _MappingProxy({key:_frozen(item) for key,item in value.items()})
+    if not isinstance(value,(str,bytes)) and hasattr(value,'__iter__'): return tuple(_frozen(item) for item in value)
+    return value
+
+class FrozenMessage:
+    __slots__=('__value',)
+    def __init__(self,value):
+        if not isinstance(value,_Message): raise TypeError('Expected native Protobuf message')
+        object.__setattr__(self,'_FrozenMessage__value',_clone(value))
+    def __setattr__(self,name,value): raise AttributeError('Immutable message view')
+    def __getattr__(self,name):
+        field=self.__value.DESCRIPTOR.fields_by_name.get(name)
+        if field is None: raise AttributeError(name)
+        value = getattr(self.__value,name)
+        if field.is_repeated:
+            if field.message_type and field.message_type.GetOptions().map_entry:
+                return _MappingProxy({key:_frozen(value[key]) for key in value})
+            return tuple(_frozen(item) for item in value)
+        return _frozen(value)
+    def copy_native(self): return _clone(self.__value)
+    def has_field(self,name): return self.__value.HasField(name)
+    def which_oneof(self,name): return self.__value.WhichOneof(name)
+
+class ReactiveStream:
+    def __init__(self,call): self._call=call
+    def __getattr__(self,name): return getattr(self._call,name)
+    async def __aiter__(self):
+        try:
+            async for value in self._call: yield value
+        finally:
+            if hasattr(self._call,'cancel'): self._call.cancel()
+            elif hasattr(self._call,'aclose'): await self._call.aclose()
+
+class MessageAdapter:
+    def __init__(self,message_type,to_native,from_native):
+        self.message_type,self._encode,self._decode=message_type,to_native,from_native
+    def to_native(self,value):
+        message=self._encode(value)
+        if not isinstance(message,self.message_type): raise TypeError('Adapter returned wrong native message')
+        _runtime._check_depth(message); return _clone(message)
+    def from_native(self,value):
+        if not isinstance(value,self.message_type): raise TypeError('Adapter received wrong native message')
+        return self._decode(_clone(value))
+
+def integer_from_string(value,*,unsigned=False):
+    if not isinstance(value,str) or not value or value.strip()!=value: raise ValueError('Expected decimal integer string')
+    import re
+    if not re.fullmatch(r'-?(0|[1-9][0-9]*)',value): raise ValueError('Invalid integer string')
+    number=int(value)
+    if not (0 <= number <= 2**64-1 if unsigned else -(2**63) <= number <= 2**63-1): raise ValueError('Integer out of range')
+    return number
+
+def integer_to_string(value,*,unsigned=False):
+    if not isinstance(value,int) or isinstance(value,bool): raise TypeError('Expected integer')
+    return str(integer_from_string(str(value),unsigned=unsigned))
+
+def integer_to_float(value):
+    integer_from_string(str(value))
+    number=float(value)
+    if int(number)!=value: raise ValueError('Integer cannot be represented exactly as float')
+    return number
+
+def integer_from_float(value,*,unsigned=False):
+    if not isinstance(value,float) or not value.is_integer(): raise ValueError('Expected integral float')
+    return integer_from_string(str(int(value)),unsigned=unsigned)
+
+def bytes_to_base64(value):
+    import base64
+    if not isinstance(value,bytes): raise TypeError('Expected bytes')
+    return base64.b64encode(value).decode('ascii')
+
+def bytes_from_base64(value):
+    import base64
+    if not isinstance(value,str): raise TypeError('Expected base64 string')
+    return base64.b64decode(value,validate=True)
+
+def timestamp_to_datetime(value):
+    from datetime import timezone
+    if value.nanos % 1000: raise ValueError('datetime cannot preserve nanoseconds')
+    value.ToJsonString()  # Validate native seconds/nanosecond bounds.
+    return value.ToDatetime(tzinfo=timezone.utc)
+
+def timestamp_from_datetime(value):
+    from google.protobuf.timestamp_pb2 import Timestamp
+    if value.tzinfo is None or value.utcoffset() is None: raise ValueError('Timestamp requires timezone-aware datetime')
+    result=Timestamp();result.FromDatetime(value);result.ToJsonString();return result
+
+def duration_to_timedelta(value):
+    if value.nanos % 1000: raise ValueError('timedelta cannot preserve nanoseconds')
+    value.ToJsonString();return value.ToTimedelta()
+
+def duration_from_timedelta(value):
+    from google.protobuf.duration_pb2 import Duration
+    result=Duration();result.FromTimedelta(value);result.ToJsonString();return result

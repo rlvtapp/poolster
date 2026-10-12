@@ -1,0 +1,154 @@
+type NAMEFuture struct {
+	done  chan struct{}
+	value *OUTPUT
+	err   error
+}
+
+func (future *NAMEFuture) Await(ctx context.Context) (*OUTPUT, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case <-future.done:
+		if future.value == nil {
+			return nil, future.err
+		}
+		return proto.Clone(future.value).(*OUTPUT), future.err
+	}
+}
+
+type NAMEPending struct {
+	key     KEY
+	context context.Context
+	future  *NAMEFuture
+}
+type NAMEBatchScope struct {
+	context context.Context
+	call    func(context.Context, *BATCH_INPUT, ...grpc.CallOption) (*BATCH_OUTPUT, error)
+	mutex   sync.Mutex
+	flush   sync.Mutex
+	pending []*NAMEPending
+	cache   map[KEY]*OUTPUT
+}
+
+func NewNAMEBatchScope(ctx context.Context, call func(context.Context, *BATCH_INPUT, ...grpc.CallOption) (*BATCH_OUTPUT, error)) *NAMEBatchScope {
+	return &NAMEBatchScope{context: ctx, call: call, cache: make(map[KEY]*OUTPUT)}
+}
+func (scope *NAMEBatchScope) Queue(ctx context.Context, request *REQUEST) *NAMEFuture {
+	future := &NAMEFuture{done: make(chan struct{})}
+	if request == nil {
+		future.err = fmt.Errorf("nil batch request")
+		close(future.done)
+		return future
+	}
+	if err := scope.context.Err(); err != nil {
+		future.err = err
+		close(future.done)
+		return future
+	}
+	if err := ctx.Err(); err != nil {
+		future.err = err
+		close(future.done)
+		return future
+	}
+	key := request.GET_KEY()
+	scope.mutex.Lock()
+	defer scope.mutex.Unlock()
+	if CACHE {
+		if value, ok := scope.cache[key]; ok {
+			future.value = proto.Clone(value).(*OUTPUT)
+			close(future.done)
+			return future
+		}
+	}
+	scope.pending = append(scope.pending, &NAMEPending{key: key, context: ctx, future: future})
+	return future
+}
+func (scope *NAMEBatchScope) finish(item *NAMEPending, value *OUTPUT, err error) {
+	if canceled := item.context.Err(); canceled != nil {
+		err = canceled
+		value = nil
+	}
+	if value == nil && err == nil {
+		err = fmt.Errorf("nil batch response element")
+	}
+	if value != nil {
+		value = proto.Clone(value).(*OUTPUT)
+		if CACHE && err == nil {
+			scope.mutex.Lock()
+			scope.cache[item.key] = proto.Clone(value).(*OUTPUT)
+			scope.mutex.Unlock()
+		}
+	}
+	item.future.value = value
+	item.future.err = err
+	close(item.future.done)
+}
+func (scope *NAMEBatchScope) fail(group []*NAMEPending, err error) error {
+	for _, item := range group {
+		scope.finish(item, nil, err)
+	}
+	return err
+}
+func (scope *NAMEBatchScope) Flush(options ...grpc.CallOption) error {
+	scope.flush.Lock()
+	defer scope.flush.Unlock()
+	scope.mutex.Lock()
+	pending := scope.pending
+	scope.pending = nil
+	scope.mutex.Unlock()
+	var first error
+	for len(pending) > 0 {
+		count := MAX_BATCH
+		if count > len(pending) {
+			count = len(pending)
+		}
+		chunk := pending[:count]
+		pending = pending[count:]
+		group := make([]*NAMEPending, 0, len(chunk))
+		for _, item := range chunk {
+			if err := item.context.Err(); err != nil {
+				scope.finish(item, nil, err)
+			} else {
+				group = append(group, item)
+			}
+		}
+		if len(group) == 0 {
+			continue
+		}
+		if err := scope.context.Err(); err != nil {
+			scope.fail(group, err)
+			if first == nil {
+				first = err
+			}
+			continue
+		}
+		request := &BATCH_INPUT{}
+		for _, item := range group {
+			request.INPUT_FIELD = append(request.INPUT_FIELD, item.key)
+		}
+		response, err := scope.call(scope.context, request, options...)
+		if err != nil {
+			scope.fail(group, err)
+			if first == nil {
+				first = err
+			}
+			continue
+		}
+		if response == nil {
+			err = fmt.Errorf("nil batch response")
+			scope.fail(group, err)
+			if first == nil {
+				first = err
+			}
+			continue
+		}
+		if err = scope.associate(group, response); err != nil && first == nil {
+			first = err
+		}
+	}
+	return first
+}
+func (scope *NAMEBatchScope) associate(group []*NAMEPending, response *BATCH_OUTPUT) error {
+	ASSOCIATE
+	return nil
+}

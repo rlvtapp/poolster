@@ -85,8 +85,63 @@ function sdkPackage(options) {
     const proto = options.contractOptions.protobuf;
     if (proto != null) {
       if (typeof proto !== 'object' || Array.isArray(proto)) throw new TypeError('contractOptions.protobuf must be an object');
-      const allowed = new Set(['module','packageName','goPackages','toolchain']);
+      const allowed = new Set(['module','packageName','goPackages','toolchain','generation']);
       for (const key of Object.keys(proto)) if (!allowed.has(key)) throw new TypeError(`unknown Protobuf option ${key}`);
+      if (proto.generation != null) {
+        const generation = proto.generation;
+        if (typeof generation !== 'object' || Array.isArray(generation)) throw new TypeError('Protobuf generation must be an object');
+        const surfaces = ['emitTypes','emitBinary','emitJson','emitClients','emitServers','emitReflection'];
+        const booleans = [...surfaces,'immutableViews','reactiveStreams','valueAdapters','snakeTypeNames','lowerCaseServiceMethods','emitImportedFiles','emitIndex','comments','annotateFilesWithVersion','removeEnumPrefix','nestjsRestParameter'];
+        for (const [key,value] of Object.entries(generation)) {
+          if (booleans.includes(key)) {
+            if (typeof value !== 'boolean') throw new TypeError(`Protobuf ${key} must be a boolean`);
+          } else if (key === 'enumStyle') {
+            if (!['native','const','literal'].includes(value)) throw new TypeError('Protobuf enumStyle must be native, const, or literal');
+          } else if (key === 'unknownEnumName') {
+            if (typeof value !== 'string' || !value.trim() || /[\x00-\x1f\x7f]/.test(value)) throw new TypeError('Protobuf unknownEnumName must be a nonempty display label');
+          } else if (key === 'representations') {
+            const policies = {int64:['native','string','numberExact'],bytes:['native','base64'],maps:['native','entries','map'],enums:['native','name'],optional:['native','nullable'],timestamp:['native','dateTime','rfc3339'],duration:['native','timeDelta','secondsExact']};
+            if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError('Protobuf representations must be an object');
+            for (const [name,policy] of Object.entries(value)) if (!policies[name]?.includes(policy)) throw new TypeError(`unsupported Protobuf representation ${name}: ${policy}`);
+          } else if (key === 'typePrefix'  || key === 'typeSuffix' || key === 'fileSuffix') {
+            const pattern = key === 'fileSuffix' ? /^[A-Za-z0-9_.-]*$/ : key === 'typePrefix' ? /^(?:[A-Za-z_][A-Za-z0-9_]*)?$/ : /^[A-Za-z0-9_]*$/;
+            if (typeof value !== 'string' || !pattern.test(value)) throw new TypeError(`Protobuf ${key} must be a safe identifier or filename suffix`);
+          } else if (key === 'encodeIncludeTypes' || key === 'decodeIncludeTypes') {
+            if (!Array.isArray(value) || new Set(value).size !== value.length || value.some(item => typeof item !== 'string' || !/^[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*$/.test(item))) throw new TypeError(`Protobuf ${key} must contain unique fully qualified message identities`);
+          } else if (key === 'importMappings') {
+            if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError('Protobuf importMappings must be an object');
+            for (const [file,module] of Object.entries(value)) {
+              if (!file || file.includes('\\') || file.split('/').some(part => !part || part === '..') || typeof module !== 'string' || !module.trim() || /[\x00-\x1f\x7f]/.test(module)) throw new TypeError('Protobuf importMappings requires relative descriptor filenames and nonempty modules');
+            }
+          } else if (key === 'batching') {
+            if (!Array.isArray(value)) throw new TypeError('Protobuf batching must be an array');
+            for (const mapping of value) {
+              if (!mapping || typeof mapping !== 'object' || Array.isArray(mapping)) throw new TypeError('Protobuf batch mapping must be an object');
+              const required = ['singleMethod','batchMethod','inputField','batchInputField','batchOutputField'];
+              for (const name of required) if (typeof mapping[name] !== 'string' || !mapping[name].trim()) throw new TypeError(`Protobuf batch ${name} must be a nonempty string`);
+              for (const [name,item] of Object.entries(mapping)) {
+                if (required.includes(name)) continue;
+                if (name === 'outputKey') {if (typeof item !== 'string' || !item.trim()) throw new TypeError('Protobuf batch outputKey must be a nonempty string');}
+                else if (name === 'cache') {if (typeof item !== 'boolean') throw new TypeError('Protobuf batch cache must be a boolean');}
+                else if (name === 'maxBatchSize') {if (!Number.isInteger(item) || item < 1 || item > 10000) throw new TypeError('Protobuf maxBatchSize must be between 1 and 10000');}
+                else throw new TypeError(`unknown Protobuf batch option ${name}`);
+              }
+            }
+          } else if (key === 'frameworks') {
+            if (!Array.isArray(value) || value.some(framework => !['native','niceGrpc','nestJs'].includes(framework)) || new Set(value).size !== value.length) throw new TypeError('Protobuf frameworks must be unique native, niceGrpc, or nestJs entries');
+          } else if (key === 'transports') {
+            if (!Array.isArray(value) || value.some(transport => !['grpc','grpcWeb','twirp'].includes(transport)) || new Set(value).size !== value.length) throw new TypeError('Protobuf transports must be unique grpc, grpcWeb, or twirp entries');
+          } else if (key === 'clientStyle') {
+            if (!['raw','flat','idiomatic','namespaced','grouped'].includes(value)) throw new TypeError('Protobuf clientStyle must be raw, flat, or idiomatic');
+          } else if (key === 'unknownFields') {
+            if (!['preserve','discard'].includes(value)) throw new TypeError('Protobuf unknownFields must be preserve or discard');
+          } else if (key === 'maxMessageBytes' || key === 'maxDepth') {
+            const maximum = key === 'maxDepth' ? 1000 : 2147483647;
+            if (!Number.isInteger(value) || value < 1 || value > maximum) throw new TypeError(`Protobuf ${key} must be an integer between 1 and ${maximum}`);
+          } else throw new TypeError(`unknown Protobuf generation option ${key}`);
+        }
+        if (surfaces.every(key => generation[key] === false)) throw new TypeError('Protobuf output must enable at least one surface');
+      }
       for (const key of ['module','packageName']) if (proto[key] != null && (typeof proto[key] !== 'string' || !proto[key].trim())) throw new TypeError(`Protobuf ${key} must be a nonempty string`);
       for (const key of ['goPackages','toolchain']) if (proto[key] != null) {
         if (typeof proto[key] !== 'object' || Array.isArray(proto[key])) throw new TypeError(`Protobuf ${key} must be an object`);

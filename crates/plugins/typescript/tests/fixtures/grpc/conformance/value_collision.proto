@@ -1,0 +1,1 @@
+syntax="proto3"; package collisions; message A {bytes value=1;} message AValue {string value=1;}

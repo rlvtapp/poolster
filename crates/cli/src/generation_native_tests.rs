@@ -1,6 +1,8 @@
 use super::*;
 #[path = "generation_native_tests/rpc.rs"]
 mod rpc;
+#[path = "generation_native_tests/rpc_graph.rs"]
+mod rpc_graph;
 #[path = "generation_native_tests/shared_models.rs"]
 mod shared_models;
 

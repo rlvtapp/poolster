@@ -185,3 +185,10 @@ Kafka generated Java compilation, strict wire checks and a local pinned Kafka br
 - [Generated GraphQL compilation/runtime tests](../../../crates/plugins/java/src/graphql/tests.rs)
 - [Shared-model implementation and tests](../../../crates/plugins/java/src/shared_models.rs)
 - [GraphQL usage and layout guide](../outputs/graphql-java.md)
+
+## Protobuf conformance audit
+
+Protobuf output is not implemented in this language. All 29 requirements remain
+unsupported; the rollout and per-language assessments are recorded in the
+[Protobuf audit](../outputs/protobuf-conformance.md) and
+[requirements](../../specifications/protobuf-conformance.md).

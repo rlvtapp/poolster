@@ -28,6 +28,17 @@ for tested features and per-language limits. These additions are not yet publish
 
 The [12 October Kafka verification record](verification-results/kafka-all-languages-2026-10-12.json) records all ten adapters: **21 suites passed, no failed/skipped adapters**, and **1,007 effective workspace passes, 0 remaining failures, 205 ignored**. Native probes are separate from default workspace totals.
 
+The current Protobuf batch adds Poolster-owned TypeScript, Python and Go source
+renderers, all four native gRPC directions, selectable raw/flat/idiomatic facades,
+checked alternate value models and independent emission/layout controls. Its
+[final workspace record](verification-results/protobuf-workspace-final-2026-10-12.json)
+has **1,050 passed, zero remaining failures after a PHP environment retry, and
+239 ignored**, across 116 fresh test executables. Focused opt-in protocol gates,
+six independent peer cases and the 97-pass JavaScript SDK suite are recorded
+separately in the [current audit](reference/outputs/protobuf-conformance.md).
+Full ts-proto profile certification remains pending; the other seven language
+Protobuf outputs remain unsupported.
+
 ✅ = implemented for the stated contract; — = no bundled generation support.
 A check does not imply support for every feature of a specification. Target-specific
 limitations still apply. GraphQL is a separate contract even when its transport is HTTP.
@@ -225,10 +236,16 @@ multiplexing, reconnect/replay or newer ID-based incremental dialect is claimed.
 
 ## Input providers
 
-The new Python and TypeScript Protobuf outputs emit source inside Poolster;
-Go retains its existing upstream-generator route. See the
+Go, Python and TypeScript Protobuf outputs emit source inside Poolster.
+Pinned upstream generators are used only as independent test peers. See the
 [Protobuf checks](verification/verification.md#poolster-owned-protobuf-outputs-12-october-2026)
 and [target limits](reference/outputs/protobuf.md).
+
+The [Protobuf conformance audit](reference/outputs/protobuf-conformance.md) finds
+no complete profile yet. It records the historical baseline defects and missing evidence. Completion work
+fixes those defects and expands tests; final profile certification remains pending.
+[Independent-peer checkpoint](verification-results/protobuf-independent-peer-checkpoint-2026-10-12.json)
+covers all three languages in both client/server directions.
 
 | Input format | Parsing / inspection | Usable bundled output |
 | --- | :---: | --- |
@@ -327,7 +344,7 @@ failures and successful retries remain in the audit trail. See
 - [x] Existing OpenAPI snapshots and workspace tests pass.
 - [x] Provider substitution, typed downstream hooks and regeneration have focused tests.
 - [x] GraphQL → TypeScript and Rust generation, clean packaged consumers and local-server execution.
-- [x] Protobuf → Go official messages, gRPC clients/server interfaces and all streaming modes.
+- [x] Protobuf → Poolster-owned Go messages, gRPC clients/server interfaces and all streaming modes.
 - [x] Protobuf → Poolster-owned Python and TypeScript source generation using native runtime libraries.
 - [x] AsyncAPI → TypeScript message models and Kafka producer/consumer for the documented subset.
 - [x] Arazzo → source-resolved sequential TypeScript runners and local integration tests.

@@ -89,13 +89,21 @@ pub(crate) fn build(options: &Generate, input: &NativeInputConfig) -> Result<Pro
         } else if input.format == "asyncapi" {
             events::append(old, input, registry.clone(), language, path, name, common)?
         } else if input.format == "protobuf" {
-            let output = plugin
+            let mut output = plugin
                 .map(|plugin| NativeOutputConfig {
                     module: plugin.module.clone(),
+                    generation: plugin.generation.clone().unwrap_or_default(),
                     toolchain: plugin.toolchain.clone().unwrap_or_default(),
                     go_packages: plugin.go_packages.clone(),
                 })
                 .unwrap_or_else(|| options.native_output.clone());
+            if raw || explicit_style.is_some() || options.style == SdkClientStyle::Flat {
+                output.generation.client_style = match if raw { "raw" } else { style } {
+                    "raw" => poolster_core::native::rpc::RpcClientStyle::Raw,
+                    "flat" => poolster_core::native::rpc::RpcClientStyle::Flat,
+                    _ => poolster_core::native::rpc::RpcClientStyle::Idiomatic,
+                };
+            }
             rpc::append(
                 old,
                 input,

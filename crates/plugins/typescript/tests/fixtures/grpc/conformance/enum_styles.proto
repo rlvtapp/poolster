@@ -1,0 +1,4 @@
+syntax = "proto3";
+package conformance;
+enum State { STATE_UNKNOWN=0; STATE_READY=1; }
+message EnumModel { State state=1; }

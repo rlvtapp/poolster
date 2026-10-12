@@ -1,0 +1,49 @@
+// RpcSubscription applies bounded backpressure and owns cancellation of its RPC.
+type RpcSubscription[T any] struct {
+	Values          <-chan *T
+	Errors          <-chan error
+	Cancel          context.CancelFunc
+	values          chan *T
+	mutex           sync.RWMutex
+	header, trailer metadata.MD
+}
+
+func (subscription *RpcSubscription[T]) Header() metadata.MD {
+	subscription.mutex.RLock()
+	defer subscription.mutex.RUnlock()
+	return subscription.header.Copy()
+}
+func (subscription *RpcSubscription[T]) Trailer() metadata.MD {
+	subscription.mutex.RLock()
+	defer subscription.mutex.RUnlock()
+	return subscription.trailer.Copy()
+}
+func (subscription *RpcSubscription[T]) setMetadata(header, trailer metadata.MD) {
+	subscription.mutex.Lock()
+	defer subscription.mutex.Unlock()
+	subscription.header = header.Copy()
+	subscription.trailer = trailer.Copy()
+}
+func (subscription *RpcSubscription[T]) publish(ctx context.Context, value *T) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case subscription.values <- value:
+		return nil
+	}
+}
+func poolsterSubscribe[T any](parent context.Context, run func(context.Context, *RpcSubscription[T]) error) *RpcSubscription[T] {
+	ctx, cancel := context.WithCancel(parent)
+	values := make(chan *T, 16)
+	failures := make(chan error, 1)
+	subscription := &RpcSubscription[T]{Values: values, Errors: failures, Cancel: cancel, values: values}
+	go func() {
+		defer cancel()
+		defer close(values)
+		defer close(failures)
+		if err := run(ctx, subscription); err != nil && !errors.Is(err, io.EOF) {
+			failures <- err
+		}
+	}()
+	return subscription
+}

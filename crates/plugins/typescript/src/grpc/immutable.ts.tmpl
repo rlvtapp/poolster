@@ -1,0 +1,5 @@
+import type {MessageShape,DescMessage} from '@bufbuild/protobuf';
+import {encode,decode} from './poolster-rpc-runtime.js';
+export type DeepReadonly<T>=T extends Uint8Array?readonly number[]:T extends readonly (infer V)[]?readonly DeepReadonly<V>[]:T extends object?{readonly[K in keyof T]:DeepReadonly<T[K]>}:T;
+function view<T>(value:T,seen=new Map<object,unknown>()):DeepReadonly<T>{if(value===null||typeof value!=='object')return value as DeepReadonly<T>;if(seen.has(value))return seen.get(value) as DeepReadonly<T>;if(value instanceof Uint8Array)return Object.freeze([...value]) as DeepReadonly<T>;if(Array.isArray(value)){const out:unknown[]=[];seen.set(value,out);for(const item of value)out.push(view(item,seen));return Object.freeze(out) as DeepReadonly<T>;}const out:Record<string,unknown>=Object.create(null);seen.set(value,out);for(const key in value)out[key]=view(value[key],seen);return Object.freeze(out) as DeepReadonly<T>;}
+export function immutableMessage<D extends DescMessage>(schema:D,message:MessageShape<D>){const bytes=encode(schema,message);const value=view(decode(schema,bytes));return Object.freeze({value,toNative:()=>decode(schema,bytes)});}

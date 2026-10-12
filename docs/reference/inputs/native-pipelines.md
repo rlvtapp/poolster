@@ -189,7 +189,7 @@ regeneration and expected consumer compilation failures. See the
 
 ## Protobuf → Go / Python / TypeScript gRPC
 
-Python and TypeScript use **Poolster-owned source renderers**. Generation requires
+Go, Python and TypeScript use **Poolster-owned source renderers**. Generation requires
 no protoc, grpcio-tools, ts-proto, Python interpreter or Node process. Poolster
 projects retained descriptor bytes into owned `RpcWireSchema` types, then emits
 messages/types, client stubs, server interfaces and package manifests. Parser
@@ -201,18 +201,15 @@ CLI recipes use the existing language plugin with `{"name":"grpc"}`. Names,
 versions and source-quality settings use ordinary package configuration. See the
 [Protobuf output guide](../outputs/protobuf.md) for APIs, dependencies and limits.
 
-The existing Go pipeline keeps its established official-generator behavior:
-
-`go::grpc(module).input(handle)` consumes `RpcContract` and invokes pinned official
-**protoc 34.2**, **protoc-gen-go 1.36.11**, and **protoc-gen-go-grpc 1.6.2**.
-The generated module pins protobuf 1.36.11 and gRPC 1.83.2 and requires **Go 1.25+**.
-Install the tools explicitly; generation checks their versions and does not
-install them automatically. Supply `go_package` declarations or per-file mappings
+`go::grpc(module).input(handle)` consumes the same owned wire schema and emits
+native Go bindings itself. The module pins protobuf 1.36.11 and gRPC 1.83.2 and
+requires **Go 1.25+**. Supply `go_package` declarations or per-file mappings
 through `.go_package(file, mapping)`; selected local packages must fit the module.
-Configure tool paths with `.toolchain(GrpcToolchain { ... })`.
+The historical `.toolchain(GrpcToolchain { ... })` configuration remains accepted
+but no generator executable is invoked. Pinned upstream tools are test oracles.
 
 Generated `.pb.go` messages and `_grpc.pb.go` clients/server interfaces preserve
-wire semantics through the official descriptor set, including field presence,
+wire semantics through the retained descriptor set, including field presence,
 oneofs, maps and enums. Applications implement the server interfaces. Unary,
 client streaming, server streaming and bidirectional streaming are supported.
 The provider exposes method blocks without replacing the authoritative wire
@@ -301,7 +298,7 @@ servers. This does not establish support for the complete upstream OAuth workflo
 | Input | Package language | Recipe plugin name | Required configuration |
 | --- | --- | --- | --- |
 | GraphQL | `typescript`, `rust`, `go`, `python`, `php`, `java`, `csharp`, `dotnet`, `ruby`, `swift`, `elixir` | `graphql` | `input.options.operation_files`; Runtime scalar callbacks; separately enabled SSE; incremental input selects a separate contract |
-| Protobuf | `go`, `python`, `typescript` | `grpc` | Go requires `module` and its toolchain; Python/TypeScript generation is native and needs no external generator |
+| Protobuf | `go`, `python`, `typescript` | `grpc` | Go requires `module`; all three emit source natively without external generators |
 | AsyncAPI | `typescript`, `go`, `rust`, `python`, `java`, `csharp`, `php`, `ruby`, `swift`, `elixir`, `symfony` | `asyncapi` | Supported Kafka servers or `input.options.broker`; target-specific schema limits |
 | Arazzo | `typescript` | `workflow` | `input.options.workflow_sources` |
 
@@ -349,7 +346,8 @@ These are the remaining implementation and release gaps:
 - [ ] **WORKFLOW-1:** Add retries/actions and richer expressions/criteria with
   explicit side-effect/cancellation semantics and local execution tests; extend
   authentication and nested workflows.
-- [ ] **RPC-OWNED-GO:** Replace the existing Go generator subprocesses with a Poolster-owned renderer over `RpcWireSchema`, preserving wire compatibility, native gRPC APIs and all streaming modes. Keep the current Go path until that replacement passes compilation and interoperability tests.
+- [x] **RPC-OWNED-GO:** Replace generator subprocesses with the owned renderer. Native compilation/race tests and independent client/server peer checks pass; broader conformance remains separate work.
+- [ ] **RPC-CONFORMANCE:** Implement the [Protobuf conformance requirements](../../specifications/protobuf-conformance.md) across all ten SDK languages; pin the ts-proto feature inventory, audit every option and publish per-requirement evidence before claiming parity.
 - [ ] **RPC-1:** Add more native RPC output languages and messages-only generation; assess editions and target-specific semantics;
   broaden pinned upstream fixtures without treating parser support as generation support.
 - [x] **GRAPHQL-SCALARS:** Separate input/output TypeScript and Rust scalar mappings,

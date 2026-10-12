@@ -11,7 +11,7 @@ In the tables, **built in** means generated Poolster code, **delegated** means t
 | HTTP / OpenAPI | Models, operations, client and resource facades | Go SDK plugin; Rust composition `go::sdk()` |
 | GraphQL operations | Selected models, variables, operations and transport; optional SSE/incremental capabilities | `go::graphql(Some(input.handle()))`; CLI GraphQL profile; JS `pluginGo` |
 | Shared schema models | Models-only package; event payload/header/key models | `go::shared_models(...)`; CLI `shared-models`; JS `mode: 'models'` |
-| RPC / Protobuf | Official message types, gRPC client stubs and server interfaces | `go::grpc(module).input(input.handle())`; CLI Protobuf profile |
+| RPC / Protobuf | Poolster-owned native message bindings, gRPC clients and server interfaces | `go::grpc(module).input(input.handle())`; CLI Protobuf profile |
 | Events / AsyncAPI | Kafka JSON producer/consumer subset | `go::asyncapi(Some(input.handle()))`; CLI/JS AsyncAPI profile |
 | Workflows / Arazzo | Unsupported runner output | Input parsing does not create a Go workflow runner |
 | Cap’n Proto capability RPC | Unsupported | No Go output pipeline |
@@ -92,7 +92,7 @@ These are alternatives selected at generation time. Grouping by `user` is not in
 
 | Feature | Behavior |
 | --- | --- |
-| Styles | Official grpc-go surface, not Poolster raw/flat/idiomatic variants |
+| Styles | Native grpc-go API plus selectable raw/flat/idiomatic facades |
 | Errors | Delegated grpc-go status errors |
 | Retry/backoff | grpc-go connection/RPC policy, configured by application; Poolster does not add its HTTP retry loop |
 | Idempotency | Application/server policy; no generated idempotency-key system |
@@ -101,7 +101,7 @@ These are alternatives selected at generation time. Grouping by `user` is not in
 | Streaming | Unary, client-streaming, server-streaming and bidirectional stubs/interfaces |
 | Validation/codecs | Official Protobuf wire serialization, presence, oneofs, maps and field numbers from retained descriptors; no extra business-rule validator |
 
-For a `.proto` service `Store` with unary `Get`, official generation supplies this usage shape:
+For a `.proto` service `Store` with unary `Get`, Poolster supplies the native usage shape:
 
 ```go
 client := storepb.NewStoreClient(conn) // caller constructs grpc.ClientConn
@@ -110,7 +110,7 @@ reply, err := client.Get(ctx, &storepb.GetRequest{})
 storepb.RegisterStoreServer(server, implementation)
 ```
 
-Actual message names/signatures follow the `.proto`. `option go_package` or an explicit file mapping is required. Generation validates pinned official tool versions; Protobuf editions remain unsupported. See [generator/toolchain checks](../../../crates/plugins/go/src/grpc.rs) and [native streaming integration tests](../../../crates/plugins/go/tests/grpc_native.rs).
+Actual message names/signatures follow the `.proto`. `option go_package` or an explicit file mapping is required. Generation invokes no external generator; Protobuf editions remain unsupported. See [owned renderer](../../../crates/plugins/go/src/grpc.rs) and [native streaming integration tests](../../../crates/plugins/go/tests/grpc_native.rs).
 
 ## Events features
 
@@ -146,10 +146,17 @@ Topic/group/client bindings come from the supported contract; provision topics s
 | Identity/ownership | Deterministic names and stable schema entity IDs; event composition checks selected parent contract instance/revision |
 | Composition | Explicit `asyncapi(...).using_models(models.handle())`; CLI/JS Kafka profiles wire shared-model composition |
 
-Go declarations sharing an import path intentionally live in the same directory/package. HTTP emits `client.go`, `model_*.go`, `operation_*.go`, resource and validation files. GraphQL emits `graphql_runtime.go`, `graphql_client.go`, `graphql_transport.go`, per-model/per-operation/group files and separate capability runtimes. Kafka emits model files, `events.go`, `events_operation_*.go`, `kafka_runtime.go`, retained `asyncapi.json`, schemas and package manifests. Official gRPC generation emits `.pb.go` / `_grpc.pb.go` by Protobuf package, plus retained sources under `proto/`.
+Go declarations sharing an import path intentionally live in the same directory/package. HTTP emits `client.go`, `model_*.go`, `operation_*.go`, resource and validation files. GraphQL emits `graphql_runtime.go`, `graphql_client.go`, `graphql_transport.go`, per-model/per-operation/group files and separate capability runtimes. Kafka emits model files, `events.go`, `events_operation_*.go`, `kafka_runtime.go`, retained `asyncapi.json`, schemas and package manifests. Poolster gRPC generation emits `.pb.go` / `_grpc.pb.go` by Protobuf package, plus retained sources under `proto/`.
 
 The layout budget is 128 KiB per source file; indivisible oversized declarations can be diagnosed rather than magically split. Ownership/regeneration removes obsolete unchanged generated files and preserves unrelated files. Shared-model composition uses stable entity IDs plus contract-instance/revision provenance; it does not automatically equate unrelated same-named models. See [shared models](../outputs/shared-models.md) and [model tests](../../../crates/plugins/go/tests/shared_models.rs).
 
 ## Remaining gaps
 
 Go workflow runners and capability RPC are absent. GraphQL dynamic typed `fields` selection is planned, not generated. Kafka broker/security and schema support remain bounded. Runtime defaults differ by contract, and package entry points cannot be assumed interchangeable: unsupported combinations follow Poolster's skipped-output diagnostics, while a supported generator rejects malformed/unsupported content. The test links above include gated native tests; an ignored test is not a pass.
+
+## Protobuf conformance audit
+
+The existing gRPC output is partial against the all-language target. No complete
+conformance profile passes yet; see requirement-level evidence and defects in the
+[Protobuf audit](../outputs/protobuf-conformance.md) and
+[requirements](../../specifications/protobuf-conformance.md).

@@ -1,0 +1,101 @@
+"""Explicit request-owned batching. Queue first, then flush; no global cache."""
+import asyncio as _asyncio
+import concurrent.futures as _futures
+import json as _json
+import {{RUNTIME}} as _runtime
+_MAPPINGS = {{MAPPINGS}}
+
+def _copy(value):
+    clone = type(value)(); clone.CopyFrom(value); return clone
+
+class BatchScope:
+    def __init__(self, channel, **call_options):
+        self.channel, self.options = channel, call_options
+        self.pending, self.cache = {}, {}
+        self.closed = False
+        self.active, self.operations = [], []
+    def _future(self): return _futures.Future()
+    def queue(self, method, request):
+        if self.closed: raise RuntimeError('Batch scope is closed')
+        mapping = _MAPPINGS[method]
+        if not isinstance(request, _runtime.message(mapping['singleInput'])): raise TypeError('Wrong batch request type')
+        key = getattr(request, mapping['inputField'])
+        future = self._future()
+        if (method, key) in self.cache:
+            future.set_result(_copy(self.cache[method, key])); return future
+        self.pending.setdefault(method, []).append((key, future))
+        return future
+    def _chunks(self):
+        pending, self.pending = self.pending, {}
+        for method, entries in pending.items():
+            mapping = _MAPPINGS[method]
+            entries = [entry for entry in entries if not entry[1].cancelled()]
+            if mapping.get('outputKey'):
+                grouped = {}
+                for entry in entries: grouped.setdefault(entry[0], []).append(entry)
+                units = list(grouped.values())
+            else: units = [[entry] for entry in entries]
+            for offset in range(0,len(units),mapping['maxBatchSize']):
+                chunk = [entry for unit in units[offset:offset+mapping['maxBatchSize']] for entry in unit]
+                request = _runtime.message(mapping['batchInput'])()
+                keys = [key for key,_ in chunk]
+                if mapping.get('outputKey'): keys = list(dict.fromkeys(keys))
+                getattr(request,mapping['batchInputField']).extend(keys)
+                call = self.channel.unary_unary(mapping['route'],request_serializer=_runtime._encode,response_deserializer=lambda data, name=mapping['batchOutput']: _runtime._decode(_runtime.message(name),data))
+                self.active.extend(future for _,future in chunk)
+                yield method,mapping,chunk,request,call
+    def _resolve(self, method, mapping, entries, response):
+        values = list(getattr(response,mapping['batchOutputField']))
+        expected = len({key for key,_ in entries}) if mapping.get('outputKey') else len(entries)
+        if len(values) != expected: raise ValueError('Batch response count mismatch')
+        if mapping.get('outputKey'):
+            keyed = {}
+            for value in values:
+                key = getattr(value,mapping['outputKey'])
+                if key in keyed: raise ValueError('Duplicate batch response key')
+                keyed[key]=value
+            values = [keyed[key] for key,_ in entries]
+        for (key,future),value in zip(entries,values):
+            if future.cancelled(): continue
+            if mapping['cache']: self.cache[method,key]=_copy(value)
+            future.set_result(_copy(value))
+    def _reject(self, entries, error):
+        for _,future in entries:
+            if not future.done(): future.set_exception(error)
+    def flush(self):
+        if self.closed: raise RuntimeError('Batch scope is closed')
+        for method,mapping,entries,request,call in self._chunks():
+            operation = call.future(request,**self.options)
+            self.operations.append(operation)
+            try: self._resolve(method,mapping,entries,operation.result())
+            except Exception as error: self._reject(entries,error)
+            finally: self.operations.remove(operation)
+    def close(self):
+        self.closed=True
+        for entries in self.pending.values():
+            for _,future in entries: future.cancel()
+        for future in self.active: future.cancel()
+        for operation in self.operations: operation.cancel()
+        self.pending.clear();self.cache.clear();self.active.clear()
+    def __enter__(self): return self
+    def __exit__(self,*args): self.close()
+
+class AsyncBatchScope(BatchScope):
+    def _future(self): return _asyncio.get_running_loop().create_future()
+    async def flush(self):
+        if self.closed: raise RuntimeError('Batch scope is closed')
+        for method,mapping,entries,request,call in self._chunks():
+            operation = call(request,**self.options)
+            self.operations.append(operation)
+            def cancelled(_future, entries=entries, operation=operation):
+                if all(future.cancelled() for _,future in entries): operation.cancel()
+            for _,future in entries: future.add_done_callback(cancelled)
+            try: self._resolve(method,mapping,entries,await operation)
+            except _asyncio.CancelledError:
+                operation.cancel()
+                for _,future in entries: future.cancel()
+                raise
+            except Exception as error: self._reject(entries,error)
+            finally: self.operations.remove(operation)
+    async def __aenter__(self): return self
+    async def __aexit__(self,*args): self.close()

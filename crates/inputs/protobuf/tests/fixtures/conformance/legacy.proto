@@ -1,0 +1,17 @@
+syntax = "proto2";
+package poolster.conformance.legacy;
+option go_package = "example.com/poolster/conformance/legacy;legacy";
+
+message RequiredValues {
+  required int32 id = 1;
+  optional string note = 2 [default = "fallback"];
+  optional int64 large = 3 [default = 9007199254740993];
+  optional group LegacyGroup = 4 {
+    optional string name = 5;
+  }
+  extensions 100 to 199;
+}
+extend RequiredValues {
+  optional string audit = 100;
+  repeated int32 samples = 101 [packed = true];
+}

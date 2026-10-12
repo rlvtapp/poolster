@@ -1,4 +1,4 @@
-//! Protobuf packages delegate wire and RPC generation to pinned upstream tools.
+//! Protobuf packages consume owned wire contracts and protocol generation options.
 use super::*;
 use poolster_core::{
     input::{InputOptions, InputProvider},
@@ -14,6 +14,8 @@ pub(super) struct ContractOptions {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(super) struct ProtobufOptions {
     module: Option<String>,
+    #[serde(default)]
+    generation: poolster_core::native::rpc::RpcGenerationOptions,
     #[serde(default)]
     package_name: Option<String>,
     #[serde(default)]
@@ -59,8 +61,6 @@ fn generate(request: &str) -> AnyResult<String> {
     let mut profiles = ProfileSet::new(".");
     for package in request.packages {
         if package.mode != sdk_package::PackageMode::Sdk
-            || package.style.is_some()
-            || package.raw.is_some()
             || package.transport.is_some()
             || package.client_name.is_some()
             || package.jobs.is_some()
@@ -79,7 +79,23 @@ fn generate(request: &str) -> AnyResult<String> {
         if package.path.trim().is_empty() {
             bail!("SDK package path must not be empty");
         }
-        let options = package.contract_options.protobuf.unwrap_or_default();
+        let mut options = package.contract_options.protobuf.unwrap_or_default();
+        if package.raw == Some(true) && package.style.is_some() {
+            bail!("Protobuf raw and style are mutually exclusive");
+        }
+        if package.raw == Some(true) {
+            options.generation.client_style = poolster_core::native::rpc::RpcClientStyle::Raw;
+        } else if let Some(style) = package.style.as_deref() {
+            options.generation.client_style = match style {
+                "raw" => poolster_core::native::rpc::RpcClientStyle::Raw,
+                "flat" => poolster_core::native::rpc::RpcClientStyle::Flat,
+                "idiomatic" | "namespaced" | "grouped" => {
+                    poolster_core::native::rpc::RpcClientStyle::Idiomatic
+                }
+                _ => bail!("Protobuf style must be raw, flat, or idiomatic"),
+            };
+        }
+        options.generation.validate()?;
         let input =
             InputProvider::<RpcContract>::new(registry.clone(), "protobuf", &request.source)
                 .using(&request.provider)
@@ -113,7 +129,8 @@ fn generate(request: &str) -> AnyResult<String> {
                         .context("Go Protobuf requires contractOptions.protobuf.module")?,
                 )
                 .input(input.handle())
-                .toolchain(tools);
+                .toolchain(tools)
+                .options(options.generation);
                 for (file, mapping) in options.go_packages {
                     output = output.go_package(file, mapping);
                 }
@@ -139,7 +156,8 @@ fn generate(request: &str) -> AnyResult<String> {
                         .package_name
                         .unwrap_or_else(|| "poolster-rpc".into()),
                 )
-                .input(input.handle());
+                .input(input.handle())
+                .options(options.generation);
                 let mut target = python::package(&package.path).common(common);
                 if let Some(name) = package.name {
                     target = target.name(name);
@@ -158,7 +176,7 @@ fn generate(request: &str) -> AnyResult<String> {
                         "TypeScript Protobuf supports package metadata only; upstream codegen toolchains are not used"
                     );
                 }
-                let output = ts::grpc().input(input.handle());
+                let output = ts::grpc().input(input.handle()).options(options.generation);
                 let mut target = ts::package(&package.path).common(common);
                 if let Some(name) = package.name {
                     target = target.name(name);

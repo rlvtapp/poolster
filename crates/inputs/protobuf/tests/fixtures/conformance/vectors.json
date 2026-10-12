@@ -1,0 +1,48 @@
+{
+  "schema": "portable.proto",
+  "message": "poolster.conformance.ScalarValues",
+  "oracle": {
+    "grpcio-tools": "1.78.0",
+    "protobuf": "6.33.5"
+  },
+  "wire_hex": "0900000000000002c0150000c03f188080808080808080800120ffffffffffffffffff012880808080f8ffffffff0131ffffffffffffffff3dffffffff40014a097769726520f09f9880520300ff8058ffffffff0f650000008069000000000000008070ffffffff0f7881808080808080208201008a01110001ffffffffffffffffff01ffffffff07900180808080f8ffffffff019001029a01100a036d617810ffffffffffffffffff01aa01074a056368696c64b2010663686f73656ec001b960ca0105616c696173",
+  "wire_sha256": "9a095902e3513a2f5f0c8a72df6df3992e875a7e149764df7ba6600e39766ffa",
+  "proto_json": {
+    "doubleValue": -2.25,
+    "floatValue": 1.5,
+    "int64Value": "-9223372036854775808",
+    "uint64Value": "18446744073709551615",
+    "int32Value": -2147483648,
+    "fixed64Value": "18446744073709551615",
+    "fixed32Value": 4294967295,
+    "boolValue": true,
+    "stringValue": "wire 😀",
+    "bytesValue": "AP+A",
+    "uint32Value": 4294967295,
+    "sfixed32Value": -2147483648,
+    "sfixed64Value": "-9223372036854775808",
+    "sint32Value": -2147483648,
+    "sint64Value": "-9007199254740993",
+    "optionalValue": "",
+    "packedValues": [
+      0,
+      1,
+      -1,
+      2147483647
+    ],
+    "unpackedValues": [
+      -2147483648,
+      2
+    ],
+    "counters": {
+      "max": "18446744073709551615"
+    },
+    "recursive": {
+      "stringValue": "child"
+    },
+    "text": "chosen",
+    "state": 12345,
+    "displayName": "alias"
+  },
+  "comparison": "Compare decoded semantics. Deterministic wire bytes are recorded for reproducibility, not cross-runtime map-order equality."
+}

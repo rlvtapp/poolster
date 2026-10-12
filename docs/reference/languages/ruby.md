@@ -130,3 +130,10 @@ No RPC, workflow or capability client is bundled for this language. GraphQL sele
 - [HTTP generated runtime tests](../../../crates/plugins/ruby/src/tests.rs) and [operation tests](../../../crates/plugins/ruby/src/operation_tests.rs).
 - [GraphQL rendering](../../../crates/plugins/ruby/src/graphql/render.rs), [style/model/local-server probes](../../../crates/plugins/ruby/src/graphql/tests.rs).
 - [Shared-model subset](../../../crates/plugins/ruby/src/shared_models.rs) and [tests](../../../crates/plugins/ruby/src/shared_models/tests.rs).
+
+## Protobuf conformance audit
+
+Protobuf output is not implemented in this language. All 29 requirements remain
+unsupported; the rollout and per-language assessments are recorded in the
+[Protobuf audit](../outputs/protobuf-conformance.md) and
+[requirements](../../specifications/protobuf-conformance.md).

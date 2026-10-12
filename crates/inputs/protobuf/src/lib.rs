@@ -39,6 +39,7 @@ pub fn load_with_includes(
         .collect::<Result<Vec<_>>>()?;
     roots.push(parent.to_path_buf());
     let mut compiler = protox::Compiler::new(&roots)?;
+    compiler.include_source_info(true);
     compiler.open_file(&path).map_err(|error| {
         if error.to_string().contains("found 'edition'") {
             anyhow::anyhow!(error).context("Protobuf editions are not supported by the current protox parser; use proto2/proto3 inputs")

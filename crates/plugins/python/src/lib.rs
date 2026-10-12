@@ -78,4 +78,4 @@ mod events;
 pub use events::{AsyncApi, KafkaClient, asyncapi};
 
 mod grpc;
-pub use grpc::{Grpc, grpc};
+pub use grpc::{Grpc, ProtobufMessageSymbol, ProtobufSymbols, ProtobufValueSymbol, grpc};

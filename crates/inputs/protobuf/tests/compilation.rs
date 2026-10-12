@@ -238,3 +238,160 @@ fn official_editions_corpus_reports_unsupported_capability() {
     .unwrap_err();
     assert!(format!("{error:#}").contains("Protobuf editions are not supported"));
 }
+
+#[test]
+fn owned_wire_metadata_preserves_comments_and_deprecation() {
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("comments.proto");
+    std::fs::write(&path, "syntax=\"proto3\"; package docs;\n// Documented payload.\nmessage Payload {\n// Old field.\nstring value=1 [deprecated=true];\n}\n// Documented service.\nservice Store {\n// Read payload.\nrpc Read(Payload) returns(Payload) {option deprecated=true;}\n}\n").unwrap();
+    let wire = protobuf::load(&path)
+        .unwrap()
+        .rpc_contract()
+        .wire_schema()
+        .unwrap();
+    let metadata = wire.metadata().unwrap();
+    use poolster_core::native::rpc::RpcDefinitionKind;
+    let file = metadata
+        .iter()
+        .find(|f| f.file == "comments.proto")
+        .unwrap();
+    let message = file
+        .definition(RpcDefinitionKind::Message, "docs.Payload")
+        .unwrap();
+    assert!(message.leading_comments.contains("Documented payload."));
+    assert!(
+        file.definition(RpcDefinitionKind::Field, "docs.Payload.value")
+            .unwrap()
+            .deprecated
+    );
+    let method = file
+        .definition(RpcDefinitionKind::Method, "docs.Store.Read")
+        .unwrap();
+    assert!(method.leading_comments.contains("Read payload.") && method.deprecated);
+}
+
+#[test]
+fn explicit_batch_mappings_are_checked_against_owned_wire_types() {
+    use poolster_core::native::rpc::{RpcBatchMapping, RpcGenerationOptions};
+    let path =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/conformance/batching.proto");
+    let wire = protobuf::load(&path)
+        .unwrap()
+        .rpc_contract()
+        .wire_schema()
+        .unwrap();
+    let mapping = RpcBatchMapping {
+        single_method: "poolster.conformance.batch.Reader.Read".into(),
+        batch_method: "poolster.conformance.batch.Reader.ReadMany".into(),
+        input_field: "id".into(),
+        batch_input_field: "ids".into(),
+        batch_output_field: "entities".into(),
+        output_key: Some("id".into()),
+        cache: true,
+        max_batch_size: 100,
+    };
+    let mut options = RpcGenerationOptions {
+        batching: vec![mapping.clone()],
+        ..Default::default()
+    };
+    options.validate_for(&wire).unwrap();
+    options.batching.push(mapping.clone());
+    assert!(options.validate_for(&wire).is_err());
+    for invalid in [
+        RpcBatchMapping {
+            input_field: "missing".into(),
+            ..mapping.clone()
+        },
+        RpcBatchMapping {
+            output_key: Some("value".into()),
+            max_batch_size: 0,
+            ..mapping.clone()
+        },
+        RpcBatchMapping {
+            batch_method: mapping.single_method.clone(),
+            ..mapping.clone()
+        },
+        RpcBatchMapping {
+            batch_output_field: "missing".into(),
+            ..mapping.clone()
+        },
+    ] {
+        assert!(invalid.validate(&wire).is_err());
+    }
+    let positional = RpcBatchMapping {
+        output_key: None,
+        ..mapping
+    };
+    positional.validate(&wire).unwrap();
+}
+
+#[test]
+fn generation_selections_resolve_owned_message_identities() {
+    use poolster_core::native::rpc::RpcGenerationOptions;
+    let path =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/conformance/batching.proto");
+    let wire = protobuf::load(&path)
+        .unwrap()
+        .rpc_contract()
+        .wire_schema()
+        .unwrap();
+    let mut options = RpcGenerationOptions {
+        encode_include_types: vec!["poolster.conformance.batch.Entity".into()],
+        ..Default::default()
+    };
+    options.validate_for(&wire).unwrap();
+    options
+        .decode_include_types
+        .push("poolster.conformance.batch.Missing".into());
+    assert!(
+        options
+            .validate_for(&wire)
+            .unwrap_err()
+            .to_string()
+            .contains("unknown message")
+    );
+    options.decode_include_types.clear();
+    options
+        .import_mappings
+        .insert("missing.proto".into(), "external.models".into());
+    assert!(
+        options
+            .validate_for(&wire)
+            .unwrap_err()
+            .to_string()
+            .contains("unknown descriptor file")
+    );
+}
+
+#[test]
+fn owned_wire_metadata_retains_javascript_integer_overrides() {
+    use poolster_core::native::rpc::{RpcDefinitionKind, RpcJavaScriptType};
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("jstype.proto");
+    std::fs::write(
+        &path,
+        r#"syntax="proto3"; package overrides;
+        message Value {int64 text=1 [jstype=JS_STRING]; uint64 number=2 [jstype=JS_NUMBER];}
+    "#,
+    )
+    .unwrap();
+    let wire = protobuf::load(&path)
+        .unwrap()
+        .rpc_contract()
+        .wire_schema()
+        .unwrap();
+    let metadata = wire.metadata().unwrap();
+    let file = metadata.iter().find(|f| f.file == "jstype.proto").unwrap();
+    assert_eq!(
+        file.definition(RpcDefinitionKind::Field, "overrides.Value.text")
+            .unwrap()
+            .javascript_type,
+        Some(RpcJavaScriptType::String)
+    );
+    assert_eq!(
+        file.definition(RpcDefinitionKind::Field, "overrides.Value.number")
+            .unwrap()
+            .javascript_type,
+        Some(RpcJavaScriptType::Number)
+    );
+}

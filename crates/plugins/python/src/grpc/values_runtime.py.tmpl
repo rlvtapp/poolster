@@ -1,0 +1,174 @@
+"""Policy-selected owned value models; native descriptors remain authoritative."""
+import base64 as _base64
+import importlib as _importlib
+import json as _json
+import contextvars as _contextvars
+from dataclasses import dataclass as _dataclass
+from google.protobuf.message import Message as _Message
+import {{RUNTIME}} as _wire
+_POLICY = {{POLICY}}
+_MODELS = {{MODELS}}
+_CLASSES = {}
+_DEPTH = _contextvars.ContextVar("poolster_value_depth",default=0)
+
+class ValueMessage:
+    def to_native(self): raise NotImplementedError()
+class Unset:
+    __slots__=()
+    def __repr__(self): return 'UNSET'
+UNSET=Unset()
+@_dataclass(frozen=True)
+class UnknownEnum:
+    number: int
+    name: str = {{UNKNOWN_ENUM_NAME}}
+
+def native(full_name): return _wire.message(full_name)
+def register(full_name,cls):
+    _CLASSES[full_name]=cls
+    cls._native_type=native(full_name)
+
+def resolve(full_name):
+    if full_name not in _CLASSES:
+        module,name=_MODELS[full_name]
+        _importlib.import_module(module)
+    return _CLASSES[full_name]
+
+def _clone(value):
+    result=type(value)();result.CopyFrom(value);return result
+
+def _integer(value,field,incoming):
+    unsigned=field.type in (field.TYPE_UINT64,field.TYPE_FIXED64)
+    low,high=(0,2**64-1) if unsigned else (-(2**63),2**63-1)
+    if incoming:
+        if _POLICY['int64']=='string':return str(value)
+        if _POLICY['int64']=='numberExact':
+            converted=float(value)
+            if int(converted)!=value:raise ValueError('Lossy int64 number conversion')
+            return converted
+        return value
+    if _POLICY['int64']=='string':
+        import re
+        if not isinstance(value,str) or not re.fullmatch('-?(0|[1-9][0-9]*)',value):raise ValueError('Invalid int64 string')
+        value=int(value)
+    elif _POLICY['int64']=='numberExact':
+        if not isinstance(value,float) or not value.is_integer():raise ValueError('Expected exact integral number')
+        value=int(value)
+    if not isinstance(value,int) or isinstance(value,bool) or not low<=value<=high:raise ValueError('int64 outside native bounds')
+    return value
+
+def scalar(field,value,incoming):
+    if field.type in (field.TYPE_INT64,field.TYPE_UINT64,field.TYPE_SINT64,field.TYPE_FIXED64,field.TYPE_SFIXED64):return _integer(value,field,incoming)
+    if field.type==field.TYPE_BYTES and _POLICY['bytes']=='base64':
+        if incoming:return _base64.b64encode(value).decode('ascii')
+        if not isinstance(value,str):raise TypeError('Expected base64 string')
+        return _base64.b64decode(value,validate=True)
+    if field.type==field.TYPE_ENUM and _POLICY['enums']=='name':
+        if incoming:
+            enum=field.enum_type.values_by_number.get(value)
+            return enum.name if enum else UnknownEnum(value)
+        if isinstance(value,UnknownEnum):return value.number
+        if not isinstance(value,str) or value not in field.enum_type.values_by_name:raise ValueError('Unknown enum name')
+        return field.enum_type.values_by_name[value].number
+    if field.message_type:
+        name=field.message_type.full_name
+        if name=='google.protobuf.Timestamp' and _POLICY['timestamp']!='native':
+            if incoming:
+                if _POLICY['timestamp']=='rfc3339':return value.ToJsonString()
+                from datetime import timezone
+                value.ToJsonString()
+                if value.nanos%1000:raise ValueError('datetime loses nanoseconds')
+                return value.ToDatetime(tzinfo=timezone.utc)
+            result=native(name)()
+            if _POLICY['timestamp']=='rfc3339':result.FromJsonString(value)
+            else:
+                if value.tzinfo is None or value.utcoffset() is None:raise ValueError('Timezone-aware datetime required')
+                result.FromDatetime(value)
+            result.ToJsonString();return result
+        if name=='google.protobuf.Duration' and _POLICY['duration']!='native':
+            if incoming:
+                value.ToJsonString()
+                if _POLICY['duration']=='timeDelta':
+                    if value.nanos%1000:raise ValueError('timedelta loses nanoseconds')
+                    return value.ToTimedelta()
+                from decimal import Decimal
+                converted=float(Decimal(value.seconds)+Decimal(value.nanos)/Decimal(10**9))
+                if Decimal(str(converted))!=Decimal(value.seconds)+Decimal(value.nanos)/Decimal(10**9):raise ValueError('seconds number loses precision')
+                return converted
+            result=native(name)()
+            if _POLICY['duration']=='timeDelta':result.FromTimedelta(value)
+            else:
+                from decimal import Decimal
+                if not isinstance(value,float):raise TypeError('Expected seconds number')
+                exact=Decimal(str(value));seconds=int(exact);nanos=(exact-seconds)*Decimal(10**9)
+                if nanos!=int(nanos):raise ValueError('Duration requires whole nanoseconds')
+                result.seconds=seconds;result.nanos=int(nanos)
+            result.ToJsonString();return result
+        if name in _MODELS:
+            return resolve(name).from_native(value) if incoming else value.to_native()
+        return _clone(value)
+    return value
+
+def field_value(field,value,incoming):
+    if field.is_repeated:
+        if field.message_type and field.message_type.GetOptions().map_entry:
+            key_field,value_field=field.message_type.fields
+            if incoming:
+                entries=[(scalar(key_field,key,True),scalar(value_field,value[key],True)) for key in value]
+                return entries if _POLICY['maps']=='entries' else dict(entries)
+            pairs=value if _POLICY['maps']=='entries' else value.items()
+            result={}
+            for key,item in pairs:
+                key=scalar(key_field,key,False)
+                if key in result:raise ValueError('Duplicate map representation key')
+                result[key]=scalar(value_field,item,False)
+            return result
+        return [scalar(field,item,incoming) for item in value]
+    return scalar(field,value,incoming)
+
+def default(full_name,field_name):
+    field=native(full_name).DESCRIPTOR.fields_by_name[field_name]
+    if field.is_repeated:return [] if not field.message_type or not field.message_type.GetOptions().map_entry or _POLICY['maps']=='entries' else {}
+    if field.has_presence:return None if _POLICY['optional']=='nullable' else UNSET
+    return scalar(field,getattr(native(full_name)(),field_name),True)
+
+def _from_native(cls,value):
+    if not isinstance(value,cls._native_type):raise TypeError('Wrong native message type')
+    arguments={}
+    for field in value.DESCRIPTOR.fields:
+        if field.has_presence and not value.HasField(field.name):continue
+        arguments[field.name]=field_value(field,getattr(value,field.name),True)
+    result=cls(**arguments);result._native=_clone(value);return result
+
+def _to_native(value):
+    result=_clone(value._native) if value._native is not None else value._native_type()
+    active=set()
+    for field in result.DESCRIPTOR.fields:
+        public=getattr(value,field.name)
+        result.ClearField(field.name)
+        if isinstance(public,Unset) or (public is None and field.has_presence):continue
+        if field.containing_oneof:
+            oneof=field.containing_oneof.name
+            if oneof in active:raise ValueError('Multiple oneof alternatives supplied')
+            active.add(oneof)
+        converted=field_value(field,public,False)
+        if field.is_repeated:
+            target=getattr(result,field.name)
+            if field.message_type and field.message_type.GetOptions().map_entry:
+                if field.message_type.fields_by_name['value'].message_type:
+                    for key,item in converted.items():target[key].CopyFrom(item)
+                else:target.update(converted)
+            else:target.extend(converted)
+        elif field.message_type:getattr(result,field.name).CopyFrom(converted)
+        else:setattr(result,field.name,converted)
+    _wire._check_depth(result)
+    return result
+
+
+def _convert(function,*arguments):
+    depth=_DEPTH.get()
+    if depth>_wire._MAX_DEPTH:raise ValueError('Value model exceeds maxDepth')
+    token=_DEPTH.set(depth+1)
+    try:return function(*arguments)
+    finally:_DEPTH.reset(token)
+def from_native(cls,value):return _convert(_from_native,cls,value)
+def to_native(value):return _convert(_to_native,value)

@@ -1,0 +1,20 @@
+// Check depth and cycles before entering recursive native encoding.
+func {{PREFIX}}CheckDepth(message proto.Message, depth int, active map[proto.Message]bool) error {
+    if message == nil { return nil }
+    reflected := message.ProtoReflect()
+    if !reflected.IsValid() { return nil }
+    if depth <= 0 { return fmt.Errorf("Protobuf message exceeds depth limit") }
+    if active[message] { return fmt.Errorf("cyclic Protobuf message") }
+    active[message]=true
+    defer delete(active,message)
+    var result error
+    reflected.Range(func(field protoreflect.FieldDescriptor,value protoreflect.Value)bool {
+        if field.IsMap() {
+            if field.MapValue().Message()!=nil { value.Map().Range(func(_ protoreflect.MapKey,item protoreflect.Value)bool {result={{PREFIX}}CheckDepth(item.Message().Interface(),depth-1,active);return result==nil}) }
+        } else if field.IsList() {
+            if field.Message()!=nil {list:=value.List();for index:=0;index<list.Len();index++{result={{PREFIX}}CheckDepth(list.Get(index).Message().Interface(),depth-1,active);if result!=nil{break}}}
+        } else if field.Message()!=nil {result={{PREFIX}}CheckDepth(value.Message().Interface(),depth-1,active)}
+        return result==nil
+    })
+    return result
+}

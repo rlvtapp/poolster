@@ -1,0 +1,55 @@
+syntax = "proto3";
+package conformance;
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/field_mask.proto";
+message Node { string name=1; Node child=2; repeated Node children=3; }
+message Scalars {
+  double double_value=1;
+  float float_value=2;
+  int32 int32_value=3;
+  uint32 uint32_value=4;
+  sint32 sint32_value=5;
+  fixed32 fixed32_value=6;
+  sfixed32 sfixed32_value=7;
+  int64 int64_value=8;
+  uint64 uint64_value=9;
+  sint64 sint64_value=10;
+  fixed64 fixed64_value=11;
+  sfixed64 sfixed64_value=12;
+  bool bool_value=13;
+  string string_value=14 [json_name="customString"];
+  bytes bytes_value=15;
+  optional int32 optional_value=16;
+  oneof alternative { string text=17; int32 integer=18; }
+  repeated int32 packed_values=19 [packed=true];
+  repeated int32 unpacked_values=20 [packed=false];
+  map<int64,string> wide_keys=21;
+  map<string,Node> nodes=22;
+  enum Kind { option allow_alias=true; UNKNOWN=0; FIRST=1; FIRST_ALIAS=1; }
+  Kind kind=23;
+  Node node=24;
+}
+message WellKnown {
+  google.protobuf.Timestamp timestamp=1;
+  google.protobuf.Duration duration=2;
+  google.protobuf.Int64Value wide_wrapper=3;
+  google.protobuf.BoolValue bool_wrapper=4;
+  google.protobuf.Empty empty=5;
+  google.protobuf.Any any=6;
+  google.protobuf.Struct object=7;
+  google.protobuf.Value value=8;
+  google.protobuf.ListValue list=9;
+  google.protobuf.FieldMask mask=10;
+}
+// Descriptor-owned long representation.
+message Representation {
+ int64 text=1 [jstype=JS_STRING];
+ repeated uint64 texts=2 [jstype=JS_STRING];
+ int64 numeric=3 [jstype=JS_NUMBER];
+ oneof choice {sint64 key=4 [jstype=JS_STRING];}
+}

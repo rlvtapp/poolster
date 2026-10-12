@@ -15,3 +15,8 @@ pub mod graphql {
 pub mod events {
     pub use crate::events::{KafkaClient, KafkaOperationSymbols};
 }
+
+/// Native Protobuf message and gRPC service symbols.
+pub mod rpc {
+    pub use crate::grpc::{GrpcApi, RpcMessageSymbol, RpcServiceSymbol, RpcValueSymbol};
+}

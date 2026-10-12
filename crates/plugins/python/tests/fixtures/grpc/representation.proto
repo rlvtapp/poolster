@@ -1,0 +1,13 @@
+syntax = "proto3";
+package store.values;
+import "common.proto";
+import "google/protobuf/duration.proto";
+message Value {
+  int64 signed = 1;
+  uint64 unsigned = 2;
+  bytes content = 3;
+  google.protobuf.Duration elapsed = 4;
+  optional int32 present = 5;
+  store.v1.Item item = 6;
+  repeated Value children = 7;
+}

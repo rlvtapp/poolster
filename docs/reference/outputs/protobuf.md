@@ -4,11 +4,11 @@ Poolster accepts `.proto` sources and resolves imports through the Protobuf inpu
 provider. `RpcContract` retains the full descriptor set and source documents.
 Services and streaming metadata stay separate from HTTP models.
 
-Python and TypeScript source generation runs inside Poolster in Rust. No external
+Python, TypeScript and Go source generation runs inside Poolster in Rust. No external
 code generator is invoked. The shared owned wire schema preserves field numbers,
 labels, defaults, oneofs, message/enum references and dependency information.
 Native libraries perform serialization and gRPC transport in the generated app.
-Go retains its existing official-generator integration.
+Upstream generators are used only as independent test peers. The retained Go toolchain configuration is accepted for backward compatibility and is not invoked during generation.
 
 ## Choose an output
 
@@ -16,7 +16,7 @@ Go retains its existing official-generator integration.
 | --- | --- | --- | --- |
 | Python | Poolster emits message bindings, typing declarations, stubs and server registration | protobuf 6.33.5, grpcio 1.78.0 | Per-proto `_pb2.py`/`.pyi` and `_pb2_grpc.py`, separate descriptor/runtime modules, one `pyproject.toml` |
 | TypeScript | Poolster emits message types/schemas, clients and server interfaces | @bufbuild/protobuf 2.16.0, @grpc/grpc-js 1.14.6 | Per-proto modules under `src/`, separate descriptor registry, one npm manifest/tsconfig |
-| Go | Pinned protoc, protoc-gen-go and protoc-gen-go-grpc | protobuf 1.36.11, gRPC 1.83.2 | Official per-proto message/service files, one Go module |
+| Go | Poolster emits native message bindings, clients and server registration | protobuf 1.36.11, gRPC 1.83.2 | Per-proto message/service files, bounded descriptor parts, one Go module |
 
 All three expose unary, client-streaming, server-streaming and bidirectional calls.
 Applications implement the generated server interfaces and configure channels,
@@ -70,7 +70,7 @@ for `contractOptions.protobuf`, package configuration and regeneration.
 
 For a `Store` service, Python emits `StoreStub`, `StoreServicer` and
 `add_StoreServicer_to_server`. TypeScript emits `StoreClient`, `StoreServer` and
-`StoreService`. These are gRPC-native APIs, not HTTP/GraphQL raw/flat/grouped styles.
+`StoreService`. These native APIs remain available. Generated facades also offer selectable raw, flat and idiomatic styles over the same native call path. Python exposes separate synchronous and asynchronous stubs and declarations.
 
 ```python
 import grpc
@@ -101,14 +101,69 @@ ownership, customization, regeneration and release metadata.
 
 ## Boundaries
 
-These gRPC outputs require at least one service; a messages-only Protobuf output
-mode remains follow-up work. Protobuf editions are unsupported. TypeScript rejects groups and extensions;
-Python runtime bindings preserve supported proto2 extensions. Target naming and
-module collisions are rejected rather than renamed silently. Python custom files
-under the reserved `google/protobuf/` runtime namespace are unsupported; imported
-well-known runtime types are handled separately. Python typing declarations target
-its synchronous client API. TypeScript targets Node gRPC, not browser grpc-web.
+The [Protobuf conformance requirements](../../specifications/protobuf-conformance.md)
+define the planned feature-set target for all ten languages. The current outputs
+do not claim full ts-proto parity.
+
+The [implementation audit](protobuf-conformance.md) records the remaining
+requirements, current implementation evidence and historical defect fixes.
+
+Message-only inputs and independent type, binary, JSON, client, server and public
+reflection surfaces are supported. Protobuf editions remain unsupported. Proto2
+groups/extensions, unknown-field policies and the well-known types have dedicated
+conformance fixtures. Python imports built-in `google.protobuf` runtime modules;
+custom files under that reserved namespace are rejected.
+
+Native gRPC supports all four streaming modes. Optional gRPC-web adapters support
+unary and server-streaming calls; Twirp supports unary calls. Unsupported adapter
+methods fail explicitly before network I/O. Compression, browser text framing and
+other protocol variants must not be inferred from binary-adapter tests.
+
+## Generation controls
+
+JavaScript passes protocol controls through `contractOptions.protobuf.generation`:
+
+```js
+pluginTypeScript({
+  style: "flat",
+  contractOptions: {
+    protobuf: {
+      generation: {
+        transports: ["grpc", "grpcWeb", "twirp"],
+        unknownFields: "preserve",
+        maxMessageBytes: 16 * 1024 * 1024,
+        maxDepth: 100,
+        emitClients: true,
+        emitServers: true,
+      },
+    },
+  },
+});
+```
+
+Rust uses `RpcGenerationOptions` with `.options(options)` on the output plugin.
+CLI recipes set `generation` on the `grpc` plugin. Defaults preserve the native
+message ABI and descriptor identities. A disabled helper does not remove native
+runtime methods from message values. Resource limits apply to generated codecs
+and adapters; directly invoking runtime APIs uses that runtime's own policies.
+
+Batching requires explicit single/batch method and field mappings. Request scopes
+keep caches isolated, clone cached responses and propagate cancellation; no batch
+relationship is inferred from method names. Opt-in immutable views, value adapters
+and reactive helpers preserve the underlying native message and transport APIs.
+Their target-specific boundaries and executed gates are recorded in the audit.
+
+Portable naming, file/import policy and selective-codec controls are implemented.
+The [current audit](protobuf-conformance.md) assesses all 70 pinned options and
+separates native equivalents, target-specific exceptions and historical defects.
+No complete-profile or full ts-proto parity claim is made yet.
+
+TypeScript exports a Node package root and an isolated `/browser` entry for
+messages and HTTP adapters. Alternate value models use `<Message>ValueCodec`;
+use its `clone` method to retain unknown wire fields. Ordinary object copies do
+not retain hidden provenance. Combining alternate representations with external
+`importMappings` fails before emission; native external mappings remain supported.
 
 See the language pages for target-specific limits and the
-[verification record](../../verification-results/protobuf-native-2026-10-12.json)
-for compilation/local-server evidence. These additions are unreleased.
+[earlier verification record](../../verification-results/protobuf-native-2026-10-12.json).
+These additions are unreleased.

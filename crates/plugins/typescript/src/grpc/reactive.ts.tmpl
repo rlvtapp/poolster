@@ -1,0 +1,4 @@
+import {Observable} from 'rxjs';
+import type {RpcStream,RpcUnary} from './poolster-rpc-facade.js';
+export function observeUnary<T>(invoke:()=>RpcUnary<T>):Observable<T>{return new Observable(subscriber=>{let call:RpcUnary<T>;try{call=invoke();}catch(error){subscriber.error(error);return;}void call.then(value=>{subscriber.next(value);subscriber.complete();},error=>subscriber.error(error));return()=>call.cancel();});}
+export function observeStream<T>(invoke:()=>RpcStream<T>):Observable<T>{return new Observable(subscriber=>{let call:RpcStream<T>;try{call=invoke();}catch(error){subscriber.error(error);return;}void(async()=>{try{for await(const value of call){if(subscriber.closed)break;subscriber.next(value);}subscriber.complete();}catch(error){subscriber.error(error);}})();return()=>call.cancel();});}

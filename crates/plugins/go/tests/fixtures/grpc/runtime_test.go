@@ -104,6 +104,15 @@ func TestGeneratedPackageAgainstLocalServer(t *testing.T) {
 	if !proto.Equal(request, response) || response.Note == nil || header.Get("checked")[0] != "yes" {
 		t.Fatalf("unary presence/metadata changed: %v %v", response, header)
 	}
+	flatResult, flatErr := pb.NewFlatClient(conn).Get(ctx, request)
+	groupedResult, groupedErr := pb.NewGroupedClient(conn).Store.Get(ctx, request)
+	rawResult := new(pb.Item)
+	rawErr := pb.NewRawClient(conn).Invoke(ctx, pb.Store_Get_FullMethodName, request, rawResult)
+	functionResult, functionErr := pb.RawStoreGet(ctx, conn, request)
+	if flatErr != nil || groupedErr != nil || rawErr != nil || functionErr != nil || !proto.Equal(request, flatResult) || !proto.Equal(request, groupedResult) || !proto.Equal(request, rawResult) || !proto.Equal(request, functionResult) {
+		t.Fatal("RPC styles changed behavior")
+	}
+	checkReactiveStyles(t, ctx, client, request)
 	_, err = client.Get(ctx, &pb.Item{Name: "error"})
 	if status.Code(err) != codes.InvalidArgument {
 		t.Fatalf("expected status error: %v", err)
@@ -192,4 +201,39 @@ func TestGeneratedPackageAgainstLocalServer(t *testing.T) {
 		t.Fatalf("stream cancellation: %v", err)
 	}
 
+}
+
+func checkReactiveStyles(t *testing.T, ctx context.Context, client pb.StoreClient, request *pb.Item) {
+	t.Helper()
+	collect := func(subscription *pb.RpcSubscription[pb.Item]) ([]string, error) {
+		var names []string
+		for value := range subscription.Values {
+			names = append(names, value.Name)
+		}
+		return names, <-subscription.Errors
+	}
+	unary := pb.SubscribeStoreGet(ctx, client, request)
+	if names, err := collect(unary); err != nil || len(names) != 1 || names[0] != request.Name || unary.Header().Get("checked")[0] != "yes" {
+		t.Fatal("reactive unary metadata", names, err)
+	}
+	if names, err := collect(pb.SubscribeStoreWatch(ctx, client, &pb.Item{Name: "event"})); err != nil || strings.Join(names, ",") != "event-one,event-two" {
+		t.Fatal("reactive server streaming", names, err)
+	}
+	upload := make(chan *pb.Item, 2)
+	upload <- &pb.Item{Name: "one"}
+	upload <- &pb.Item{Name: "two"}
+	close(upload)
+	if names, err := collect(pb.SubscribeStoreUpload(ctx, client, upload)); err != nil || strings.Join(names, ",") != "one,two" {
+		t.Fatal("reactive client streaming", names, err)
+	}
+	chat := make(chan *pb.Item, 2)
+	chat <- &pb.Item{Name: "one"}
+	chat <- &pb.Item{Name: "two"}
+	close(chat)
+	if names, err := collect(pb.SubscribeStoreChat(ctx, client, chat)); err != nil || strings.Join(names, ",") != "one,two" {
+		t.Fatal("reactive bidi", names, err)
+	}
+	if names, err := collect(pb.SubscribeStoreWatch(ctx, client, &pb.Item{Name: "partial"})); len(names) != 1 || status.Code(err) != codes.Unavailable {
+		t.Fatal("reactive partial error", names, err)
+	}
 }

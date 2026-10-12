@@ -1,16 +1,24 @@
-use super::render::{module, stream};
+use super::render::stream;
 use anyhow::{Context, Result};
 use poolster_core::native::rpc::{
     RpcFieldKind, RpcFieldLabel, RpcWireField, RpcWireFile, RpcWireMessage, RpcWireSchema,
 };
 use std::collections::BTreeMap;
-struct Types<'a> {
+pub(super) struct Types<'a> {
     definitions: BTreeMap<String, (&'a str, String, &'a RpcWireMessage)>,
     aliases: BTreeMap<String, String>,
     current: &'a str,
+    modules: BTreeMap<String, String>,
 }
 impl<'a> Types<'a> {
-    fn new(current: &'a str, schema: &'a RpcWireSchema) -> Self {
+    pub(super) fn new(current: &'a str, schema: &'a RpcWireSchema) -> Self {
+        Self::configured(current, schema, &Default::default())
+    }
+    pub(super) fn configured(
+        current: &'a str,
+        schema: &'a RpcWireSchema,
+        options: &poolster_core::native::rpc::RpcGenerationOptions,
+    ) -> Self {
         fn visit<'a>(
             values: &'a [RpcWireMessage],
             file: &'a str,
@@ -42,9 +50,19 @@ impl<'a> Types<'a> {
             definitions,
             aliases,
             current,
+            modules: schema
+                .files
+                .iter()
+                .map(|file| {
+                    (
+                        file.name.clone(),
+                        super::presentation::module(&file.name, options),
+                    )
+                })
+                .collect(),
         }
     }
-    fn reference(&self, name: &str) -> Result<String> {
+    pub(super) fn reference(&self, name: &str) -> Result<String> {
         let name = name.trim_start_matches('.');
         let (file, path, _) = self
             .definitions
@@ -104,15 +122,20 @@ impl<'a> Types<'a> {
         }
         self.kind(&field.kind)
     }
-    fn imports(&self) -> String {
+    pub(super) fn imports(&self) -> String {
         let mut result = String::new();
         for (file, alias) in &self.aliases {
-            result.push_str(&format!("import {} as {alias}\n", module(file)));
+            result.push_str(&format!("import {} as {alias}\n", self.modules[file]));
         }
         result
     }
 }
-fn enums(values: &[poolster_core::native::rpc::RpcWireEnum], indent: &str, out: &mut String) {
+fn enums(
+    values: &[poolster_core::native::rpc::RpcWireEnum],
+    indent: &str,
+    out: &mut String,
+    options: &poolster_core::native::rpc::RpcGenerationOptions,
+) {
     let class_type = |value: &str| {
         if indent.is_empty() {
             value.to_owned()
@@ -126,8 +149,19 @@ fn enums(values: &[poolster_core::native::rpc::RpcWireEnum], indent: &str, out: 
             value.name,
             class_type("_poolster_enum.EnumTypeWrapper")
         ));
+        let alias = super::presentation::type_name(&value.name, options);
+        if alias != value.name {
+            out.push_str(&format!(
+                "{indent}{alias}: {}\n",
+                class_type("_poolster_enum.EnumTypeWrapper")
+            ));
+        }
         for item in &value.values {
             out.push_str(&format!("{indent}{}: {}\n", item.name, class_type("int")));
+            let alias = super::enum_aliases::alias(&value.name, &item.name);
+            if options.remove_enum_prefix && alias != item.name {
+                out.push_str(&format!("{indent}{alias}: {}\n", class_type("int")));
+            }
         }
     }
 }
@@ -137,6 +171,7 @@ fn message(
     types: &Types<'_>,
     indent: &str,
     out: &mut String,
+    options: &poolster_core::native::rpc::RpcGenerationOptions,
 ) -> Result<()> {
     if value.map_entry {
         return Ok(());
@@ -147,12 +182,19 @@ fn message(
     ));
     let inner = format!("{indent}    ");
     out.push_str(&format!(
-        "{inner}DESCRIPTOR: _poolster_typing.ClassVar[_poolster_descriptor.Descriptor]\n"
+        "{inner}DESCRIPTOR: _poolster_descriptor.Descriptor\n"
     ));
     for nested in &value.messages {
-        message(nested, types, &inner, out)?;
+        message(nested, types, &inner, out, options)?;
+        let alias = super::presentation::type_name(&nested.name, options);
+        if alias != nested.name && !nested.map_entry {
+            out.push_str(&format!(
+                "{inner}{alias}: _poolster_typing.TypeAlias = {}\n",
+                nested.name
+            ));
+        }
     }
-    enums(&value.enums, &inner, out);
+    enums(&value.enums, &inner, out, options);
     for extension in &value.extensions {
         out.push_str(&format!(
             "{inner}{}: _poolster_typing.ClassVar[_poolster_descriptor.FieldDescriptor]\n",
@@ -227,17 +269,24 @@ fn message(
     out.push_str(") -> None: ...\n");
     Ok(())
 }
-pub(super) fn messages(file: &RpcWireFile, schema: &RpcWireSchema) -> Result<String> {
-    let types = Types::new(&file.name, schema);
+pub(super) fn messages(
+    file: &RpcWireFile,
+    schema: &RpcWireSchema,
+    options: &poolster_core::native::rpc::RpcGenerationOptions,
+) -> Result<String> {
+    let types = Types::configured(&file.name, schema, options);
     let mut out = String::from(
         "# Generated by Poolster.\nimport typing as _poolster_typing\nimport google.protobuf.message as _poolster_message\nimport google.protobuf.descriptor as _poolster_descriptor\nfrom google.protobuf.internal import containers as _poolster_containers\nfrom google.protobuf.internal import enum_type_wrapper as _poolster_enum\n",
     );
     out.push_str(&types.imports());
     for dependency in &file.public_dependencies {
-        out.push_str(&format!("from {} import *\n", module(dependency)));
+        out.push_str(&format!(
+            "from {} import *\n",
+            super::presentation::module(dependency, options)
+        ));
     }
     out.push_str("\nDESCRIPTOR: _poolster_descriptor.FileDescriptor\n");
-    enums(&file.enums, "", &mut out);
+    enums(&file.enums, "", &mut out, options);
     for ext in &file.extensions {
         out.push_str(&format!(
             "{}: _poolster_descriptor.FieldDescriptor\n",
@@ -245,54 +294,77 @@ pub(super) fn messages(file: &RpcWireFile, schema: &RpcWireSchema) -> Result<Str
         ));
     }
     for value in &file.messages {
-        message(value, &types, "", &mut out)?;
+        message(value, &types, "", &mut out, options)?;
+        let alias = super::presentation::type_name(&value.name, options);
+        if alias != value.name && !value.map_entry {
+            out.push_str(&format!(
+                "{alias}: _poolster_typing.TypeAlias = {}\n",
+                value.name
+            ));
+        }
     }
     Ok(out)
 }
-pub(super) fn services(file: &RpcWireFile, schema: &RpcWireSchema) -> Result<String> {
+pub(super) fn services(
+    file: &RpcWireFile,
+    schema: &RpcWireSchema,
+    options: &poolster_core::native::rpc::RpcGenerationOptions,
+) -> Result<String> {
     let types = Types::new("", schema);
     let mut out =
         String::from("# Generated by Poolster.\nimport typing as _poolster_typing\nimport grpc\n");
     out.push_str(&types.imports());
     for service in &file.services {
         let short = service.full_name.rsplit('.').next().unwrap();
-        out.push_str(&format!("\nclass {short}Stub:\n    def __init__(self, channel: grpc.Channel | grpc.aio.Channel) -> None: ...\n"));
-        for method in &service.methods {
-            let (_, input_stream, output_stream) = stream(method.streaming);
-            let call = match (input_stream, output_stream) {
-                (false, false) => "UnaryUnaryMultiCallable",
-                (true, false) => "StreamUnaryMultiCallable",
-                (false, true) => "UnaryStreamMultiCallable",
-                (true, true) => "StreamStreamMultiCallable",
-            };
+        if options.emit_clients {
             out.push_str(&format!(
-                "    {}: grpc.{call}[{}, {}]\n",
-                method.name,
-                types.reference(&method.input_type)?,
-                types.reference(&method.output_type)?
+                "\nclass {short}Stub:\n    def __init__(self, channel: grpc.Channel) -> None: ...\n"
             ));
+            for method in &service.methods {
+                let (_, input_stream, output_stream) = stream(method.streaming);
+                let call = match (input_stream, output_stream) {
+                    (false, false) => "UnaryUnaryMultiCallable",
+                    (true, false) => "StreamUnaryMultiCallable",
+                    (false, true) => "UnaryStreamMultiCallable",
+                    (true, true) => "StreamStreamMultiCallable",
+                };
+                out.push_str(&format!(
+                    "    {}: grpc.{call}[{}, {}]\n",
+                    method.name,
+                    types.reference(&method.input_type)?,
+                    types.reference(&method.output_type)?
+                ));
+            }
+            out.push_str(&super::async_typing::stub(short, service, |name| {
+                types.reference(name)
+            })?);
         }
-        out.push_str(&format!("\nclass {short}Servicer:\n"));
-        if service.methods.is_empty() {
-            out.push_str("    pass\n");
+        if options.emit_servers {
+            out.push_str(&format!("\nclass {short}Servicer:\n"));
+            if service.methods.is_empty() {
+                out.push_str("    pass\n");
+            }
+            for method in &service.methods {
+                let (_, input_stream, output_stream) = stream(method.streaming);
+                let input = types.reference(&method.input_type)?;
+                let output = types.reference(&method.output_type)?;
+                let input = if input_stream {
+                    format!("_poolster_typing.Iterable[{input}]")
+                } else {
+                    input
+                };
+                let output = if output_stream {
+                    format!("_poolster_typing.Iterable[{output}]")
+                } else {
+                    output
+                };
+                out.push_str(&format!("    def {}(self, request: {input}, context: grpc.ServicerContext) -> {output}: ...\n",method.name));
+            }
+            out.push_str(&super::async_typing::servicer(short, service, |name| {
+                types.reference(name)
+            })?);
+            out.push_str(&format!("\ndef add_{short}Servicer_to_server(servicer: {short}Servicer, server: grpc.Server) -> None: ...\n"));
         }
-        for method in &service.methods {
-            let (_, input_stream, output_stream) = stream(method.streaming);
-            let input = types.reference(&method.input_type)?;
-            let output = types.reference(&method.output_type)?;
-            let input = if input_stream {
-                format!("_poolster_typing.Iterable[{input}]")
-            } else {
-                input
-            };
-            let output = if output_stream {
-                format!("_poolster_typing.Iterable[{output}]")
-            } else {
-                output
-            };
-            out.push_str(&format!("    def {}(self, request: {input}, context: grpc.ServicerContext) -> {output}: ...\n",method.name));
-        }
-        out.push_str(&format!("\ndef add_{short}Servicer_to_server(servicer: {short}Servicer, server: grpc.Server | grpc.aio.Server) -> None: ...\n"));
     }
     Ok(out)
 }

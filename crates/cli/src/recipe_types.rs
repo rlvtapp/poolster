@@ -87,6 +87,7 @@ impl GrpcToolchainConfig {
 }
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize)]
 pub(super) struct NativeOutputConfig {
+    pub(super) generation: poolster_core::native::rpc::RpcGenerationOptions,
     pub(super) module: Option<String>,
     pub(super) toolchain: GrpcToolchainConfig,
     pub(super) go_packages: BTreeMap<String, String>,
@@ -322,6 +323,7 @@ pub(super) struct PluginConfig {
     pub(super) infer: Option<bool>,
     pub(super) data_sources: Option<bool>,
     pub(super) module: Option<String>,
+    pub(super) generation: Option<poolster_core::native::rpc::RpcGenerationOptions>,
     pub(super) toolchain: Option<GrpcToolchainConfig>,
     #[serde(default)]
     pub(super) go_packages: BTreeMap<String, String>,

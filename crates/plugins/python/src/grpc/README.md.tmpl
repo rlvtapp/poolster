@@ -9,7 +9,8 @@ runtime dependencies and the setuptools build backend.
 `src/<proto-path>_pb2.py` exports native protobuf message classes from retained
 wire descriptors. `_pb2.pyi` contains field/constructor typing declarations.
 `_pb2_grpc.py` exposes `<Service>Stub`, `<Service>Servicer` and
-`add_<Service>Servicer_to_server`; its `.pyi` types the synchronous callables.
+`add_<Service>Servicer_to_server`; its `.pyi` types synchronous callables and explicit `Async<Service>Stub`,
+`Async<Service>Servicer` and async registration APIs.
 Import modules using original proto paths, for example
 `from store import service_pb2_grpc`. The distribution name does not add an import
 namespace: use namespaced proto paths to avoid collisions with installed SDKs.
@@ -21,8 +22,18 @@ stubs with a channel. Unary and all three streaming modes follow grpcio semantic
 Pass `timeout=` and `metadata=` to calls; status errors are `grpc.RpcError`.
 Cancellation and transport credentials use the runtime APIs. No credentials,
 automatic retry policy, server implementation or connection is generated.
-Async channels/servers accept the same runtime bindings, but the shipped `.pyi`
-callable annotations describe synchronous APIs only.
+Use the separate Async bindings with `grpc.aio` channels and servers.
+`client_<distribution>.py` exposes raw service_method functions, FlatClient native
+callable attributes, and GroupedClient service groups. Client selects the configured
+flat or idiomatic facade; raw style leaves that alias absent. All facades preserve
+native call options and streaming call cancellation.
+
+Independent generation options control typing declarations, client/server modules,
+bounded binary helpers, ProtoJSON helpers and reflection helpers. Native Message
+methods remain available through the protobuf runtime. Extra helpers enforce byte
+and depth bounds; maxDepth above the native decoder ceiling of 100 is rejected.
+Unknown fields are preserved by default and may be discarded in bounded decoders.
+Native channel injection supports TLS, credentials and grpcio interceptors.
 
 Presence, maps, oneofs, defaults, required proto2 fields, extensions and wire
 numbers stay in native protobuf descriptors. Runtime sources, messages, stubs and
@@ -32,3 +43,19 @@ FileDescriptorSet with `bytes(json.load(open("proto/descriptor-set.json")))`.
 Editions, Python keyword public names, unsafe/case-colliding module paths, custom
 files in runtime-owned `google/protobuf/`, and conflicting exports are rejected.
 Regeneration uses normal Poolster ownership/customization rules.
+
+With `removeEnumPrefix`, enum constants such as `COLOR_RED` gain a `RED`
+alias at their native module or containing message scope. The original constants,
+descriptor names and wire numbers remain canonical; aliases that collide with
+existing exports, fields or native message methods are rejected before emission.
+
+With `immutableViews`, `views_<package>.freeze(message)` returns a deep snapshot
+with a schema-specific `Frozen_<qualified_message_name>` type. Its scalar fields
+are read-only properties, repeated fields are tuples, maps are read-only mappings,
+and nested messages have the same immutable field annotations. `copy_native()`
+returns an independent mutable native message.
+
+To emit a declaration-only package, enable `emitTypes` and disable `emitBinary`,
+`emitJson`, `emitClients`, `emitServers` and `emitReflection`. This produces `.pyi`
+bindings without executable message modules; use compatible separately supplied
+native bindings when executing code described by those declarations.

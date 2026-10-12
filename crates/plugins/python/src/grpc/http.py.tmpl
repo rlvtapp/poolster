@@ -1,0 +1,87 @@
+"""Poolster-owned additive Twirp and binary gRPC-web clients."""
+import json as _json
+import struct as _struct
+import urllib.request as _request
+import urllib.error as _error
+import {{RUNTIME}} as _runtime
+from google.protobuf import message_factory as _factory
+
+class HttpRpcError(Exception):
+    def __init__(self, code, message, metadata=None):
+        super().__init__(message)
+        self.code, self.metadata = code, metadata or {}
+
+_METHODS = {{METHODS}}
+_LIMIT = {{LIMIT}}
+
+def _message(name):
+    return _factory.GetMessageClass(_runtime._POOL.FindMessageTypeByName(name))
+
+def _read(response, size):
+    data = bytearray()
+    while len(data) < size:
+        chunk = response.read(size - len(data))
+        if not chunk: raise HttpRpcError("data_loss", "Truncated gRPC-web frame")
+        data.extend(chunk)
+    return bytes(data)
+
+class TwirpClient:
+    def __init__(self, base_url, *, headers=None, opener=None):
+        self.base_url, self.headers = base_url.rstrip('/'), dict(headers or {})
+        self.opener = opener or _request.urlopen
+    def call(self, method, request, *, timeout=None, headers=None):
+        input_name, output_name, input_stream, output_stream = _METHODS[method]
+        if input_stream or output_stream:
+            raise NotImplementedError("Twirp supports unary methods only")
+        if not isinstance(request, _message(input_name)): raise TypeError("Wrong RPC request type")
+        header = {**self.headers, **dict(headers or {}), 'Content-Type': 'application/protobuf'}
+        operation = _request.Request(self.base_url + '/twirp/' + method, data=_runtime._encode(request), headers=header)
+        try:
+            with self.opener(operation, timeout=timeout) as response:
+                data = response.read(_LIMIT + 1)
+        except _error.HTTPError as error:
+            data = error.read(_LIMIT + 1)
+            if len(data) > _LIMIT: raise HttpRpcError('resource_exhausted', 'Oversized error') from error
+            try: details = _json.loads(data)
+            except (ValueError, UnicodeError): raise HttpRpcError('unknown', 'Malformed Twirp error') from error
+            raise HttpRpcError(details.get('code', 'unknown'), details.get('msg', ''), details.get('meta')) from error
+        return _runtime._decode(_message(output_name), data)
+
+class GrpcWebClient(TwirpClient):
+    def call(self, method, request, *, timeout=None, headers=None):
+        input_name, output_name, input_stream, output_stream = _METHODS[method]
+        if input_stream: raise NotImplementedError('gRPC-web does not support request streaming')
+        if not isinstance(request, _message(input_name)): raise TypeError('Wrong RPC request type')
+        payload = _runtime._encode(request)
+        header = {**self.headers, **dict(headers or {}), 'Content-Type': 'application/grpc-web+proto', 'X-Grpc-Web': '1'}
+        operation = _request.Request(self.base_url + '/' + method, data=b'\0' + _struct.pack('>I', len(payload)) + payload, headers=header)
+        def messages():
+            with self.opener(operation, timeout=timeout) as response:
+                trailer = False
+                while True:
+                    flag = response.read(1)
+                    if not flag: break
+                    length = _struct.unpack('>I', _read(response, 4))[0]
+                    if length > _LIMIT: raise HttpRpcError('resource_exhausted', 'Oversized gRPC-web frame')
+                    data = _read(response, length)
+                    if flag == b'\x80':
+                        from urllib.parse import unquote
+                        metadata = dict(line.split(':', 1) for line in data.decode('ascii').split('\r\n') if line)
+                        metadata = {key.lower(): value.strip() for key, value in metadata.items()}
+                        if 'grpc-status' not in metadata: raise HttpRpcError('data_loss', 'Missing gRPC status')
+                        if metadata['grpc-status'] != '0': raise HttpRpcError(metadata['grpc-status'], unquote(metadata.get('grpc-message', '')), metadata)
+                        trailer = True
+                        if response.read(1): raise HttpRpcError('data_loss', 'Data after trailers')
+                        break
+                    if flag != b'\0': raise HttpRpcError('unimplemented', 'Compressed/unknown gRPC-web frame')
+                    yield _runtime._decode(_message(output_name), data)
+                if not trailer: raise HttpRpcError('data_loss', 'Missing gRPC-web trailers')
+        values = messages()
+        if output_stream: return values
+        try:
+            result = next(values)
+            try: next(values)
+            except StopIteration: return result
+            raise HttpRpcError('data_loss', 'Multiple responses for unary method')
+        except StopIteration: raise HttpRpcError('data_loss', 'Missing unary response')
+        finally: values.close()

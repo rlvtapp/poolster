@@ -1,9 +1,14 @@
 syntax = "proto2";
 package store.legacy;
+import "google/protobuf/descriptor.proto";
 message Legacy {
   optional string note = 1 [default = "default-note"];
   required int32 id = 2;
+  optional group LegacyGroup = 5 { optional int32 value = 6; }
   oneof choice { string label = 3; int32 count = 4; }
   extensions 100 to 199;
 }
 extend Legacy { optional string audit = 100; }
+
+extend google.protobuf.FieldOptions { optional string field_note = 51000; }
+message OptionsMessage { optional string value = 1 [(field_note) = "custom-value"]; }

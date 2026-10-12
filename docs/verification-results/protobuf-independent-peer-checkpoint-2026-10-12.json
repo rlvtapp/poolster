@@ -1,0 +1,51 @@
+{
+  "input_hashes": {
+    "crates/inputs/protobuf/tests/fixtures/conformance/PROVENANCE.json": "be04d104d8e66d91320181c537572c89579d7f2e66168677f4708b1f98699db8",
+    "crates/inputs/protobuf/tests/fixtures/conformance/batching.proto": "9d1da940dd2c0bc7dc28ceaa6ed1d6c859083a196dcb3487c369cd036474b8a1",
+    "crates/inputs/protobuf/tests/fixtures/conformance/legacy.proto": "a3ec540a91975989429fde2565dbabff21da7bde11f6a4c42c1a3bff221a4698",
+    "crates/inputs/protobuf/tests/fixtures/conformance/portable.proto": "4651a206ddc7685306446cb98bbf33966ab74b7decf8ea6ac6af0165e986132f",
+    "crates/inputs/protobuf/tests/fixtures/conformance/vectors.json": "6e1ecb0882a11644bd0acaea9288ecf99e8c99493d04f7f4e08028767ad96d63",
+    "scripts/protobuf-conformance/generate.cjs": "24df06e7a3072583ed3fcd86547c690cc1778678833b3c5ed602f154a19c4553",
+    "scripts/protobuf-conformance/go_peer.go": "934787f396c7f32c22bef4de01aa5d94c69d8520f9534baaa9107d86a021b7fc",
+    "scripts/protobuf-conformance/python_peer.py": "3e88ef7a3f21ce5f50b811a60da18033fc7ebbdcfa1cb7652c11d92f8341aaf9",
+    "scripts/protobuf-conformance/typescript_peer.mjs": "2e14c6dde7b525256f11b5a165c487ce597aa1ff78dc1e0409762563b5e010ac",
+    "packages/npm/sdk/native/poolster_node.node": "22462d558c392bb1bfe1f4811846ad5932f046755b93b263e6c27bf73f21b440"
+  },
+  "corpus": "crates/inputs/protobuf/tests/fixtures/conformance",
+  "cases": [
+    {
+      "case": "typescript-client-oracle-server",
+      "status": "passed",
+      "seconds": 0.387
+    },
+    {
+      "case": "oracle-client-typescript-server",
+      "status": "passed",
+      "seconds": 0.524
+    },
+    {
+      "case": "python-client-oracle-server",
+      "status": "passed",
+      "seconds": 0.379
+    },
+    {
+      "case": "oracle-client-python-server",
+      "status": "passed",
+      "seconds": 0.388
+    },
+    {
+      "case": "go-client-oracle-server",
+      "status": "passed",
+      "seconds": 0.276
+    },
+    {
+      "case": "oracle-client-go-server",
+      "status": "passed",
+      "seconds": 0.315
+    }
+  ],
+  "method": "Owned SDK clients and servers, independent grpcio-tools peer in both directions",
+  "status": "passed",
+  "date": "2026-10-12",
+  "scope": "Native RPC checkpoint; this addon predates ongoing naming, framework and convenience updates. Not full-profile certification."
+}

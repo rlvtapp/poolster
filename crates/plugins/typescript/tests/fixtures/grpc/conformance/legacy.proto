@@ -1,0 +1,15 @@
+syntax="proto2";
+package legacy;
+import "google/protobuf/descriptor.proto";
+extend google.protobuf.MessageOptions { optional string marker=50001; }
+message Envelope {
+  option (marker)="descriptor retained";
+  required int32 required_value=1;
+  optional string default_value=2 [default="fallback"];
+  optional group Details=3 { optional string text=4; }
+  extensions 100 to 199;
+}
+extend Envelope {
+  optional string tag=100;
+  repeated int64 values=101 [packed=true];
+}

@@ -1,0 +1,3276 @@
+{
+  "date": "2026-10-12",
+  "reference": "docs/specifications/protobuf-reference.json",
+  "implementation_status": "Work in progress; statuses carry the pre-implementation audit baseline and are not updated from unverified code.",
+  "option_inventory": [
+    {
+      "reference_option": "M",
+      "assessment": "Go goPackages mapping within generated module only; no Python/TS mapping.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "Go goPackages mapping within generated module only; no Python/TS mapping."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "Go goPackages mapping within generated module only; no Python/TS mapping."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "Go goPackages mapping within generated module only; no Python/TS mapping."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "addGrpcMetadata",
+      "assessment": "Native metadata support; no framework-specific generation switch.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "Native metadata support; no framework-specific generation switch."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "Native metadata support; no framework-specific generation switch."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "Native metadata support; no framework-specific generation switch."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "addNestjsRestParameter",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "go": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "rust": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "java": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "csharp": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "php": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "ruby": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "swift": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "elixir": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        }
+      }
+    },
+    {
+      "reference_option": "annotateFilesWithVersion",
+      "assessment": "Go official generator headers; TS/Python generic generated header.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "Go official generator headers; TS/Python generic generated header."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "Go official generator headers; TS/Python generic generated header."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "Go official generator headers; TS/Python generic generated header."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "bigIntLiteral",
+      "assessment": "TS bigint types and runtime descriptors; no literal compatibility switch.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "TS bigint types and runtime descriptors; no literal compatibility switch."
+        },
+        "python": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "go": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "rust": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "java": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "csharp": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "php": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "ruby": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "swift": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "elixir": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        }
+      }
+    },
+    {
+      "reference_option": "comments",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "constEnums",
+      "assessment": "Added by immutable Options-definition inventory; implementation and consumer coverage remain to be audited.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        }
+      }
+    },
+    {
+      "reference_option": "context",
+      "assessment": "Native runtime context/channel options; no generated context/batching abstraction.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "Native runtime context/channel options; no generated context/batching abstraction."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "Native runtime context/channel options; no generated context/batching abstraction."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "Native runtime context/channel options; no generated context/batching abstraction."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "disableProto2DefaultValues",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "disableProto2Optionals",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "emitDefaultValues",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "emitImportedFiles",
+      "assessment": "Fixed local import emission; Python/Go use installed well-known types.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "Fixed local import emission; Python/Go use installed well-known types."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "Fixed local import emission; Python/Go use installed well-known types."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "Fixed local import emission; Python/Go use installed well-known types."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "enumsAsLiterals",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "env",
+      "assessment": "TS fixed Node package; no browser/both switch.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "TS fixed Node package; no browser/both switch."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "TS fixed Node package; no browser/both switch."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "TS fixed Node package; no browser/both switch."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "esModuleInterop",
+      "assessment": "TS fixed NodeNext configuration.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "TS fixed NodeNext configuration."
+        },
+        "python": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "go": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "rust": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "java": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "csharp": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "php": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "ruby": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "swift": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "elixir": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        }
+      }
+    },
+    {
+      "reference_option": "exportCommonSymbols",
+      "assessment": "Fixed helper exports/imports.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "Fixed helper exports/imports."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "Fixed helper exports/imports."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "Fixed helper exports/imports."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "fileSuffix",
+      "assessment": "Fixed target suffixes.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "Fixed target suffixes."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "Fixed target suffixes."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "Fixed target suffixes."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "forceLong",
+      "assessment": "TS fixed bigint; Python/Go native integers.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "TS fixed bigint; Python/Go native integers."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "TS fixed bigint; Python/Go native integers."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "TS fixed bigint; Python/Go native integers."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "globalThisPolyfill",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "go": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "rust": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "java": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "csharp": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "php": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "ruby": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "swift": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "elixir": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        }
+      }
+    },
+    {
+      "reference_option": "importSuffix",
+      "assessment": "TS fixed .js imports; no suffix option.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "TS fixed .js imports; no suffix option."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "TS fixed .js imports; no suffix option."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "TS fixed .js imports; no suffix option."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "initializeFieldsAsUndefined",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "lowerCaseServiceMethods",
+      "assessment": "TS fixed lower-first service method names; no switch.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "TS fixed lower-first service method names; no switch."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "TS fixed lower-first service method names; no switch."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "TS fixed lower-first service method names; no switch."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "metadataType",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "nestJs",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "go": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "rust": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "java": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "csharp": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "php": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "ruby": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "swift": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "elixir": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        }
+      }
+    },
+    {
+      "reference_option": "noDefaultsForOptionals",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "oneof",
+      "assessment": "TS fixed tagged union; Python/Go native oneof API.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "TS fixed tagged union; Python/Go native oneof API."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "TS fixed tagged union; Python/Go native oneof API."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "TS fixed tagged union; Python/Go native oneof API."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "onlyTypes",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "outputClientImpl",
+      "assessment": "Clients always emitted.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "Clients always emitted."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "Clients always emitted."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "Clients always emitted."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "outputDecodeIncludeTypes",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "outputEncodeIncludeTypes",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "outputEncodeMethods",
+      "assessment": "Binary codecs available through native runtimes; no emission switch.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "Binary codecs available through native runtimes; no emission switch."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "Binary codecs available through native runtimes; no emission switch."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "Binary codecs available through native runtimes; no emission switch."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "outputExtensions",
+      "assessment": "TS rejects extensions; Python native extension tested; Go official path, no switch.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "TS rejects extensions; Python native extension tested; Go official path, no switch."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "TS rejects extensions; Python native extension tested; Go official path, no switch."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "TS rejects extensions; Python native extension tested; Go official path, no switch."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "outputIndex",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "outputJsonMethods",
+      "assessment": "JSON only via runtime APIs; no emission switch or verified JSON contract.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "JSON only via runtime APIs; no emission switch or verified JSON contract."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "JSON only via runtime APIs; no emission switch or verified JSON contract."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "JSON only via runtime APIs; no emission switch or verified JSON contract."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "outputPartialMethods",
+      "assessment": "Native construction APIs; no emission switch.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "Native construction APIs; no emission switch."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "Native construction APIs; no emission switch."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "Native construction APIs; no emission switch."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "outputSchema",
+      "assessment": "TS/Python always embed descriptors; no selectable schema/descriptor emission.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "TS/Python always embed descriptors; no selectable schema/descriptor emission."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "TS/Python always embed descriptors; no selectable schema/descriptor emission."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "TS/Python always embed descriptors; no selectable schema/descriptor emission."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "outputServices",
+      "assessment": "Services always emitted; no selection switch.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "Services always emitted; no selection switch."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "Services always emitted; no selection switch."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "Services always emitted; no selection switch."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "outputTypeAnnotations",
+      "assessment": "Native message identity available; no annotation mode switch.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "Native message identity available; no annotation mode switch."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "Native message identity available; no annotation mode switch."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "Native message identity available; no annotation mode switch."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "outputTypeRegistry",
+      "assessment": "TS/Python native registry; Go native descriptors; no selection switch.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "TS/Python native registry; Go native descriptors; no selection switch."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "TS/Python native registry; Go native descriptors; no selection switch."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "TS/Python native registry; Go native descriptors; no selection switch."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "protoJsonFormat",
+      "assessment": "Native runtime JSON available; no explicit Poolster mode or evidence corpus.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "Native runtime JSON available; no explicit Poolster mode or evidence corpus."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "Native runtime JSON available; no explicit Poolster mode or evidence corpus."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "Native runtime JSON available; no explicit Poolster mode or evidence corpus."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "removeEnumPrefix",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "returnObservable",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "go": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "rust": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "java": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "csharp": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "php": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "ruby": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "swift": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        },
+        "elixir": {
+          "status": "not applicable",
+          "reason": "JavaScript/framework-specific control; portable semantics remain required by the language-neutral requirement IDs."
+        }
+      }
+    },
+    {
+      "reference_option": "rpcAfterResponse",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "rpcBeforeRequest",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "rpcErrorHandler",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "snakeToCamel",
+      "assessment": "TS fixed field camel casing; Python/Go native rules.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "TS fixed field camel casing; Python/Go native rules."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "TS fixed field camel casing; Python/Go native rules."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "TS fixed field camel casing; Python/Go native rules."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "stringEnums",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "typePrefix",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "typeSuffix",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "unknownFields",
+      "assessment": "Native codecs own behavior; no generated retention control or evolution test.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "Native codecs own behavior; no generated retention control or evolution test."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "Native codecs own behavior; no generated retention control or evolution test."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "Native codecs own behavior; no generated retention control or evolution test."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "unrecognizedEnum",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "unrecognizedEnumName",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "unrecognizedEnumValue",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "useAbortSignal",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "useAsyncIterable",
+      "assessment": "Native stream/iterator surfaces; no selectable generated async-iterable mode.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "Native stream/iterator surfaces; no selectable generated async-iterable mode."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "Native stream/iterator surfaces; no selectable generated async-iterable mode."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "Native stream/iterator surfaces; no selectable generated async-iterable mode."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "useDate",
+      "assessment": "Native descriptor Timestamp; no convenience mapping switch.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "Native descriptor Timestamp; no convenience mapping switch."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "Native descriptor Timestamp; no convenience mapping switch."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "Native descriptor Timestamp; no convenience mapping switch."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "useDuration",
+      "assessment": "Native descriptor Duration; no string mapping switch.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "Native descriptor Duration; no string mapping switch."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "Native descriptor Duration; no string mapping switch."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "Native descriptor Duration; no string mapping switch."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "useExactTypes",
+      "assessment": "Added by immutable Options-definition inventory; implementation and consumer coverage remain to be audited.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        }
+      }
+    },
+    {
+      "reference_option": "useJsTypeOverride",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "useJsonName",
+      "assessment": "Wire JSON name retained; no public representation switch.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "Wire JSON name retained; no public representation switch."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "Wire JSON name retained; no public representation switch."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "Wire JSON name retained; no public representation switch."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "useJsonTimestamp",
+      "assessment": "Added by immutable Options-definition inventory; implementation and consumer coverage remain to be audited.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "No checked configuration equivalent or executed consumer evidence yet."
+        }
+      }
+    },
+    {
+      "reference_option": "useJsonWireFormat",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "useMapType",
+      "assessment": "Fixed native containers.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "Fixed native containers."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "Fixed native containers."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "Fixed native containers."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "useMongoObjectId",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "useNullAsOptional",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "useNumericEnumForJson",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "useOptionals",
+      "assessment": "Presence-aware fixed language mapping.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "Presence-aware fixed language mapping."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "Presence-aware fixed language mapping."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "Presence-aware fixed language mapping."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "usePrototypeForDefaults",
+      "assessment": "TS native proto2 defaults/presence tested; no switch.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "TS native proto2 defaults/presence tested; no switch."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "TS native proto2 defaults/presence tested; no switch."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "TS native proto2 defaults/presence tested; no switch."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "useReadonlyTypes",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    },
+    {
+      "reference_option": "useSnakeTypeName",
+      "assessment": "TS fixed flattened symbol naming.",
+      "languages": {
+        "typescript": {
+          "status": "partial",
+          "reason": "TS fixed flattened symbol naming."
+        },
+        "python": {
+          "status": "partial",
+          "reason": "TS fixed flattened symbol naming."
+        },
+        "go": {
+          "status": "partial",
+          "reason": "TS fixed flattened symbol naming."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    }
+  ],
+  "historical_documented_aliases": [
+    {
+      "reference_option": "useContextDataloaders",
+      "assessment": "No corresponding Poolster generation option or adapter.",
+      "languages": {
+        "typescript": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "python": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "go": {
+          "status": "unsupported",
+          "reason": "No corresponding Poolster generation option or adapter."
+        },
+        "rust": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "java": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "csharp": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "php": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "ruby": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "swift": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        },
+        "elixir": {
+          "status": "unsupported",
+          "reason": "Protobuf output absent."
+        }
+      }
+    }
+  ],
+  "previous_audit": "docs/verification-results/protobuf-conformance-audit-2026-10-12.json"
+}

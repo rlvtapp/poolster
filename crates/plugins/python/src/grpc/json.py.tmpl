@@ -1,0 +1,60 @@
+
+from google.protobuf import json_format as _json_format
+import json as _json
+
+def _pairs(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result: raise ValueError("Duplicate ProtoJSON field")
+        result[key] = value
+    return result
+
+def _aliases(descriptor, data):
+    pending = [(descriptor, data, 0)]
+    while pending:
+        descriptor, data, depth = pending.pop()
+        if depth > _runtime._MAX_DEPTH: raise ValueError("ProtoJSON exceeds maxDepth")
+        if descriptor.full_name.startswith("google.protobuf.") or not isinstance(data, dict): continue
+        fields = {alias: field for field in descriptor.fields for alias in (field.name, field.json_name)}
+        seen = set()
+        for name, value in data.items():
+            field = fields.get(name)
+            if field is None: continue
+            if field.number in seen: raise ValueError("Duplicate ProtoJSON field alias")
+            seen.add(field.number)
+            if field.message_type is None or value is None: continue
+            child = field.message_type
+            if child.GetOptions().map_entry:
+                nested = child.fields_by_name["value"].message_type
+                if nested is not None and isinstance(value, dict): pending.extend((nested,item,depth+1) for item in value.values())
+            elif field.is_repeated and isinstance(value, list): pending.extend((child,item,depth+1) for item in value)
+            else: pending.append((child,value,depth+1))
+
+def to_json(value, *, preserving_proto_field_name=False,
+            use_integers_for_enums=False, always_print_fields_with_no_presence=False):
+    if hasattr(value,"to_native"): value=value.to_native()
+    _runtime._check_depth(value)
+    text = _json_format.MessageToJson(
+        value, preserving_proto_field_name=preserving_proto_field_name,
+        use_integers_for_enums=use_integers_for_enums,
+        always_print_fields_with_no_presence=always_print_fields_with_no_presence,
+        descriptor_pool=_runtime._POOL)
+    if len(text.encode("utf-8")) > _runtime._MAX_MESSAGE_BYTES:
+        raise ValueError("Protobuf JSON exceeds configured maxMessageBytes")
+    return text
+
+def from_json(cls, text, *, ignore_unknown_fields=False):
+    if not isinstance(text, str):
+        raise TypeError("ProtoJSON input must be text")
+    if len(text.encode("utf-8")) > _runtime._MAX_MESSAGE_BYTES:
+        raise ValueError("Protobuf JSON exceeds configured maxMessageBytes")
+    target = getattr(cls,"_native_type",cls)
+    data = _json.loads(text, object_pairs_hook=_pairs)
+    _aliases(target.DESCRIPTOR, data)
+    value = _json_format.ParseDict(
+        data, target(), ignore_unknown_fields=ignore_unknown_fields,
+        descriptor_pool=_runtime._POOL, max_recursion_depth=_runtime._MAX_DEPTH)
+    _runtime._check_depth(value)
+    if not value.IsInitialized():
+        raise ValueError("ProtoJSON message is missing required fields")
+    return cls.from_native(value) if target is not cls else value

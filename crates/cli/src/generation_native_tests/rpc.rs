@@ -77,10 +77,9 @@ fn protobuf_recipe_rejects_foreign_language_options_before_loading_source() {
     assert!(!root.path().join("generated").exists());
 }
 #[test]
-#[ignore = "requires the existing pinned Go toolchain in POOLSTER_GRPC_TOOLS"]
 fn protobuf_three_language_recipe_generates_and_regenerates() {
     let root = tempfile::tempdir().unwrap();
-    let tools = PathBuf::from(std::env::var("POOLSTER_GRPC_TOOLS").unwrap());
+    let tools = PathBuf::from("/missing/poolster-test-tools");
     let fixture = Path::new(env!("CARGO_MANIFEST_DIR")).join("../plugins/go/tests/fixtures/grpc");
     for file in ["service.proto", "common.proto"] {
         std::fs::copy(fixture.join(file), root.path().join(file)).unwrap();
@@ -115,4 +114,25 @@ fn protobuf_three_language_recipe_generates_and_regenerates() {
     )
     .unwrap();
     assert!(generate_from_config(&path, ColorChoice::Never, true, false).is_err());
+}
+
+#[test]
+fn protobuf_generation_policies_reject_invalid_settings_before_input_loading() {
+    let root = tempfile::tempdir().unwrap();
+    for generation in [
+        serde_json::json!({"maxDepth":0}),
+        serde_json::json!({"maxMessageBytes":0}),
+        serde_json::json!({"unknownFields":"ignore"}),
+        serde_json::json!({"typo":true}),
+        serde_json::json!({"fileSuffix":"../escape"}),
+        serde_json::json!({"decodeIncludeTypes":["x.Type","x.Type"]}),
+        serde_json::json!({"representations":{"int64":"lossy"}}),
+    ] {
+        let path = rpc_recipe(
+            root.path(),
+            serde_json::json!([{"language":"typescript","path":"sdk","plugins":[{"name":"grpc","generation":generation}]}]),
+        );
+        assert!(load_config_options(&path, ColorChoice::Never, false, false).is_err());
+        assert!(!root.path().join("generated").exists());
+    }
 }

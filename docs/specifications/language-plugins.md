@@ -6,6 +6,9 @@ This defines how we organize and maintain Poolster's language output plugins.
 The [generated SDK specification](generated-sdk.md) defines the code they emit.
 Neither document asserts that every existing module already follows the target.
 
+Protocol-specific output requirements include the
+[all-language Protobuf conformance target](protobuf-conformance.md).
+
 ## 1. Boundaries and ownership
 
 | Layer | Owns | Must not own |

@@ -5,6 +5,9 @@
 The [language plugin implementation specification](language-plugins.md) defines
 the internal architecture of their generators.
 
+The [Protobuf conformance requirements](protobuf-conformance.md) define the planned
+ts-proto feature-set target and rollout across all ten SDK languages.
+
 This defines what Poolster's generated SDKs should provide. It covers the ten SDK
 languages, the Symfony integration and the deprecated .NET alias. It applies to
 HTTP, GraphQL and future native protocol generators without converting those

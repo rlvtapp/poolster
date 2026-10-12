@@ -6,6 +6,7 @@ from setuptools.command.build_py import build_py
 class BuildPy(build_py):
     def run(self):
         super().run()
+        Path(self.build_lib).mkdir(parents=True, exist_ok=True)
         for source in sorted(Path("src").glob("*.pyi")):
             self.copy_file(str(source), str(Path(self.build_lib) / source.name))
 

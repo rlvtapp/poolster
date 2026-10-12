@@ -92,7 +92,7 @@ pub(super) fn generate(options: Generate) -> Result<()> {
         "HTTP path filters are unsupported for native inputs"
     );
     ensure!(
-        (input.format == "graphql" || !options.raw)
+        (["graphql", "protobuf"].contains(&input.format.as_str()) || !options.raw)
             && options.client_name.is_none()
             && !matches!(
                 options.typescript_transport,
@@ -102,7 +102,8 @@ pub(super) fn generate(options: Generate) -> Result<()> {
     );
     ensure!(
         options.jobs == 0
-            && (input.format == "graphql" || matches!(options.style, SdkClientStyle::Namespaced)),
+            && (["graphql", "protobuf"].contains(&input.format.as_str())
+                || matches!(options.style, SdkClientStyle::Namespaced)),
         "native generation does not support OpenAPI client-style or Go worker options"
     );
     ensure!(

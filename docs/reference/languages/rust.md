@@ -135,3 +135,10 @@ See [shared model guide](../outputs/shared-models.md), [shared-model native test
 ## Remaining gaps
 
 Protobuf RPC, Arazzo runners and Cap’n Proto capability RPC have no Rust output pipeline. Dynamic typed GraphQL `fields` selection remains planned. Kafka security/other brokers and unsupported JSON Schema features require further work. Runtime features differ by contract and are not inferred from a language's HTTP support. Test links include gated native tests; ignored tests must not be counted as passes.
+
+## Protobuf conformance audit
+
+Protobuf output is not implemented in this language. All 29 requirements remain
+unsupported; the rollout and per-language assessments are recorded in the
+[Protobuf audit](../outputs/protobuf-conformance.md) and
+[requirements](../../specifications/protobuf-conformance.md).

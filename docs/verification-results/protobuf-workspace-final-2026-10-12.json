@@ -1,0 +1,1088 @@
+{
+  "date": "2026-10-12",
+  "method": "Fresh offline/locked workspace compiler artifacts, SHA256-identified binaries; parallel execution with pinned Python/PHP runtimes. Completed records reused by identical hash when dispatch increased. 116 unique executables. Separate workspace documentation command.",
+  "initial_counts": {
+    "passed": 1047,
+    "failed": 3,
+    "ignored": 239
+  },
+  "final_counts": {
+    "passed": 1050,
+    "failed": 0,
+    "ignored": 239
+  },
+  "retries": [
+    {
+      "reason": "Poolster PHP test Docker container paused",
+      "cases": [
+        "graphql::tests::generated_php_compiles_and_executes",
+        "graphql::tests::nested_models_variables_mutations_and_no_variable_calls",
+        "graphql::tests::large_packages_use_bounded_files_and_regenerate"
+      ],
+      "action": "Resumed poolster-quality-php; reran GraphQL subset",
+      "passed": 5,
+      "failed": 0,
+      "ignored": 2,
+      "unique_recovered_cases": 3,
+      "note": "Other two passing cases already passed initially; not counted twice.",
+      "log": "/private/tmp/poolster-protobuf-php-environment-retry.log"
+    }
+  ],
+  "executables": [
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_core-03101724271c7a83",
+      "sha256": "8331ca233297ab3d3f4ca3e279df37fabcfb09bf2d27c494386442afb852db8b",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 93 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/poolster_core-03101724271c7a83.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/openapi32_metadata-83d8189c47dcb622",
+      "sha256": "4ddccd3007fe4e2ef7911f69891d0d54b27ea890619f4a34c3d3dd8038420dd6",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/openapi32_metadata-83d8189c47dcb622.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/corpus-0d71411b92984bff",
+      "sha256": "8d37db68831760e378fe2aeadb57c0da51a2161c054b80c4f15b9cef4f9e6435",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/corpus-0d71411b92984bff.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/public_api-17b0d99cc44d022f",
+      "sha256": "1994c896c9a2c3ad28d7b545ebd0bb343857022a573730c4668b4300865e9fb3",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/public_api-17b0d99cc44d022f.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/http_input-646db8dfe00bfd56",
+      "sha256": "fd5023d4816a20041c87b71b278de5ff5c5c8c71560d080fb2536abd2a00e942",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/http_input-646db8dfe00bfd56.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/provider-aa5fa0ad1147fa80",
+      "sha256": "c67edb3b2fa3295c35726273c759d92d45d63e912f063b64f0356ec719f19408",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/provider-aa5fa0ad1147fa80.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/http_input-7c59c4f8ca1f6fe0",
+      "sha256": "a82c73c6e35ffe63d24905ab6dcec35393ab05c29053d1bcd81394d0bba6f386",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/http_input-7c59c4f8ca1f6fe0.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/http_input-ec39fb880204e674",
+      "sha256": "67af34daeaeaac8bd3fa25ebd7a11e2407c5c7e52bc5a17060a2e9ba386c9edb",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/http_input-ec39fb880204e674.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/http_input-c99aeabd0925599b",
+      "sha256": "d9b065af9f4928bc44543efba81e7e19e4daf746ec63ad872835dbad75e3e154",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/http_input-c99aeabd0925599b.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/events-87eb086e9be5f4c0",
+      "sha256": "1db23680ee1e83d0c612d9e8acb01c2b8bb237637cad93387dae98efdf5c4a59",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 5 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/events-87eb086e9be5f4c0.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/events-1589e95b07bbdd3f",
+      "sha256": "18b70f13796eaffd54463f85e8c7e2b45396696c88c268c6895bdb87f6b9612f",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 7 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.16s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/events-1589e95b07bbdd3f.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/grpc_batching-b1038190a18d67d9",
+      "sha256": "af8bd479fc24493a80704885547c3372b82ec56df3ecb66e5c657c4ef0bf3586",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/grpc_batching-b1038190a18d67d9.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/compilation-4e45615ec60f2e38",
+      "sha256": "c77cbe11fc4874cef6d27909cb64c1300b5523005d6ce1fdfccc216bca64c3d5",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/compilation-4e45615ec60f2e38.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/grpc_views-41098524555f0c6c",
+      "sha256": "3fa64f6a07b1bb96d36140f640a49393fa6dc1e9f01bddbcad9f8a870ead2c78",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/grpc_views-41098524555f0c6c.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/grpc_presentation-98ff5bca69033844",
+      "sha256": "71837d616a34ab5fbc40878ebc81dfb97660a437b5da2755e4b4b4eb33e20cb6",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 0 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/grpc_presentation-98ff5bca69033844.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/grpc_native-deb388c630f19f3b",
+      "sha256": "67569ffe6b01bb037b4bdd81c94c6cc4cec547f40336a17124846375d8539848",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 3 passed; 0 failed; 5 ignored; 0 measured; 0 filtered out; finished in 0.04s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/grpc_native-deb388c630f19f3b.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster-bda7a31807822c52",
+      "sha256": "efc2665d1141427320b3dbc0e37323d627ec5c32fae757aca7fe827c2be9cddb",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/poolster-bda7a31807822c52.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/compilation-5d24c7559c5de0ed",
+      "sha256": "27907529880cd83c62310cd99dc3d9c76b1a7d48616cb93a847bbbbe27ba8353",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/compilation-5d24c7559c5de0ed.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/public_blocks-e7db052a53871245",
+      "sha256": "98e2b15497cae8e22e3d9437a0054354b142effbcd343bf83a940ff5eb17c87d",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/public_blocks-e7db052a53871245.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/grpc_http-4d7ad91c06722729",
+      "sha256": "f76f973686187ee71bc71ee4282fbd244ff7327e5d5cb6e0d38bec61242ca2d0",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/grpc_http-4d7ad91c06722729.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/rpc_contract-165863ec8dd731ae",
+      "sha256": "efb19054b974c020057ad3bd146b0eddaa7789e21c785938961204c748829b28",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/rpc_contract-165863ec8dd731ae.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/grpc_symbols-031af0483ac15c38",
+      "sha256": "17fba72b4e12348efa3701948f3f4270973a3cfb3776a9a97fc449e91201eb92",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/grpc_symbols-031af0483ac15c38.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/grpc_values-8e874ac255e14107",
+      "sha256": "1e229cc1ce8f79169f167eebbc8b27609bd6fab01b6522da66850c03bf5f0a66",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 0 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/grpc_values-8e874ac255e14107.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/shared_models-c9ddb27107e3a479",
+      "sha256": "075dd6d7f287ad13141d4f43bc20e479de839c8e4fa5e40666a26b445552f093",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 2 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/shared_models-c9ddb27107e3a479.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/shared_models-014a62196dc3f685",
+      "sha256": "438c7e6ca7c01e31dcb1eb4110326af41913374b583244f9102b37af1fb208b7",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 2 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/shared_models-014a62196dc3f685.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/workflows-2f741ec3cf43baf6",
+      "sha256": "2e6c0a913a047a7dd95b98e12e2d5acde42b6b02a1a1a447a4be02210de9c2e0",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/workflows-2f741ec3cf43baf6.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/events-d0fc6aea3fbebf70",
+      "sha256": "fb51a4a3070218d7eece9029da583e2e59afa549407d7a0fa85b2adbd8f8917b",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 3 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.16s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/events-d0fc6aea3fbebf70.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/events-a6f99f3f6e645041",
+      "sha256": "871d1d2f57d4b24c51812962474da5e37dd52c48b217a2aa9ac2e6085fe0d3a6",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 9 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 0.14s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/events-a6f99f3f6e645041.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/shared_models-efadd93850c47e4a",
+      "sha256": "d15633cebaf5355358bcc4f41c49814f323ee243dbb732febb9542e29a7f26a7",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 2 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/shared_models-efadd93850c47e4a.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/corpus-f30f164e612ac1b3",
+      "sha256": "fbd651599fa915aa4a1d1b41b94d45047aebd2937a009b9d26eb67f5950826e9",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/corpus-f30f164e612ac1b3.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_plugin_python-9905637409cc56c9",
+      "sha256": "5572197831ccaf2986fa8d0426c694adfcbc51bcbdc8258143ee16a5d13d1ca1",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 53 passed; 0 failed; 6 ignored; 0 measured; 0 filtered out; finished in 14.76s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/poolster_plugin_python-9905637409cc56c9.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_plugin_java-2d34871318ddcab2",
+      "sha256": "2525a93131b3af516e12b3fa4e395b18c9a6513b30a3a9771e77973a042164d8",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 35 passed; 0 failed; 17 ignored; 0 measured; 0 filtered out; finished in 6.10s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/poolster_plugin_java-2d34871318ddcab2.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/http_output_contracts-49346e75a0556f58",
+      "sha256": "46f19855b8608078014554b3c037ed4fba5bcd984fbd537c9951986feae5496e",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/http_output_contracts-49346e75a0556f58.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/http_inputs-a239279e6afb7672",
+      "sha256": "2c5f838476befcd2702412a52aa6a3adb94024b9800570341c34c0ff43033353",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 4 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/http_inputs-a239279e6afb7672.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/shared_models-6bdddbf81b1f6e24",
+      "sha256": "69ec2ea2d7e51ed29d59a323ecb51e7937f195a94e2ea4ad621d1b0b8bf7c5bf",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 2 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/shared_models-6bdddbf81b1f6e24.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/events-5fd3832bcdd19a8d",
+      "sha256": "e3262ca002a026ac2534febf0e7df957fbd881d45db28172085e5186beb18ed5",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 8 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.15s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/events-5fd3832bcdd19a8d.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_plugin_symfony-affe7390565474b5",
+      "sha256": "00d2e73bf76bed89cd461e584719f341eae9f106e3438021ab4a37d5a9d60812",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 6 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/poolster_plugin_symfony-affe7390565474b5.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/events-c6db7c8d1707c5a8",
+      "sha256": "8ab712545f426aa00d897511c48fd200855cfed73ba8060817de2286d2158797",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 3 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/events-c6db7c8d1707c5a8.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/events_shared_models-48d0edee5b5e1ac2",
+      "sha256": "f01e597b05e3ecd252a9106ba886bb3ec5e90ce15504af42991e75270b2a0d96",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 1 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/events_shared_models-48d0edee5b5e1ac2.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/grpc_conformance-f3be1bf776cea8a1",
+      "sha256": "2c2e90584dc892054765d8595e287a4c28f0ed6f9a3119f484040be6fae3a7a4",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 3 passed; 0 failed; 8 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/grpc_conformance-f3be1bf776cea8a1.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/workflow_native-624baa9fc368e5ee",
+      "sha256": "0ce2aaadee4c35cb17f78eb219b559e269665c25ce7024ff1bb84a80584a0ae7",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 3 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/workflow_native-624baa9fc368e5ee.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/graphql_runtime_capabilities-8085935175f7f46b",
+      "sha256": "cf52ad706e21f1d9c6860e1defc8e3f4e898999fe78747fca052c1addc5aed97",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/graphql_runtime_capabilities-8085935175f7f46b.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/asyncapi_native-5afdbf83686c68b1",
+      "sha256": "0fdbc8c48b1dc1ae4b08e03b337f14939cd3bb8969749b253cb22ddceaefe127",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 4 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/asyncapi_native-5afdbf83686c68b1.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/graphql_native-9cca72840c41ca76",
+      "sha256": "8449db8428e6841e4db033a2298d804b22b435a973299fadef42e45f25312b45",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 6 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 17.67s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/graphql_native-9cca72840c41ca76.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/graphql_release-711de5ddd8ec579f",
+      "sha256": "61a551639856210ecf1872a22ea8a631876f08fe506a784bada62b11e2f92eac",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 2 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/graphql_release-711de5ddd8ec579f.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/migration-119b2aa6bbe4cb84",
+      "sha256": "566f7a664867dc7a3cc76f38fe1dcb6229b3a364b4db18a79b9542b3eb0d1907",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 1 passed; 0 failed; 5 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/migration-119b2aa6bbe4cb84.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/local_references-833d1e16d48c5c7a",
+      "sha256": "989b19e97a2237089960ff953378fd1cfff33fb687c04fe03bdd1bbf9366c11e",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/local_references-833d1e16d48c5c7a.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/native_pipeline-72569761919ef65c",
+      "sha256": "462ada5ca9b8a4e3e024333edcf56aefb7720a8d73660e0b95a44e9ffecf16df",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 17.05s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/native_pipeline-72569761919ef65c.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/plugins-1b2e02eb1c627621",
+      "sha256": "b5491c971dd464ee97e74bff906e5153e330c53067e2e68e7ddfd0b3420c713a",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/plugins-1b2e02eb1c627621.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/openapi32-d671d4b15473d1e4",
+      "sha256": "b25e1ef512aed6387b176e675d27f15d5b63fbb43e6cf1eb4aa2ac702e0ce498",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/openapi32-d671d4b15473d1e4.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/cli-f2f4064da82b1b0f",
+      "sha256": "88455036b109b33366fff640b87d071cb2994718afd57429cba9296611b2e178",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.42s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/cli-f2f4064da82b1b0f.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/contract-7a1f94e9a840db23",
+      "sha256": "3012038fad18d79ae1e1f47ec2c3c78c6f96dbde96e3f1d100cbf2ee4acf22b0",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/contract-7a1f94e9a840db23.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/registry-a24390516e8e832a",
+      "sha256": "d7a5ce708ab9b27a3905c384a9b7c9f3b14f1700c827fa833de837db2db7d96f",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/registry-a24390516e8e832a.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_node-12295f6e696e0e5a",
+      "sha256": "e0ef40c49732eedbcd3dcf250e94ef3939695b84739b97a1596078dcd3db35da",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/poolster_node-12295f6e696e0e5a.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/http_input-4b4ec82f35173393",
+      "sha256": "d2d577f28ded3781677bd2b5f9eb6e9e645750086314494b0d98ac12ea545aca",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/http_input-4b4ec82f35173393.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/grpc_conformance-e4aa22f185f961c0",
+      "sha256": "9ae2f454f8061586156cceff4caf90ae56c7d0629eda29b08b90c7ffc3e6ae80",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 4 passed; 0 failed; 11 ignored; 0 measured; 0 filtered out; finished in 0.20s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/grpc_conformance-e4aa22f185f961c0.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_plugin_rust_cli-4a47f657878b95af",
+      "sha256": "a3a7689660cf77c974983a9e920bca1743d3ceec306f6512e9f3e32109f4dd8a",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 3 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/poolster_plugin_rust_cli-4a47f657878b95af.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/http_input-9b8c63979e6817ea",
+      "sha256": "dd449c053e846d5dd26b0fe55ab9325291436f20976ccafaa3c06e20b863c642",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/http_input-9b8c63979e6817ea.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/graphql_native-f7e32053bb9891e7",
+      "sha256": "10b3ba70908aa20b1c85ffdc83feba39a303f8753440d3dcb3b17608029aa474",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 3 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 2.02s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/graphql_native-f7e32053bb9891e7.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_plugin_rust-d65b9067e63beb92",
+      "sha256": "27eb4ea2be305f0846310b06d5ffa0444204add2b208f51b26c2a8773b621a16",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 34 passed; 0 failed; 9 ignored; 0 measured; 0 filtered out; finished in 20.63s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/poolster_plugin_rust-d65b9067e63beb92.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/schema_loading-e79ab93a8b241780",
+      "sha256": "edcacbbe57bf6b1b5eb16c60586594463ede9f815613f36cedee7cfa18fa3d59",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/schema_loading-e79ab93a8b241780.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/shared_models-a4c08221aa2c0055",
+      "sha256": "2884a25b9fba6339ca876ade104e7202c29cc534573ed35804a3c361aaf3d91c",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 4 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/shared_models-a4c08221aa2c0055.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/github-dfa6b9407fe6e8eb",
+      "sha256": "5d07245fce36823fccb371b3696c3d137634c589e06e4f9e4134be173bc4d60d",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 19.28s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/github-dfa6b9407fe6e8eb.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/operations-6ddfb90f9a17add4",
+      "sha256": "c58996e144e6a6ee2158755db9834ce5e03fc706adcd88347c1702e7be14b68d",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.58s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/operations-6ddfb90f9a17add4.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/graphql_scalars-5163b3e4193824b6",
+      "sha256": "4382edfb3e9d369606d75b663d6f517407f157c32d49d613391674981e024f35",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/graphql_scalars-5163b3e4193824b6.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/grpc_native-f28841110e3a9719",
+      "sha256": "cf7353062d783f5db122e481c4d4939c1e66a5a5979961088ff17567908810ba",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 6 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/grpc_native-f28841110e3a9719.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/public_blocks-acd4b484a35faeac",
+      "sha256": "199ad273905a5f14060da790d5626033163e295d0728585b6b3bac6cc4d70eed",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/public_blocks-acd4b484a35faeac.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/shared_models-a34503392535d9d9",
+      "sha256": "5ebf2693228372b1b289b35246a3db9632274edd51f6ef59132fa6add72d257b",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 2 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/shared_models-a34503392535d9d9.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/http_input-6137fecfbbea5acb",
+      "sha256": "75d3ada456035edf4c0d9b249a02f9790dfaec496cae9c65970b5f43e1614cf9",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/http_input-6137fecfbbea5acb.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/graphql_native-993cbbde2960a30e",
+      "sha256": "1544da131e60407e6c70c135d7c7eb8708fc4e1dcd2b4124b7f0293ad28acc07",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 5 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 53.72s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/graphql_native-993cbbde2960a30e.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/graphql_query-c595f0f5e0c59625",
+      "sha256": "661cb16b471732600543d59d8da0f5ae3d31b6932a6a7ad821e0dff24857859f",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 2 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/graphql_query-c595f0f5e0c59625.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/graphql_capabilities-cfc48a3768552dd7",
+      "sha256": "7392ccdee138c592c526ef2b1a0b597e26de323f92c18f9b2c2087f29e434c29",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.03s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/graphql_capabilities-cfc48a3768552dd7.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/grpc_native-ddee33260d3c1096",
+      "sha256": "e9f2ca0836cfcab81650c9f36b13453240bf749d89848dafa09943199acbaf3d",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 0 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/grpc_native-ddee33260d3c1096.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/semantics-f2d58f920580e0ec",
+      "sha256": "61808a155d6bbd62fa56a2c7f104c04976382f3d7fced5c1e14be40c3763d8e8",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 47 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/semantics-f2d58f920580e0ec.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/graphql_helper_contracts-0996f5246d66754e",
+      "sha256": "d1652e002d02ed2f6fd11b12bfda8903fa4bbf1b42f63eccce3ba88e9e8c81ac",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/graphql_helper_contracts-0996f5246d66754e.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_plugin_elixir-dbb317ccd9432699",
+      "sha256": "fb14c2283695e3eb25d92ed1f444e87719e94628182a1070e0828318824453be",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 29 passed; 0 failed; 17 ignored; 0 measured; 0 filtered out; finished in 0.03s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/poolster_plugin_elixir-dbb317ccd9432699.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/runtime_conformance-e1d6ec995a95f21f",
+      "sha256": "b2474c8cb67d6dd87bdf64939e8189ba1711fef73bdff81b42baffa6e9ce5627",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/runtime_conformance-e1d6ec995a95f21f.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/core_only-3b4ad6bc94e198fe",
+      "sha256": "7f72f87b1d62e6e86133e4c81db48cbb6cad424567a45a6452ae135d752244e2",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/core_only-3b4ad6bc94e198fe.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/sdk_to_mock_contract-b018e572a76e01dc",
+      "sha256": "ff8e6fcb6ef6ac5f7e9f6eb6621ebd16fdb568396bedbdb04e3653a879e3ab99",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/sdk_to_mock_contract-b018e572a76e01dc.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/typed_packages-cfc63a26fbc5e19d",
+      "sha256": "44c0c5aa430275d0c619637e71d1f06fc3929c69555d79dfdeed81dd46115ced",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/typed_packages-cfc63a26fbc5e19d.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/complex_contract-97078c4fe675a03d",
+      "sha256": "6591eea95f3f37ca2c0de6f5b25f16e6b2bf589f6c4cc3c0fd604ac63fe9c28d",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-combined-protobuf-tests/complex_contract-97078c4fe675a03d.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/custom_methods-a19682bf975e0eae",
+      "sha256": "8b8111766e9df9b423fd177d35f4c8fae66d51c31f46f90e9daa7d7ff69c915d",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/custom_methods-a19682bf975e0eae.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/sdk_contract-790983e83ac28c28",
+      "sha256": "95cf3c01dfe0c9a20f1e652dc6ef786665dd4bd5a37b5251fcd418cec32652ef",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/sdk_contract-790983e83ac28c28.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/kafka_contract-b077520edba02da9",
+      "sha256": "6dc6eb9dd50c1d85c6fe00bf5c5f71912665f558a571d3f9fc94c4eec23a2797",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/kafka_contract-b077520edba02da9.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/golden_output-5d15e41ff058b42f",
+      "sha256": "c1bd00bb478538d7d7d4e43fbe9b6154fd29add50d804a0c0566c5530f92c5d7",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/golden_output-5d15e41ff058b42f.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/provider-9798356ba1b5f60a",
+      "sha256": "fdf40d5f8373128e5aa7655f985af39c59ef9d7d9aa2f5bc7046f9e1c05d7bf7",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/provider-9798356ba1b5f60a.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/message_blocks-1c79442ac39ca9e9",
+      "sha256": "2281345c67468945f6e8550fa05bca6cae283075f41f47883beb974065252ec4",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/message_blocks-1c79442ac39ca9e9.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_plugin_ruby-f54645e037228efb",
+      "sha256": "dc53d0465f60908cca14be3141a03b91090bcf7dc9651aff02a5a3a8ee030886",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 28 passed; 0 failed; 5 ignored; 0 measured; 0 filtered out; finished in 0.92s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/poolster_plugin_ruby-f54645e037228efb.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_input_openapi-73448506298bd9f0",
+      "sha256": "c611f96888132dc80aca5209528805b26a604d3400d06f34cf5750c01a59e47a",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/poolster_input_openapi-73448506298bd9f0.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_input_protobuf-fa9fef3db903752f",
+      "sha256": "43944dec0cd994d6e530be87e7482b6aa6bd14c2033be0d8f9ac849dccd33e29",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/poolster_input_protobuf-fa9fef3db903752f.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_plugin_csharp-7fe6da4aa086fd73",
+      "sha256": "2c3b0223be3c68295a6e0c726cd335eaa6473c71471164a1f117d111641181da",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 28 passed; 0 failed; 16 ignored; 0 measured; 0 filtered out; finished in 2.10s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/poolster_plugin_csharp-7fe6da4aa086fd73.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/typed_hooks-b3a88483f05a7437",
+      "sha256": "d4eb8e35bdac3c26ca2ff5db9416db13fb6bc6bf1809b8e7eadf3315089f678a",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/typed_hooks-b3a88483f05a7437.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/typed_packages-cdc3b19d5e742849",
+      "sha256": "756e32c0363baaaf957b154730cbb81ff3cde2417d485bbb7145d8b1501c7af8",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/typed_packages-cdc3b19d5e742849.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_plugin_swift-6432bc1e0ee709df",
+      "sha256": "1aae6cf7fc979d6738bd902e3243a6db50af496668fe2c592418bdff85623d86",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 19 passed; 0 failed; 20 ignored; 0 measured; 0 filtered out; finished in 0.75s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/poolster_plugin_swift-6432bc1e0ee709df.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_plugin_terraform-a3bbf1e25dfd2f8b",
+      "sha256": "bbf6df528c66a4416f6cb15f5579bad2586ba6330f5b80ea74cbce09e1509959",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 22 passed; 0 failed; 8 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/poolster_plugin_terraform-a3bbf1e25dfd2f8b.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/event_models-f368c8219d0261a8",
+      "sha256": "b4054ec8dc3174d049db30ed6706734634e73e22191bacd6ef005f8a70e7aa1d",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/event_models-f368c8219d0261a8.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/derived_blocks-1d86f4af3df9f4f6",
+      "sha256": "5150bccc0c2a67b613aa80678638ae6b43693ade71410147c1b466befd85b459",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/derived_blocks-1d86f4af3df9f4f6.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_plugin_postman-b037b0c29a4d09a6",
+      "sha256": "233a84ef9a81521c7b4fa7d68548b517591af03c4a8e9f4fbfab460d970553c7",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 15 passed; 0 failed; 4 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/poolster_plugin_postman-b037b0c29a4d09a6.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/filters-5af0623aecd577b6",
+      "sha256": "caaaa184fd68289ca8874f94f2883fcb0bd6df06003e45ad1e44d3813ad7a8f9",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/filters-5af0623aecd577b6.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_input_graphql-7c94141877fd4b66",
+      "sha256": "3273665f00ddbd9c49219dc01d984474fd0c148886c1e92468187a471061ac63",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/poolster_input_graphql-7c94141877fd4b66.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/generated_files-16cd97771abbeb31",
+      "sha256": "6fe1cd91ddee80443650647b159d45a3a47d0930856c8aa8cc36d4e4987c2f6c",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/generated_files-16cd97771abbeb31.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_input_capnproto-6220c51cbbcfe1c0",
+      "sha256": "c330bd2ee1e0248d7fb49b8ec9d268a35d60cb23ad720dd440f0a48884e1e072",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/poolster_input_capnproto-6220c51cbbcfe1c0.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/http_input-4760a52e9a520cca",
+      "sha256": "dc82c765317a832e4a14e8a0a8f86ad70dd7717f227cb625ddc8e950dc732f59",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/http_input-4760a52e9a520cca.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_plugin_php-778b69d3e83f2876",
+      "sha256": "2ce7e92cf18b47e2ff4667a7fdd90d0e6359cc27f2ac65f663be0cd97a53a3d0",
+      "returncode": 101,
+      "result": [
+        "test result: FAILED. 35 passed; 3 failed; 19 ignored; 0 measured; 0 filtered out; finished in 0.38s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/poolster_plugin_php-778b69d3e83f2876.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/native_packages-8c1a987a51788077",
+      "sha256": "11eb811025fb97bf047acd1d74885d087c0a6911dcb6fce8b8f05214f76d15f4",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/native_packages-8c1a987a51788077.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_input_asyncapi-21e9ad0f782e2f91",
+      "sha256": "84d4c88cfd453c17d3f75b5d5472e552fadc60fc831b5fb78caa140b42292121",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/poolster_input_asyncapi-21e9ad0f782e2f91.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_plugin_typescript_cli-ef764708a6b9dc32",
+      "sha256": "0d54672c0780c0ae2d041872d4ae4d2b8efd8126c8dec588f9a5fa7acb48b59f",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 7 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 1.84s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/poolster_plugin_typescript_cli-ef764708a6b9dc32.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/contract_provenance-61966995899e880f",
+      "sha256": "a8e21f0d72e5ad551c644fb37db556a2ccb1fbac4bc5fb87edf959f948b2f8c6",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/contract_provenance-61966995899e880f.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/input_registry-ec45a08246b14cc3",
+      "sha256": "d4109dfd16c58eb7a14fae9d8e167bdfdbc5642fba33c5461d86a4e32a29a5e2",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/input_registry-ec45a08246b14cc3.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_input_arazzo-7cd0931e432331b5",
+      "sha256": "7d712c6db31829ef1c9a49593b9aaf7d5bf17078ee090518981c2910fcc8f03e",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/poolster_input_arazzo-7cd0931e432331b5.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/contract_identity-141245c81d7582d7",
+      "sha256": "f6179d15ef9f161496b3693a09bfe867db6ac8a08ccf1bce04bef69e920e93c6",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/contract_identity-141245c81d7582d7.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster-79aaf61a754a62cd",
+      "sha256": "2c33f4bd32dc994945a10af27e9756f63d4ef5158ef9902c30e1a30905fc798b",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 112 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.84s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tail-tests/poolster-79aaf61a754a62cd.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/graphql_helpers-0a90da8382d0eb08",
+      "sha256": "7dc0036695fc0dede5f3b1aa79e17408cc646289e7511fb9e4803f61bcd0e99d",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 2 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.03s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/graphql_helpers-0a90da8382d0eb08.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_plugin_go-2e3dc8380d6843ea",
+      "sha256": "feb3d8cd23912ac43ad39e5987d79e12b9639d5bd74d389b429ebf126b03cc41",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 53 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 57.03s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/poolster_plugin_go-2e3dc8380d6843ea.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_plugin_typescript-4424e4ae9ec2ba38",
+      "sha256": "34c02cd02e130f70fc2a7304b2aa4779150910ec0c1af1d207c96db3b4b26102",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 55 passed; 0 failed; 21 ignored; 0 measured; 0 filtered out; finished in 0.37s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/poolster_plugin_typescript-4424e4ae9ec2ba38.log"
+    },
+    {
+      "executable": "/Users/kaan/Documents/Development/relevate/kaji/target/debug/deps/poolster_inputs-9002bbb2eb733e54",
+      "sha256": "15e3ef64fcd1fc07eaba803fbd42e55b51bd5c14efa381851465139bfb0c591b",
+      "returncode": 0,
+      "result": [
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "log": "/private/tmp/poolster-final-parallel-protobuf-tests/poolster_inputs-9002bbb2eb733e54.log"
+    }
+  ],
+  "documentation": {
+    "groups": 24,
+    "passed": 0,
+    "failed": 0,
+    "ignored": 0,
+    "note": "No executable doc-test cases; Node cdylib not eligible."
+  },
+  "limitations": [
+    "Ignored default-suite cases are not counted as passed. Focused opt-in Protobuf tests and independent peers are separate evidence.",
+    "Two post-build lint-only edits collapse a logically equivalent condition and use expect_err in one test; generated behavior is unchanged."
+  ]
+}

@@ -99,7 +99,11 @@ fn poolster_python_grpc_compiles_installs_and_runs_all_streams() {
     );
     let result = Command::new(&python)
         .arg("-c")
-        .arg(include_str!("fixtures/grpc/runtime.py"))
+        .arg(format!(
+            "{}\n{}",
+            include_str!("fixtures/grpc/runtime.py"),
+            include_str!("fixtures/grpc/transport.py")
+        ))
         .env("PYTHONPATH", &installed)
         .output()
         .unwrap();
@@ -197,6 +201,178 @@ fn pinned_upstream_proto2_public_imports_compile_and_preserve_presence() {
         .args(["-c", code])
         .env("PYTHONPATH", root.path().join("sdk/src"))
         .current_dir(root.path().join("sdk"))
+        .output()
+        .unwrap();
+    assert!(
+        result.status.success(),
+        "{}{}",
+        String::from_utf8_lossy(&result.stdout),
+        String::from_utf8_lossy(&result.stderr)
+    );
+}
+
+#[test]
+fn messages_only_generation_has_message_typing_without_services() {
+    let root = tempfile::tempdir().unwrap();
+    let source = root.path().join("messages.proto");
+    std::fs::write(
+        &source,
+        "syntax=\"proto3\"; message Payload {string value=1;}",
+    )
+    .unwrap();
+    let tree = generate(source).unwrap();
+    assert!(
+        tree.get("sdk/src/messages_pb2.pyi")
+            .unwrap()
+            .contains("class Payload")
+    );
+    assert!(tree.get("sdk/src/messages_pb2_grpc.py").is_none());
+}
+
+#[test]
+#[ignore = "requires pinned mypy/types-grpcio/types-protobuf in POOLSTER_PYTHON_GRPC"]
+fn generated_message_and_sync_async_consumers_are_statically_typed() {
+    let python =
+        PathBuf::from(std::env::var("POOLSTER_PYTHON_GRPC").expect("POOLSTER_PYTHON_GRPC"));
+    let source = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/grpc/service.proto");
+    let tree = generate(source).unwrap();
+    let root = tempfile::tempdir().unwrap();
+    tree.write_to(root.path()).unwrap();
+    for (name, code, valid) in [
+        (
+            "typing_valid.py",
+            include_str!("fixtures/grpc/typing_valid.py"),
+            true,
+        ),
+        (
+            "typing_invalid.py",
+            include_str!("fixtures/grpc/typing_invalid.py"),
+            false,
+        ),
+    ] {
+        let consumer = root.path().join("sdk").join(name);
+        std::fs::write(&consumer, code).unwrap();
+        let result = Command::new(&python)
+            .args(["-m", "mypy", "--strict", "--no-incremental"])
+            .arg(consumer)
+            .env("MYPYPATH", root.path().join("sdk/src"))
+            .output()
+            .unwrap();
+        let output = format!(
+            "{}{}",
+            String::from_utf8_lossy(&result.stdout),
+            String::from_utf8_lossy(&result.stderr)
+        );
+        if valid {
+            assert!(result.status.success(), "{output}");
+        } else {
+            assert!(!result.status.success(), "invalidconsumeraccepted");
+            assert!(output.matches("error:").count() >= 5, "{output}");
+            assert!(output.contains("typing_invalid.py"), "{output}");
+        }
+    }
+}
+
+#[test]
+#[ignore = "requires pinned Python runtimes in POOLSTER_PYTHON_GRPC"]
+fn native_wire_protojson_and_well_known_conformance() {
+    let python =
+        PathBuf::from(std::env::var("POOLSTER_PYTHON_GRPC").expect("POOLSTER_PYTHON_GRPC"));
+    let source = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../inputs/protobuf/tests/fixtures/conformance/portable.proto");
+    let tree = generate(source).unwrap();
+    let root = tempfile::tempdir().unwrap();
+    tree.write_to(root.path()).unwrap();
+    let result = Command::new(&python)
+        .args(["-c", include_str!("fixtures/grpc/semantics.py")])
+        .env("PYTHONPATH", root.path().join("sdk/src"))
+        .output()
+        .unwrap();
+    assert!(
+        result.status.success(),
+        "{}{}",
+        String::from_utf8_lossy(&result.stdout),
+        String::from_utf8_lossy(&result.stderr)
+    );
+}
+
+#[test]
+#[ignore = "requires pinned Python runtimes/build tools in POOLSTER_PYTHON_GRPC"]
+fn messages_only_package_installs_with_controls_and_bounded_helpers() {
+    use poolster_core::native::rpc::{RpcGenerationOptions, RpcUnknownFields};
+    let python =
+        PathBuf::from(std::env::var("POOLSTER_PYTHON_GRPC").expect("POOLSTER_PYTHON_GRPC"));
+    let source = tempfile::tempdir().unwrap();
+    let schema = source.path().join("models.proto");
+    std::fs::write(
+        &schema,
+        "syntax=\"proto3\"; package bounded; message Payload {string value=1; Payload child=2;}",
+    )
+    .unwrap();
+    let mut registry = InputRegistry::new();
+    registry
+        .register(poolster_input_protobuf::ProtobufInput)
+        .unwrap();
+    let input = InputProvider::<RpcContract>::new(Arc::new(registry), "protobuf", schema);
+    let plugin = grpc("bounded-models")
+        .input(input.handle())
+        .options(RpcGenerationOptions {
+            emit_clients: false,
+            emit_servers: false,
+            emit_types: false,
+            emit_json: false,
+            emit_reflection: false,
+            unknown_fields: RpcUnknownFields::Discard,
+            max_message_bytes: 32,
+            max_depth: 2,
+            ..Default::default()
+        });
+    let tree = Packages::new()
+        .package(Package::<Python>::new("sdk").with(plugin).with(input))
+        .generate_native()
+        .unwrap();
+    assert!(tree.get("sdk/src/models_pb2.pyi").is_none());
+    assert!(tree.get("sdk/src/models_pb2_grpc.py").is_none());
+    assert!(!tree.get("sdk/pyproject.toml").unwrap().contains("grpcio=="));
+    let root = tempfile::tempdir().unwrap();
+    tree.write_to(root.path()).unwrap();
+    let installed = root.path().join("installed");
+    let result = Command::new(&python)
+        .args([
+            "-m",
+            "pip",
+            "install",
+            "--no-deps",
+            "--no-build-isolation",
+            "--target",
+        ])
+        .arg(&installed)
+        .arg(root.path().join("sdk"))
+        .output()
+        .unwrap();
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let code = r#"import models_pb2 as m; import _poolster_codecs_bounded_models as c
+assert c.decode(m.Payload,c.encode(m.Payload(value='test'))).value=='test'
+assert not hasattr(c,'to_json') and not hasattr(c,'message_type')
+raw=m.Payload(value='a').SerializeToString()+b'\xa2\x06\x01x'
+assert b'\xa2\x06\x01x' not in c.encode(c.decode(m.Payload,raw))
+for invalid in [b'x'*33]:
+    try:c.decode(m.Payload,invalid)
+    except ValueError:pass
+    else:raise AssertionError('size limit ignored')
+value=m.Payload();value.child.child.child.value='deep'
+for action in [lambda:c.encode(value),lambda:c.decode(m.Payload,value.SerializeToString()),lambda:c.encode(m.Payload(value='x'*33))]:
+    try:action()
+    except ValueError:pass
+    else:raise AssertionError('depth/size limit ignored')
+"#;
+    let result = Command::new(&python)
+        .args(["-c", code])
+        .env("PYTHONPATH", &installed)
         .output()
         .unwrap();
     assert!(

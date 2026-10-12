@@ -1,0 +1,63 @@
+{
+  "input_hashes": {
+    "crates/inputs/protobuf/tests/fixtures/conformance/PROVENANCE.json": "be04d104d8e66d91320181c537572c89579d7f2e66168677f4708b1f98699db8",
+    "crates/inputs/protobuf/tests/fixtures/conformance/batching.proto": "9d1da940dd2c0bc7dc28ceaa6ed1d6c859083a196dcb3487c369cd036474b8a1",
+    "crates/inputs/protobuf/tests/fixtures/conformance/legacy.proto": "a3ec540a91975989429fde2565dbabff21da7bde11f6a4c42c1a3bff221a4698",
+    "crates/inputs/protobuf/tests/fixtures/conformance/portable.proto": "4651a206ddc7685306446cb98bbf33966ab74b7decf8ea6ac6af0165e986132f",
+    "crates/inputs/protobuf/tests/fixtures/conformance/vectors.json": "6e1ecb0882a11644bd0acaea9288ecf99e8c99493d04f7f4e08028767ad96d63",
+    "scripts/protobuf-conformance/generate.cjs": "24df06e7a3072583ed3fcd86547c690cc1778678833b3c5ed602f154a19c4553",
+    "scripts/protobuf-conformance/go_peer.go": "934787f396c7f32c22bef4de01aa5d94c69d8520f9534baaa9107d86a021b7fc",
+    "scripts/protobuf-conformance/python_peer.py": "3e88ef7a3f21ce5f50b811a60da18033fc7ebbdcfa1cb7652c11d92f8341aaf9",
+    "scripts/protobuf-conformance/typescript_peer.mjs": "2e14c6dde7b525256f11b5a165c487ce597aa1ff78dc1e0409762563b5e010ac",
+    "packages/npm/sdk/native/poolster_node.node": "5ce93622e31a5dc6309fba03fbfb02d9b46ab21bdc911c593dc6284c8048f468"
+  },
+  "corpus": "crates/inputs/protobuf/tests/fixtures/conformance",
+  "cases": [
+    {
+      "case": "typescript-client-oracle-server",
+      "status": "passed",
+      "seconds": 0.34
+    },
+    {
+      "case": "oracle-client-typescript-server",
+      "status": "passed",
+      "seconds": 0.462
+    },
+    {
+      "case": "python-client-oracle-server",
+      "status": "passed",
+      "seconds": 0.44
+    },
+    {
+      "case": "oracle-client-python-server",
+      "status": "passed",
+      "seconds": 0.381
+    },
+    {
+      "case": "go-client-oracle-server",
+      "status": "passed",
+      "seconds": 0.358
+    },
+    {
+      "case": "oracle-client-go-server",
+      "status": "passed",
+      "seconds": 0.343
+    }
+  ],
+  "method": "Owned SDK clients and servers, independent grpcio-tools peer in both directions",
+  "runtime_versions": {
+    "oracle": {
+      "grpcio-tools": "1.78.0",
+      "grpcio": "1.78.0",
+      "protobuf": "6.33.5"
+    },
+    "typescript": {
+      "@bufbuild/protobuf": "2.16.0",
+      "@grpc/grpc-js": "1.14.6",
+      "typescript": "5.9.3"
+    }
+  },
+  "status": "passed",
+  "date": "2026-10-12",
+  "scope": "Fresh SDK addon after TypeScript enum/browser/DTO fixes, Python declarations/immutable typing/enum aliases, Go owned renderer. Six independent gRPC client/server peer directions; all four RPC modes per pair. Does not certify every conformance profile."
+}

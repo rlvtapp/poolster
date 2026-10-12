@@ -169,3 +169,10 @@ Kafka generated compilation and local-broker execution were explicitly run on 12
 - [Kafka event implementation](../../../crates/plugins/csharp/src/events/)
 - [Kafka generation and native tests](../../../crates/plugins/csharp/tests/events.rs)
 - [Kafka runtime probe](../../../crates/plugins/csharp/tests/fixtures/events-wire.cs)
+
+## Protobuf conformance audit
+
+Protobuf output is not implemented in this language. All 29 requirements remain
+unsupported; the rollout and per-language assessments are recorded in the
+[Protobuf audit](../outputs/protobuf-conformance.md) and
+[requirements](../../specifications/protobuf-conformance.md).

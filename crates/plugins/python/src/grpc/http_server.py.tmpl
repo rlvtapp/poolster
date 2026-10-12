@@ -1,0 +1,73 @@
+"""Poolster-owned HTTP handlers; supplied handlers accept native messages."""
+import json as _json
+import struct as _struct
+from http.server import BaseHTTPRequestHandler as _Base
+import {{RUNTIME}} as _runtime
+from google.protobuf import message_factory as _factory
+_METHODS = {{METHODS}}
+_LIMIT = {{LIMIT}}
+
+class HttpRpcError(Exception):
+    def __init__(self, code, message, metadata=None):
+        super().__init__(message)
+        self.code, self.metadata = code, metadata or {}
+
+def handler(implementations):
+    """Return a BaseHTTPRequestHandler class; caller owns server/TLS lifecycle."""
+    class Handler(_Base):
+        def do_POST(self):
+            twirp = self.path.startswith('/twirp/')
+            method = self.path[len('/twirp/'):] if twirp else self.path.lstrip('/')
+            if method not in _METHODS:
+                self.send_error(404); return
+            input_name, output_name, input_stream, output_stream = _METHODS[method]
+            if input_stream or (twirp and output_stream):
+                self.send_error(501, 'Unsupported streaming shape'); return
+            if method not in implementations:
+                self.send_error(501, 'RPC implementation missing'); return
+            started = False
+            try:
+                size = int(self.headers.get('Content-Length', '-1'))
+                if size < 0 or size > _LIMIT + (0 if twirp else 5):
+                    raise HttpRpcError('resource_exhausted', 'Invalid request size')
+                data = self.rfile.read(size)
+                if len(data) != size: raise HttpRpcError('malformed', 'Truncated request')
+                if not twirp:
+                    if len(data) < 5 or data[0] != 0 or _struct.unpack('>I', data[1:5])[0] != len(data)-5:
+                        raise HttpRpcError('malformed', 'Invalid gRPC-web request frame')
+                    data = data[5:]
+                request_type = _factory.GetMessageClass(_runtime._POOL.FindMessageTypeByName(input_name))
+                response_type = _factory.GetMessageClass(_runtime._POOL.FindMessageTypeByName(output_name))
+                request = _runtime._decode(request_type, data)
+                response = implementations[method](request)
+                if not output_stream and not isinstance(response, response_type): raise TypeError("Wrong RPC response type")
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/protobuf' if twirp else 'application/grpc-web+proto')
+                self.end_headers()
+                started = True
+                for value in (response if output_stream else [response]):
+                    if not isinstance(value, response_type): raise TypeError('Wrong RPC response type')
+                    encoded = _runtime._encode(value)
+                    self.wfile.write(encoded if twirp else b'\0' + _struct.pack('>I', len(encoded)) + encoded)
+                    self.wfile.flush()
+                if not twirp:
+                    trailer = b'grpc-status: 0\r\n'
+                    self.wfile.write(b'\x80' + _struct.pack('>I', len(trailer)) + trailer)
+            except (BrokenPipeError, ConnectionResetError):
+                return
+            except Exception as error:
+                known = isinstance(error, HttpRpcError)
+                code = error.code if known else 'internal'
+                message = str(error) if known else 'RPC processing failed'
+                if not twirp:
+                    from urllib.parse import quote
+                    if not started:
+                        self.send_response(200); self.send_header('Content-Type', 'application/grpc-web+proto'); self.end_headers()
+                    status = {'invalid_argument':'3', 'malformed':'3', 'resource_exhausted':'8', 'not_found':'5', 'unauthenticated':'16'}.get(code,'13')
+                    trailer = ('grpc-status: ' + status + '\r\ngrpc-message: ' + quote(message) + '\r\n').encode('ascii')
+                    self.wfile.write(b'\x80' + _struct.pack('>I', len(trailer)) + trailer)
+                    return
+                if started: return
+                data = _json.dumps({'code': code, 'msg': message, 'meta': error.metadata if known else {}}).encode()
+                self.send_response(400); self.send_header('Content-Type', 'application/json'); self.end_headers(); self.wfile.write(data)
+    return Handler

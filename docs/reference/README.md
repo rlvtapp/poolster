@@ -17,6 +17,8 @@ Use these pages to look up details after a quickstart.
 
 - [Language plugin implementation specification](../specifications/language-plugins.md): internal modules, shared code and contract boundaries
 - [Generated SDK specification](../specifications/generated-sdk.md): capabilities, styles, layout, naming and formatting requirements
+- [Protobuf conformance requirements](../specifications/protobuf-conformance.md): ts-proto feature-set target, all-language rollout and evidence gates
+- [Protobuf implementation audit](outputs/protobuf-conformance.md): requirement/option assessments, known defects and missing evidence per language
 - [Support matrix](../plugin-support-matrix.md) and [GraphQL package layouts](outputs/graphql-layout.md)
 - [GraphQL TypeScript](outputs/graphql-typescript.md), [Rust](outputs/graphql-rust.md), [Go](outputs/graphql-go.md), [Python](outputs/graphql-python.md), [PHP](outputs/graphql-php.md), [Java](outputs/graphql-java.md), [C#](outputs/graphql-csharp.md), [Ruby](outputs/graphql-ruby.md), [Swift](outputs/graphql-swift.md), [Elixir](outputs/graphql-elixir.md), [integrations](outputs/graphql-integrations.md) and [advanced capabilities](outputs/graphql-capabilities.md)
 - [Symfony GraphQL bundles](outputs/graphql-symfony.md)

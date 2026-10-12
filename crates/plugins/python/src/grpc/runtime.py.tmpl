@@ -49,3 +49,43 @@ def exports(file_name, module):
         result.update((value.name, value.number) for value in definition.values)
     result.update(descriptor.extensions_by_name)
     return result
+
+_MAX_MESSAGE_BYTES = {{MAX_MESSAGE_BYTES}}
+_MAX_DEPTH = {{MAX_DEPTH}}
+_DISCARD_UNKNOWN = {{DISCARD_UNKNOWN}}
+
+def _check_depth(value):
+    pending = [(value, 0)]
+    while pending:
+        current, depth = pending.pop()
+        if depth > _MAX_DEPTH:
+            raise ValueError("Protobuf message exceeds configured maxDepth")
+        for field, content in current.ListFields():
+            if field.message_type is None:
+                continue
+            if field.is_repeated:
+                if field.message_type.GetOptions().map_entry:
+                    if field.message_type.fields_by_name["value"].message_type is not None:
+                        pending.extend((child, depth + 1) for child in content.values())
+                else:
+                    pending.extend((child, depth + 1) for child in content)
+            else:
+                pending.append((content, depth + 1))
+
+def _encode(value):
+    _check_depth(value)
+    result = value.SerializeToString()
+    if len(result) > _MAX_MESSAGE_BYTES:
+        raise ValueError("Protobuf message exceeds configured maxMessageBytes")
+    return result
+
+def _decode(cls, data):
+    if not isinstance(data, bytes):
+        raise TypeError("Protobuf binary input must be bytes")
+    if len(data) > _MAX_MESSAGE_BYTES:
+        raise ValueError("Protobuf message exceeds configured maxMessageBytes")
+    result = cls.FromString(data)
+    _check_depth(result)
+    if _DISCARD_UNKNOWN:
+        result.DiscardUnknownFields()
+    return result

@@ -154,11 +154,16 @@ Poolster emits the bindings and client/server source.
 
 Unary and all streaming directions use native channel APIs. Server implementations
 subclass `<Service>Servicer` and use `add_<Service>Servicer_to_server`. Metadata,
-status errors, timeouts and cancellation follow grpcio. Typing declarations target
-the synchronous API. Proto2 defaults/extensions/required presence, proto3 optional
+status errors, timeouts and cancellation follow grpcio. Separate synchronous and asynchronous stubs have matching typing declarations. Proto2 defaults/extensions/required presence, proto3 optional
 fields, oneofs, maps and well-known types remain native runtime semantics. Custom
 files in `google/protobuf/`, module/name collisions and editions are rejected.
 
-These APIs use the native gRPC surface; HTTP/GraphQL raw, flat and idiomatic
-settings do not apply. See the [Protobuf guide](../outputs/protobuf.md) for recipe,
+Native gRPC APIs remain available alongside selectable raw, flat and idiomatic facades. See the [Protobuf guide](../outputs/protobuf.md) for recipe,
 SDK and call examples.
+
+## Protobuf conformance audit
+
+The existing gRPC output is partial against the all-language target. No complete
+conformance profile passes yet; see requirement-level evidence and defects in the
+[Protobuf audit](../outputs/protobuf-conformance.md) and
+[requirements](../../specifications/protobuf-conformance.md).

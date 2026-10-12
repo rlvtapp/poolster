@@ -20,6 +20,10 @@ states its own audit date. These pages describe
 implemented output, not the already published alpha.1 release. Language support does
 not mean every contract, schema feature or runtime option is implemented.
 
+The [Protobuf conformance requirements](../../specifications/protobuf-conformance.md)
+set the future feature-set target for all ten languages. Current gRPC support is
+partial and does not establish full conformance.
+
 All ten event outputs target the bounded plaintext JSON Kafka subset, not every
 AsyncAPI broker or feature. PHP cannot detect duplicate wire header names because
 its native client collapses them into a map. Elixir rejects empty declared keys/header

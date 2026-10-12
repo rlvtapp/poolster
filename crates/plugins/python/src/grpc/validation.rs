@@ -83,8 +83,8 @@ pub(super) fn validate(
         "Python gRPC distribution name must be a portable package name"
     );
     ensure!(
-        !contract.root_files.is_empty() && !schema.files.iter().all(|f| f.services.is_empty()),
-        "Python gRPC needs roots and RPC services"
+        !contract.root_files.is_empty(),
+        "Python Protobuf needs root files"
     );
     let mut names = BTreeSet::new();
     let mut folded = BTreeSet::new();

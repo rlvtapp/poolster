@@ -1,0 +1,28 @@
+{
+  "owner": "Poolster",
+  "purpose": "Portable Protobuf conformance and independent runtime/oracle comparison corpus",
+  "files": [
+    {
+      "path": "batching.proto",
+      "sha256": "9d1da940dd2c0bc7dc28ceaa6ed1d6c859083a196dcb3487c369cd036474b8a1"
+    },
+    {
+      "path": "legacy.proto",
+      "sha256": "a3ec540a91975989429fde2565dbabff21da7bde11f6a4c42c1a3bff221a4698"
+    },
+    {
+      "path": "portable.proto",
+      "sha256": "4651a206ddc7685306446cb98bbf33966ab74b7decf8ea6ac6af0165e986132f"
+    }
+  ],
+  "oracle": {
+    "grpcio-tools": "1.78.0",
+    "protobuf": "6.33.5",
+    "protoc": "34.2",
+    "protoc-gen-go": "1.36.11",
+    "protoc-gen-go-grpc": "1.6.2",
+    "grpcio": "1.78.0",
+    "setuptools": "80.9.0",
+    "typing-extensions": "4.16.0"
+  }
+}

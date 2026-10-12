@@ -5,12 +5,30 @@ use poolster_core::{
 };
 use poolster_plugin_typescript::{TypeScript, grpc};
 use std::{path::Path, process::Command, sync::Arc};
+fn test_options() -> poolster_core::native::rpc::RpcGenerationOptions {
+    poolster_core::native::rpc::RpcGenerationOptions {
+        frameworks: vec![
+            poolster_core::native::rpc::RpcFramework::Native,
+            poolster_core::native::rpc::RpcFramework::NiceGrpc,
+            poolster_core::native::rpc::RpcFramework::NestJs,
+        ],
+        immutable_views: true,
+        value_adapters: true,
+        reactive_streams: true,
+        transports: vec![
+            poolster_core::native::rpc::RpcTransport::Grpc,
+            poolster_core::native::rpc::RpcTransport::GrpcWeb,
+            poolster_core::native::rpc::RpcTransport::Twirp,
+        ],
+        ..Default::default()
+    }
+}
 fn generate() -> anyhow::Result<poolster_core::GeneratedTree> {
     let mut registry = InputRegistry::new();
     registry.register(poolster_input_protobuf::ProtobufInput)?;
     let source = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/grpc/service.proto");
     let input = InputProvider::<RpcContract>::new(Arc::new(registry), "protobuf", source);
-    let plugin = grpc().input(input.handle());
+    let plugin = grpc().input(input.handle()).options(test_options());
     Packages::new()
         .package(Package::<TypeScript>::new("sdk").with(plugin).with(input))
         .generate_native()
@@ -45,7 +63,7 @@ fn substituted() -> anyhow::Result<poolster_core::GeneratedTree> {
         contract,
     };
 
-    let output = grpc().input(provider.meta.handle());
+    let output = grpc().input(provider.meta.handle()).options(test_options());
     Packages::new()
         .package(
             Package::<TypeScript>::new("sdk")
@@ -71,7 +89,7 @@ fn generated_grpc_compiles_and_executes_every_stream_direction() {
         replaced.get("sdk/src/common.ts")
     );
     assert!(
-        tree.get("sdk/src/service.ts")
+        tree.get("sdk/src/service.grpc.ts")
             .unwrap()
             .contains("StoreServer")
     );
@@ -97,6 +115,16 @@ fn generated_grpc_compiles_and_executes_every_stream_direction() {
         String::from_utf8_lossy(&compile.stdout),
         String::from_utf8_lossy(&compile.stderr)
     );
+    std::fs::write(
+        sdk.join("test-server.key"),
+        include_bytes!("fixtures/grpc/test-server.key"),
+    )
+    .unwrap();
+    std::fs::write(
+        sdk.join("test-server.pem"),
+        include_bytes!("fixtures/grpc/test-server.pem"),
+    )
+    .unwrap();
     std::fs::write(
         sdk.join("runtime.mjs"),
         include_str!("fixtures/grpc/runtime.mjs"),
@@ -190,7 +218,7 @@ fn owned_generation_uses_descriptor_projection_and_provider_substitution() {
     assert!(tree.get("sdk/src/common.ts").unwrap().contains("bigint"));
     assert!(tree.get("sdk/src/common.ts").unwrap().contains("case:"));
     assert!(
-        tree.get("sdk/src/service.ts")
+        tree.get("sdk/src/service.grpc.ts")
             .unwrap()
             .contains("ClientDuplexStream")
     );
@@ -210,7 +238,7 @@ fn malformed_documents_fail_before_rendering() {
 }
 
 #[test]
-fn unsupported_groups_fail_with_an_explicit_diagnostic() {
+fn groups_are_projected_as_native_message_fields() {
     let temp = tempfile::tempdir().unwrap();
     let path = temp.path().join("groups.proto");
     std::fs::write(&path,"syntax=\"proto2\"; package old; message Envelope { optional group LegacyGroup=1 { optional string name=2; } } service Legacy { rpc Read(Envelope) returns(Envelope); }").unwrap();
@@ -219,15 +247,19 @@ fn unsupported_groups_fail_with_an_explicit_diagnostic() {
         contract: poolster_input_protobuf::load(&path).unwrap().rpc_contract(),
     };
     let output = grpc().input(provider.meta.handle());
-    let error = Packages::new()
+    let tree = Packages::new()
         .package(
             Package::<TypeScript>::new("sdk")
                 .with(output)
                 .with(provider),
         )
         .generate_native()
-        .unwrap_err();
-    assert!(format!("{error:#}").contains("groups"));
+        .unwrap();
+    assert!(
+        tree.get("sdk/src/groups.messages.ts")
+            .unwrap()
+            .contains("legacygroup")
+    );
 }
 
 #[test]
@@ -259,4 +291,54 @@ fn normalized_type_name_collisions_are_diagnostic() {
         .generate_native()
         .unwrap_err();
     assert!(format!("{error:#}").contains("collide"));
+}
+
+fn generate_source(source: &str) -> anyhow::Result<poolster_core::GeneratedTree> {
+    let temp = tempfile::tempdir()?;
+    let path = temp.path().join("audit.proto");
+    std::fs::write(&path, source)?;
+    let provider = ContractProvider {
+        meta: Meta::new(),
+        contract: poolster_input_protobuf::load(&path)?.rpc_contract(),
+    };
+    let output = grpc().input(provider.meta.handle());
+    Packages::new()
+        .package(
+            Package::<TypeScript>::new("sdk")
+                .with(output)
+                .with(provider),
+        )
+        .generate_native()
+}
+#[test]
+fn service_and_method_collisions_fail_before_emission() {
+    for (definitions, expected) in [
+        (
+            "service Store {rpc Get(Payload) returns(Payload); rpc get(Payload) returns(Payload);}",
+            "methods collide",
+        ),
+        (
+            "message StoreClient {} service Store {rpc Get(Payload) returns(Payload);}",
+            "service exports collide",
+        ),
+        (
+            "service Store {rpc Close(Payload) returns(Payload);}",
+            "native Client API",
+        ),
+    ] {
+        let source = format!(
+            "syntax=\"proto3\"; package audit; message Payload {{string value=1;}} {definitions}"
+        );
+        let error = generate_source(&source).unwrap_err();
+        assert!(format!("{error:#}").contains(expected), "{error:#}");
+    }
+}
+#[test]
+fn messages_only_documents_generate_usable_modules() {
+    let tree =
+        generate_source("syntax=\"proto3\"; package audit; message Payload {string value=1;}")
+            .unwrap();
+    let output = tree.get("sdk/src/audit.ts").unwrap();
+    assert!(output.contains("PayloadSchema"));
+    assert!(!output.contains("export const PayloadClient"));
 }

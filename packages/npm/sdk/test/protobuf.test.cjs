@@ -12,7 +12,7 @@ test('Protobuf unsupported language is empty with an explicit skipped report',as
  const config=await setup(t);config.plugins=[bundle.pluginPhp()];const result=await generate(config,{write:false});assert.deepEqual(result.files,[]);assert.equal(result.skipped.length,1);assert.match(result.skipped[0].reason,/protobuf/);
 });
 test('Protobuf rejects HTTP styles, wrong toolchains and incompatible input options',async(t)=>{
- const config=await setup(t);config.plugins=[bundle.pluginPython({style:'flat'})];await assert.rejects(()=>generate(config),/Protobuf SDK packages/);
+ const config=await setup(t);config.plugins=[bundle.pluginPython({transport:'fetch'})];await assert.rejects(()=>generate(config),/Protobuf SDK packages/);
  config.plugins=[bundle.pluginGo()];await assert.rejects(()=>generate(config),/requires contractOptions.protobuf.module/);
  config.plugins=[bundle.pluginPython({contractOptions:{protobuf:{toolchain:{protoc:'protoc'}}}})];await assert.rejects(()=>generate(config),/Python Protobuf supports/);
  assert.throws(()=>defineConfig({...config,input:{...config.input,operations:['read.graphql']}}),/Protobuf input does not support operations/);
@@ -40,9 +40,36 @@ test('Protobuf TypeScript Node route generates streaming stubs and regenerates',
  assert.ok(first.files.map(f=>f.contents).join('\n').includes('ClientReadableStream'));
  assert.deepEqual((await generate(config)).changes,{added:[],modified:[],removed:[]});
 });
-test('Protobuf Go Node route preserves upstream generation and regenerates', {skip:!process.env.POOLSTER_PROTOC||!process.env.POOLSTER_PROTOC_GEN_GO||!process.env.POOLSTER_PROTOC_GEN_GO_GRPC},async(t)=>{
- const config=await setup(t);config.plugins=[bundle.pluginGo({contractOptions:{protobuf:{module:'example.com/js-rpc',goPackages:{'service.proto':'example.com/js-rpc/demo','common.proto':'example.com/js-rpc/demo'},toolchain:{protoc:process.env.POOLSTER_PROTOC,protocGenGo:process.env.POOLSTER_PROTOC_GEN_GO,protocGenGoGrpc:process.env.POOLSTER_PROTOC_GEN_GO_GRPC}}}})];
+test('Protobuf Go Node route owns generation without generator executables and regenerates',async(t)=>{
+ const config=await setup(t);config.plugins=[bundle.pluginGo({contractOptions:{protobuf:{module:'example.com/js-rpc',goPackages:{'service.proto':'example.com/js-rpc/demo','common.proto':'example.com/js-rpc/demo'},toolchain:{protoc:'/missing/protoc',protocGenGo:'/missing/protoc-gen-go',protocGenGoGrpc:'/missing/protoc-gen-go-grpc'}}}})];
  const first=await generate(config);assert.deepEqual(first.skipped,[]);
  assert.ok(first.files.some(f=>f.path.endsWith('.pb.go')));assert.ok(first.files.some(f=>f.path.endsWith('_grpc.pb.go')));
  assert.deepEqual((await generate(config)).changes,{added:[],modified:[],removed:[]});
+});
+
+test('Protobuf generation controls validate resource policies and surfaces',()=>{
+ for (const generation of [
+  {emitTypes:'yes'}, {unknownFields:'ignore'}, {transports:['grpc','grpc']}, {transports:['http']}, {clientStyle:'unknown'}, {maxMessageBytes:0},
+  {representations:{int64:'lossy'}}, {representations:{madeUp:'native'}}, {typePrefix:'../unsafe'}, {fileSuffix:'/escape'}, {encodeIncludeTypes:['a.Message','a.Message']}, {decodeIncludeTypes:['']}, {importMappings:{'../bad.proto':'module'}}, {importMappings:{'good.proto':''}}, {comments:'yes'}, {frameworks:['native','native']}, {batching:[{}]}, {maxMessageBytes:2147483648}, {maxDepth:1.5}, {maxDepth:1001}, {typo:true},
+  {emitTypes:false,emitBinary:false,emitJson:false,emitClients:false,emitServers:false,emitReflection:false},
+ ]) assert.throws(()=>sdkPackage({language:'typescript',contractOptions:{protobuf:{generation}}}),/Protobuf/);
+ const generation={typePrefix:'Api',fileSuffix:'.generated',encodeIncludeTypes:['sample.Message'],importMappings:{'external.proto':'external.models'},comments:false,emitClients:false,emitServers:false,unknownFields:'discard',maxMessageBytes:1024,maxDepth:20};
+ assert.deepEqual(sdkPackage({language:'typescript',contractOptions:{protobuf:{generation}}}).contractOptions.protobuf.generation,generation);
+});
+
+
+test('Protobuf generation controls select message-only output and client styles',async(t)=>{
+ const config=await setup(t);
+ config.plugins=[bundle.pluginTypeScript({contractOptions:{protobuf:{generation:{emitClients:false,emitServers:false}}}})];
+ const messages=await generate(config,{write:false});
+ assert.deepEqual(messages.skipped,[]);
+ assert.ok(messages.files.some(file=>file.path.endsWith('common.ts')));
+ assert.ok(!messages.files.map(file=>file.contents).join('\n').includes('export const StoreClient='));
+ for(const style of ['raw','flat','idiomatic']) {
+  config.plugins=[bundle.pluginTypeScript({style})];
+  const result=await generate(config,{write:false});
+  const client=result.files.find(file=>file.path.endsWith('/client.ts'));
+  assert.ok(client, style);
+  assert.match(client.contents,new RegExp(`create${style==='raw'?'Raw':style==='flat'?'Flat':'Idiomatic'}Client`));
+ }
 });
