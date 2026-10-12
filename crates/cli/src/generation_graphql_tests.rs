@@ -104,7 +104,7 @@ fn direct_graphql_generates_rust_and_mixed_languages_without_skips() {
             OsString::from(languages),
         ];
         args.extend(flags.into_iter().map(OsString::from));
-        let Action::Generate(options) = parse(args.into_iter()).unwrap() else {
+        let Action::Generate(options) = parse(args).unwrap() else {
             panic!()
         };
         assert!(skipped_outputs(&options, options.native_input.as_ref().unwrap()).is_empty());
