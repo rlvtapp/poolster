@@ -566,6 +566,66 @@
           "type": "toml",
           "path": "crates/inputs/openapi/Cargo.toml",
           "jsonpath": "$.dependencies[\"poolster-core\"].version"
+        },
+        {
+          "type": "toml",
+          "path": "crates/plugins/typescript/Cargo.toml",
+          "jsonpath": "$[\"dev-dependencies\"][\"poolster-input-graphql\"].version"
+        },
+        {
+          "type": "toml",
+          "path": "crates/plugins/typescript/Cargo.toml",
+          "jsonpath": "$[\"dev-dependencies\"][\"poolster-input-arazzo\"].version"
+        },
+        {
+          "type": "toml",
+          "path": "crates/plugins/typescript/Cargo.toml",
+          "jsonpath": "$[\"dev-dependencies\"][\"poolster-input-asyncapi\"].version"
+        },
+        {
+          "type": "toml",
+          "path": "crates/plugins/go/Cargo.toml",
+          "jsonpath": "$[\"dev-dependencies\"][\"poolster-input-protobuf\"].version"
+        },
+        {
+          "type": "toml",
+          "path": "crates/plugins/symfony/Cargo.toml",
+          "jsonpath": "$.dependencies[\"poolster-plugin-php\"].version"
+        },
+        {
+          "type": "toml",
+          "path": "crates/plugins/symfony/Cargo.toml",
+          "jsonpath": "$[\"dev-dependencies\"][\"poolster-input-graphql\"].version"
+        },
+        {
+          "type": "toml",
+          "path": "crates/plugins/csharp/Cargo.toml",
+          "jsonpath": "$[\"dev-dependencies\"][\"poolster-input-asyncapi\"].version"
+        },
+        {
+          "type": "toml",
+          "path": "crates/plugins/elixir/Cargo.toml",
+          "jsonpath": "$[\"dev-dependencies\"][\"poolster-input-graphql\"].version"
+        },
+        {
+          "type": "toml",
+          "path": "crates/plugins/typescript/Cargo.toml",
+          "jsonpath": "$[\"dev-dependencies\"][\"poolster-input-protobuf\"].version"
+        },
+        {
+          "type": "toml",
+          "path": "crates/plugins/python/Cargo.toml",
+          "jsonpath": "$[\"dev-dependencies\"][\"poolster-input-protobuf\"].version"
+        },
+        {
+          "type": "toml",
+          "path": "crates/plugins/elixir/Cargo.toml",
+          "jsonpath": "$[\"dev-dependencies\"][\"poolster-input-asyncapi\"].version"
+        },
+        {
+          "type": "toml",
+          "path": "crates/plugins/ruby/Cargo.toml",
+          "jsonpath": "$[\"dev-dependencies\"][\"poolster-input-asyncapi\"].version"
         }
       ],
       "version-file": "version.txt",

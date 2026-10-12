@@ -57,6 +57,15 @@ jobs:
         with:
           go-version-file: openapi/go.mod
       - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ github.job }}-${{ matrix.path }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - name: Select Swift 6 toolchain
+        if: matrix.language == 'Swift'
+        run: |
+          echo "DEVELOPER_DIR=/Applications/Xcode_16.2.app/Contents/Developer" >> "$GITHUB_ENV"
+          DEVELOPER_DIR=/Applications/Xcode_16.2.app/Contents/Developer swift --version
       - name: Install explicit TypeScript compiler for the runtime probe
         if: matrix.language == 'TypeScript'
         run: |

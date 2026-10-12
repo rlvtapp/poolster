@@ -1,9 +1,9 @@
 //! Poolster-owned TypeScript gRPC source generation over retained descriptors.
-use anyhow::{ensure, Result};
+use anyhow::{Result, ensure};
 use poolster_core::{
+    GeneratedFile,
     engine::{Handle, Meta, Plugin, PluginContext, Provision, Requirement},
     native::rpc::{RpcContract, RpcWireSchema},
-    GeneratedFile,
 };
 mod batch;
 mod client;
@@ -65,7 +65,10 @@ impl Plugin<crate::TypeScript> for Grpc {
     }
     fn generate(&self, cx: &mut PluginContext<'_, crate::TypeScript>) -> Result<()> {
         self.options.validate()?;
-        ensure!(self.options.representations.is_native() || self.options.import_mappings.is_empty(), "TypeScript alternate representations cannot use importMappings: mapped modules must expose native Protobuf types; generate owned value models without external mappings");
+        ensure!(
+            self.options.representations.is_native() || self.options.import_mappings.is_empty(),
+            "TypeScript alternate representations cannot use importMappings: mapped modules must expose native Protobuf types; generate owned value models without external mappings"
+        );
         ensure!(
             !self.options.reactive_streams || self.options.emit_clients,
             "TypeScript reactiveStreams requires emitted clients"

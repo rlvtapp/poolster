@@ -8,9 +8,14 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   launcher:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -21,27 +26,3 @@ jobs:
         working-directory: packages/npm/cli
       - run: npm pack --dry-run --ignore-scripts
         working-directory: packages/npm/sdk
-  sdk:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: actions/setup-go@v7
-        with:
-          go-version-file: openapi/go.mod
-          cache-dependency-path: openapi/go.sum
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-      - run: node packages/npm/generate-plugins.mjs --check
-      - run: node packages/npm/sdk/scripts/build-native.mjs
-      - run: go build -o ../target/debug/poolster-openapi .
-        working-directory: openapi
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 18
-      - run: npm test --prefix packages/npm/sdk
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-      - run: npm test --prefix packages/npm/sdk

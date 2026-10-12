@@ -114,7 +114,8 @@ fn native_generated_kafka_package() {
         op.group_id = Some(format!("poolster-rust-{unique}"));
     }
     let tree = generate(events).unwrap();
-    let destination = std::path::Path::new("/private/tmp/poolster-rust-kafka-generated");
+    let directory = tempfile::tempdir().unwrap();
+    let destination = directory.path();
     for (path, contents) in tree.iter() {
         let path = path.strip_prefix("sdk").unwrap_or(path);
         let target = destination.join(path);
@@ -140,7 +141,7 @@ fn native_generated_kafka_package() {
         .arg(destination.join("Cargo.toml"))
         .env(
             "CARGO_TARGET_DIR",
-            "/private/tmp/poolster-rust-kafka-target",
+            std::env::temp_dir().join("poolster-rust-kafka-target"),
         )
         .status()
         .unwrap();

@@ -1,6 +1,6 @@
 use anyhow::Result;
-use poolster_core::native::rpc::*;
 use poolster_core::GeneratedFile;
+use poolster_core::native::rpc::*;
 use std::collections::BTreeMap;
 fn quote(s: &str) -> String {
     serde_json::to_string(s).unwrap()

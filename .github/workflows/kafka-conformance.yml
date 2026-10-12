@@ -1,0 +1,96 @@
+name: Native Kafka conformance
+on:
+  workflow_dispatch:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  native:
+    name: Kafka / ${{ matrix.language }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [typescript, go, rust, python, java, csharp]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: kafka-${{ matrix.language }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        if: matrix.language == 'typescript'
+        with:
+          node-version: 22
+      - uses: actions/setup-go@v7
+        if: matrix.language == 'go'
+        with:
+          go-version-file: openapi/go.mod
+          cache-dependency-path: openapi/go.sum
+      - uses: actions/setup-java@v6
+        if: matrix.language == 'java'
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-dotnet@v6
+        if: matrix.language == 'csharp'
+        with:
+          dotnet-version: '8.0.x'
+      - name: Install TypeScript adapter dependencies
+        if: matrix.language == 'typescript'
+        run: |
+          npm install --prefix "$RUNNER_TEMP/kafka-node" --ignore-scripts --no-audit --no-fund typescript@5.9.3 @types/node@22.19.15 kafkajs@2.2.4 ajv@8.17.1
+          echo "POOLSTER_KAFKA_NODE_MODULES=$RUNNER_TEMP/kafka-node/node_modules" >> "$GITHUB_ENV"
+      - name: Install Python adapter dependencies
+        if: matrix.language == 'python'
+        run: |
+          python -m pip install --disable-pip-version-check kafka-python==3.0.11 jsonschema==4.26.0 setuptools wheel
+          echo "POOLSTER_KAFKA_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+      - name: Fetch locked workspace dependencies for offline adapters
+        run: cargo fetch --locked
+      - name: Start local Kafka broker and wait for readiness
+        run: |
+          docker compose -f crates/plugins/typescript/tests/fixtures/kafka-broker.compose.yaml up -d
+          for attempt in $(seq 1 60); do
+            if docker compose -f crates/plugins/typescript/tests/fixtures/kafka-broker.compose.yaml exec -T kafka rpk cluster info --brokers 127.0.0.1:29092; then
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+      - name: Execute generated-package conformance adapters
+        env:
+          POOLSTER_KAFKA_BROKER: 127.0.0.1:29092
+        run: >-
+          python scripts/kafka-conformance.py --languages "${{ matrix.language }}" --native
+          --logs "${{ runner.temp }}/kafka-logs" --output "${{ runner.temp }}/kafka-report.json"
+      - name: Verify Node event embedding against the live broker
+        if: matrix.language == 'typescript'
+        env:
+          POOLSTER_KAFKA_BROKER: 127.0.0.1:29092
+        run: |
+          node packages/npm/sdk/scripts/build-native.mjs
+          node --test packages/npm/sdk/test/events.test.cjs
+      - name: Verify C# codec and shared-model variants
+        if: matrix.language == 'csharp'
+        run: cargo test --locked -p poolster-plugin-csharp --test events generated_package_compiles_and_validates_wire -- --ignored
+      - name: Save broker diagnostics
+        if: always()
+        run: docker compose -f crates/plugins/typescript/tests/fixtures/kafka-broker.compose.yaml logs --no-color > "$RUNNER_TEMP/kafka-broker.log"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: kafka-${{ matrix.language }}
+          path: |
+            ${{ runner.temp }}/kafka-report.json
+            ${{ runner.temp }}/kafka-logs
+            ${{ runner.temp }}/kafka-broker.log
+          retention-days: 7
+      - name: Stop broker
+        if: always()
+        run: docker compose -f crates/plugins/typescript/tests/fixtures/kafka-broker.compose.yaml down -v

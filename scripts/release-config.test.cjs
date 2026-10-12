@@ -45,12 +45,13 @@ test('release updates inherited workspace and lock versions without changing dep
   assert.equal(changed, names.size);
   for (const member of manifest.workspace.members) {
     const beforeManifest = toml.parse(read(`${member}/Cargo.toml`));
-    const dependencies = Object.entries(beforeManifest.dependencies ?? {}).filter(([, dep]) => dep.path);
-    if (!dependencies.length) continue;
-    const afterManifest = toml.parse(updated.get(`${member}/Cargo.toml`));
-    for (const [name, dep] of dependencies) {
-      assert.equal(dep.version, read('version.txt').trim());
-      assert.deepEqual(afterManifest.dependencies[name], { ...dep, version: '0.5.1' });
+    const afterManifest = toml.parse(updated.get(`${member}/Cargo.toml`) ?? read(`${member}/Cargo.toml`));
+    for (const field of ['dependencies', 'dev-dependencies', 'build-dependencies']) {
+      for (const [name, dep] of Object.entries(beforeManifest[field] ?? {})) {
+        if (!dep.path || !dep.version) continue;
+        assert.equal(dep.version, read('version.txt').trim());
+        assert.deepEqual(afterManifest[field][name], { ...dep, version: '0.5.1' }, `${member}: ${field}.${name}`);
+      }
     }
   }
   const launcher = JSON.parse(updated.get('packages/npm/cli/package.json'));
@@ -71,7 +72,7 @@ test('Python prerelease markers update completely when returning to stable relea
   assert.doesNotMatch(stable, /version="0\.5\.1(?:a|b|rc|-)\d/);
 });
 
-test('CLI native tests build the compiler first and publication requires a release tag', () => {
+test('CLI native tests build the compiler first and publication requires Kafka verification and a full release tag build', () => {
   const ci = read('.github/workflows/ci.yml');
   const build = ci.indexOf('go build -o ../target/debug/poolster-openapi .');
   const probe = ci.indexOf('cargo test -p poolster-cli --test local_references');
@@ -80,10 +81,14 @@ test('CLI native tests build the compiler first and publication requires a relea
   assert.doesNotMatch(release, /skip-github-release|POOLSTER_RELEASE_ENABLED/);
   assert.match(release, /on:\n  push:\n    branches: \[main\]/);
   const publish = read('.github/workflows/npm-publish.yml');
-  assert.match(publish, /publish:\n    name: Publish to npm\n    needs: \[verify, generated-sdk, native, launchers\]\n    if: startsWith\(github\.ref, 'refs\/tags\/v'\)/);
-  assert.match(publish, /publish-python:\n    name: Publish to PyPI\n    needs: \[verify, generated-sdk, native, launchers\]\n    if: startsWith\(github\.ref, 'refs\/tags\/v'\)/);
-  assert.match(publish, /publish-crates:\n    name: Publish Rust SDK to crates.io\n    needs: \[verify, generated-sdk, native, launchers\]\n    if: startsWith\(github\.ref, 'refs\/tags\/v'\)/);
-  assert.match(publish, /CARGO_REGISTRY_TOKEN: \$\{\{ secrets\.CRATES_IO_TOKEN \}\}/);
+  assert.match(publish, /publish:\n    name: Publish to npm\n    needs: \[verify, generated-sdk, native, launchers, kafka\]\n    if: startsWith\(github\.ref, 'refs\/tags\/v'\) && !inputs\.windows_only/);
+  assert.match(publish, /publish-python:\n    name: Publish to PyPI\n    needs: \[verify, generated-sdk, native, launchers, kafka\]\n    if: startsWith\(github\.ref, 'refs\/tags\/v'\) && !inputs\.windows_only/);
+  assert.match(publish, /publish-crates:\n    name: Publish Rust SDK to crates.io\n    needs: \[verify, generated-sdk, native, launchers, kafka\]\n    if: startsWith\(github\.ref, 'refs\/tags\/v'\) && !inputs\.windows_only/);
+  const cratesJob = publish.slice(publish.indexOf("  publish-crates:"), publish.indexOf("  publish-python:"));
+  assert.match(cratesJob, /permissions:\n      contents: read\n      id-token: write/);
+  assert.match(cratesJob, /uses: rust-lang\/crates-io-auth-action@v1/);
+  assert.match(cratesJob, /CARGO_REGISTRY_TOKEN: \$\{\{ steps\.crates-auth\.outputs\.token \}\}/);
+  assert.doesNotMatch(cratesJob, /secrets\.CRATES_IO_TOKEN/);
   assert.match(publish, /python scripts\/publish-crates.py --tag "\$GITHUB_REF_NAME"/);
 });
 

@@ -9,19 +9,20 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  workspace:
-    name: Build generator and generate SDK fixtures
+  kafka:
+    uses: ./.github/workflows/kafka-conformance.yml
+
+  checks:
+    name: Source, integration and release checks
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
-      - uses: actions/setup-go@v7
-        with:
-          go-version-file: openapi/go.mod
-          cache-dependency-path: openapi/go.sum
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -35,6 +36,8 @@ jobs:
           node --test packages/integrations/github/test/*.test.cjs packages/integrations/gitlab/test/*.test.cjs
           python3 scripts/test-public-contracts.test.py
           python3 scripts/test-guru-corpus.py
+          python3 scripts/test-kafka-conformance.py
+          python3 scripts/test-publish-npm.py
       - name: Test editable SDK delivery and App broker sources
         run: node --test packages/internal/sdk-check/test/*.mjs packages/internal/sdk-publish/test/*.mjs packages/internal/github-app-broker/*.test.mjs packages/internal/spec-sync/test/*.test.mjs packages/internal/sdk-delivery-test/test/*.test.mjs packages/internal/runtime-contract/test.mjs packages/internal/postman-sync/test/*.mjs
       - name: Test portable collection checker
@@ -49,13 +52,41 @@ jobs:
           python scripts/publish-crates.py --plan --tag "v$(cat version.txt)"
           npm install --prefix "$RUNNER_TEMP/poolster-release-check" --ignore-scripts --no-audit --no-fund release-please@17.6.0
           NODE_PATH="$RUNNER_TEMP/poolster-release-check/node_modules" node --test scripts/release-config.test.cjs
+
+  workspace:
+    name: Build generator and generate SDK fixtures
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ github.job }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: openapi/go.mod
+          cache-dependency-path: openapi/go.sum
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
       - name: Build OpenAPI compiler for CLI integration tests
         working-directory: openapi
         run: go build -o ../target/debug/poolster-openapi .
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: none
       - name: Verify Rust workspace
         run: |
           cargo fmt --all --check
-          cargo clippy --workspace --all-targets -- -D warnings
+          cargo clippy --workspace --all-targets --locked -- -D warnings
           cargo test --workspace --locked
           cargo test -p poolster-cli combined_optional_recipe_validates_actual_json_schema -- --ignored
           cargo test -p poolster-cli eject::tests::rebuilt_ejected_renderer_consumes_custom_source -- --ignored
@@ -67,7 +98,7 @@ jobs:
           python scripts/test-language-output-audit.py
           cargo build -p poolster-cli --locked
           python scripts/language-output-audit.py --binary target/debug/poolster --output "$RUNNER_TEMP/poolster-language-output" --openapi crates/cli/tests/fixtures/pets.yaml --graphql-schema scripts/fixtures/language-output/schema.graphql --graphql-operations scripts/fixtures/language-output/operations.graphql
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: language-output-audit
@@ -136,10 +167,6 @@ jobs:
         run: go test ./...
       - name: Run generated SDK contract suite
         run: cargo test -p poolster --features all-plugins --test sdk_to_mock_contract -- --ignored
-      - name: Build Poolster once
-        run: |
-          cargo build -p poolster-cli --locked
-          (cd openapi && go build -o ../target/debug/poolster-openapi .)
       - name: Verify local delivery generation drift and previews
         run: node packages/internal/sdk-delivery-test/delivery.mjs --mode local --binary "$GITHUB_WORKSPACE/target/debug/poolster"
       - name: Export shared native runtime contract fixture
@@ -227,6 +254,7 @@ jobs:
             path: swift
             runner: macos-14
     runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
       - name: Select Swift 6 toolchain for native probes
@@ -247,6 +275,11 @@ jobs:
           path: ${{ runner.temp }}/generated-sdk-fixture
       - uses: dtolnay/rust-toolchain@stable
         if: matrix.language == 'Rust'
+      - uses: Swatinem/rust-cache@v2
+        if: matrix.language == 'Rust'
+        with:
+          key: ${{ github.job }}-${{ matrix.path }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: Install explicit TypeScript compiler for the runtime probe
         if: matrix.language == 'TypeScript'
         run: |
@@ -286,7 +319,7 @@ jobs:
       - name: Initialize Hex for the generated Elixir runtime probe
         if: matrix.language == 'Elixir'
         run: mix local.hex --force && mix local.rebar --force
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: public-contract-fixtures
           path: ${{ runner.temp }}/public-contract-fixtures
@@ -315,7 +348,12 @@ jobs:
             Swift) swift build --disable-sandbox ;;
           esac
       - uses: dtolnay/rust-toolchain@stable
-        if: matrix.language == 'Swift' || matrix.language == 'Elixir' || matrix.language == 'PHP' || matrix.language == 'Java' || matrix.language == 'C#'
+        if: matrix.language == 'Python' || matrix.language == 'Swift' || matrix.language == 'Elixir' || matrix.language == 'PHP' || matrix.language == 'Java' || matrix.language == 'C#'
+      - uses: Swatinem/rust-cache@v2
+        if: matrix.language == 'Python' || matrix.language == 'Swift' || matrix.language == 'Elixir' || matrix.language == 'PHP' || matrix.language == 'Java' || matrix.language == 'C#'
+        with:
+          key: ${{ github.job }}-${{ matrix.path }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: Verify native Python multipart sync and async HTTP bytes
         if: matrix.language == 'Python'
         run: |
@@ -383,3 +421,57 @@ jobs:
           cargo test -p poolster-plugin-rust native_multipart_buffered_parts_preserve_bytes_and_safe_retries -- --ignored
       - name: Execute generated public operations against shared runtime scenarios
         run: node packages/internal/runtime-contract/runner.mjs "${{ matrix.path }}" "$RUNNER_TEMP/runtime-contract-fixture/sdk/${{ matrix.path }}"
+
+  node-sdk:
+    name: Validate Node SDK on Node 18 and 22
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ github.job }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: openapi/go.mod
+          cache-dependency-path: openapi/go.sum
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Install pinned GraphQL runtime probe dependencies
+        run: |
+          npm install --prefix "$RUNNER_TEMP/poolster-node-graphql" --ignore-scripts --no-audit --no-fund typescript@5.9.3 graphql@16.14.2
+          echo "POOLSTER_GRAPHQL_TEST_NODE_MODULES=$RUNNER_TEMP/poolster-node-graphql/node_modules" >> "$GITHUB_ENV"
+      - run: node packages/npm/generate-plugins.mjs --check
+      - run: node packages/npm/sdk/scripts/build-native.mjs
+      - run: go build -o ../target/debug/poolster-openapi .
+        working-directory: openapi
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 18
+      - run: npm test --prefix packages/npm/sdk
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm test --prefix packages/npm/sdk
+
+  passed:
+    name: CI passed
+    if: always()
+    needs: [checks, workspace, generated-sdk, node-sdk, kafka]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every CI job to succeed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'PYTHON'
+          import json, os
+          results = json.loads(os.environ['RESULTS'])
+          failed = [name for name, job in results.items() if job['result'] != 'success']
+          if failed:
+              raise SystemExit('CI did not pass: ' + ', '.join(failed))
+          PYTHON

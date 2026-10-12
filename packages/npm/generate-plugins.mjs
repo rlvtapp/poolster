@@ -135,7 +135,15 @@ write('plugins-all', 'README.md', `# ${bundleName}\n\nA bundle of Poolster's nat
 write('plugins-all', 'LICENSE', license);
 
 for (const extension of ['cjs', 'mjs', 'd.ts']) {
-  const contents = generated.get(`plugins-all/index.${extension}`);
+  let contents = generated.get(`plugins-all/index.${extension}`);
+  // SDK-local GraphQL factories must survive regeneration of the plugin bundle.
+  if (extension === 'cjs') {
+    contents = contents.replace('module.exports = {', "module.exports = {\n  pluginGraphqlPostman: create('postman', 'poolster-graphql-postman'),\n  pluginGraphqlRustCli: create('rust-cli', 'poolster-graphql-rust-cli'),\n  pluginGraphqlTypeScriptCli: create('typescript-cli', 'poolster-graphql-typescript-cli'),");
+  } else if (extension === 'mjs') {
+    contents += '\nexport const pluginGraphqlPostman = api.pluginGraphqlPostman;\nexport const pluginGraphqlRustCli = api.pluginGraphqlRustCli;\nexport const pluginGraphqlTypeScriptCli = api.pluginGraphqlTypeScriptCli;\n';
+  } else {
+    contents += '\n/** GraphQL-only collection and executable CLI outputs. */\nexport interface GraphqlToolOptions { path?: string; name?: string; version?: string; endpoint?: string }\nexport interface GraphqlCliOptions extends GraphqlToolOptions { commandName?: string }\nexport function pluginGraphqlPostman(options?: GraphqlToolOptions): NativePlugin;\nexport function pluginGraphqlRustCli(options?: GraphqlCliOptions): NativePlugin;\nexport function pluginGraphqlTypeScriptCli(options?: GraphqlCliOptions): NativePlugin;\n';
+  }
   writeNode(`plugins.${extension}`, extension === 'mjs'
     ? contents.replace("import api from './index.cjs'", "import api from './plugins.cjs'")
     : contents);

@@ -1,5 +1,5 @@
 use anyhow::Result;
-use poolster_core::{native::rpc::*, GeneratedFile};
+use poolster_core::{GeneratedFile, native::rpc::*};
 fn quote(s: &str) -> String {
     serde_json::to_string(s).unwrap()
 }

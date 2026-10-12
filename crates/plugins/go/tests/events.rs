@@ -108,7 +108,7 @@ fn generated_package_compiles_and_validates_wire_messages() {
         let status = std::process::Command::new("go")
             .args(["test", "-mod=mod", "./..."])
             .current_dir(dir.path().join("sdk"))
-            .env("GOCACHE", "/private/tmp/kaji-go-cache")
+            .env("GOCACHE", std::env::temp_dir().join("poolster-go-cache"))
             .output()
             .unwrap();
         assert!(
@@ -171,7 +171,7 @@ fn generated_client_roundtrips_local_kafka() {
             "60s",
             "./...",
         ])
-        .env("GOCACHE", "/private/tmp/kaji-go-cache")
+        .env("GOCACHE", std::env::temp_dir().join("poolster-go-cache"))
         .current_dir(dir.path().join("sdk"))
         .output()
         .unwrap();

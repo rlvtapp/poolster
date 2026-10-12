@@ -29,11 +29,16 @@ jobs:
             target: x86_64-pc-windows-msvc
             compiler: poolster-openapi.exe
     runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ github.job }}-${{ matrix.platform }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - uses: actions/setup-go@v7
         with:
           go-version-file: openapi/go.mod
@@ -74,18 +79,22 @@ jobs:
         run: npm pack --ignore-scripts
       - uses: actions/upload-artifact@v7
         with:
+          compression-level: 0
           name: poolster-${{ matrix.platform }}
           path: packages/npm/platform/cli/${{ matrix.platform }}/*.tgz
       - uses: actions/upload-artifact@v7
         with:
+          compression-level: 0
           name: poolster-sdk-${{ matrix.platform }}
           path: packages/npm/platform/node/${{ matrix.platform }}/*.tgz
       - uses: actions/upload-artifact@v7
         with:
+          compression-level: 0
           name: poolster-python-${{ matrix.platform }}
           path: packages/python/dist/*.whl
   launcher:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -108,6 +117,7 @@ jobs:
           done
       - uses: actions/upload-artifact@v7
         with:
+          compression-level: 0
           name: poolster-node-launchers
           path: |
             packages/npm/cli/*.tgz
