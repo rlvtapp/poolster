@@ -14,7 +14,7 @@ are erased at build time. [Compare languages](README.md).
 | GraphQL incremental | Separate experimental raw multipart generator | `deferSpec=20220824`; not ordinary GraphQL client parity |
 | Events / AsyncAPI | Shared message models and Kafka producers/consumers | AsyncAPI 3.0/3.1 static plaintext Kafka JSON subset |
 | Workflows / Arazzo | Source-resolved sequential HTTP workflow runners | Explicit local sources; limited expressions/criteria; no actions/retry policies |
-| RPC / Protobuf | No maintained TypeScript service generator | Parser/blocks do not imply usable RPC output |
+| RPC / Protobuf | Poolster-owned message types/schemas and gRPC clients/server interfaces | Node gRPC; groups/extensions and editions unsupported |
 | Capabilities / Cap’n Proto | No maintained TypeScript capability generator | Native document retention does not imply output support |
 | Shared models | Models-only packages from exposed schema blocks | No transport or runtime validation merely from generating types |
 
@@ -250,3 +250,31 @@ Source evidence: [HTTP runtime](../../../crates/plugins/typescript/src/sdk/runti
 The [support matrix](../../plugin-support-matrix.md) and
 [batch verification](../../verification-results/kafka-shared-models-2026-10-11.json)
 record tested boundaries; this documentation audit adds no new runtime test passes.
+
+
+## Protobuf / gRPC
+
+Poolster writes this contract's source itself in Rust; generation invokes no
+external protoc, target interpreter or code generator. It consumes the selected
+`RpcContract` and the shared owned wire-schema projection, preserving retained
+descriptors for native serialization.
+
+Use `ts::grpc().input(source.handle())` in a TypeScript package, or select
+the `grpc` plugin in CLI recipes. The JavaScript SDK reuses `pluginTypeScript`
+with `inputProtobuf`. Runtime dependencies pin @bufbuild/protobuf 2.16.0 and
+@grpc/grpc-js 1.14.6.
+
+Output has per-proto modules containing messages/schema constants and service
+interfaces, a separate descriptor registry, and one npm manifest/tsconfig.
+Message construction and binary serialization use Buf runtime schemas; source
+rendering is owned by Poolster. Int64 fields use bigint, real oneofs use
+discriminated unions and explicit field presence is retained.
+
+`<Service>Client`, `<Service>Server` and `<Service>Service` expose unary and all
+streaming directions. Metadata, deadlines, status errors and cancellation follow
+grpc-js. This is Node gRPC; browser grpc-web, groups, extensions and editions are
+unsupported. Naming collisions fail explicitly.
+
+These APIs use the native gRPC surface; HTTP/GraphQL raw, flat and idiomatic
+settings do not apply. See the [Protobuf guide](../outputs/protobuf.md) for recipe,
+SDK and call examples.

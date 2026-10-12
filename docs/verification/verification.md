@@ -3,6 +3,33 @@
 Generation, compilation and API behavior are separate checks. Run all three
 for the package you ship.
 
+## Poolster-owned Protobuf outputs (12 October 2026)
+
+Python and TypeScript gRPC source generation runs inside Poolster, with native
+libraries used for serialization and transport. Python's **4 focused tests** and
+TypeScript's **6 focused tests** passed, including generated package installation
+or strict compilation, all streaming directions and local-server behavior.
+The existing Go route passed **2 native tests**; a mixed three-language CLI recipe
+passed its generation, ownership and regeneration test.
+
+The full workspace passed **1,026 tests, with 0 failures and 211 ignored**, across
+108 executables. Ignored native tests explicitly enabled above remain separate
+from this total. A refreshed Python unit binary passed 50 tests after the final
+symbol-registration fix; those results replace the affected results, not add to
+the total. The native check caught nested-message pickle registration, and the
+installed-wheel check caught missing root typing files; both fixes passed.
+
+The npm SDK passed **94 tests, with 3 opt-in skips**. All **6 Protobuf SDK tests**
+passed against the final rebuilt addon with the Go route enabled. Clippy passed
+with warnings denied for all five changed crates and all targets. Workspace
+doc-tests, formatting and diff checks passed. The size audit found no violations
+in 781 authored files.
+
+See the [batch record](../verification-results/protobuf-native-2026-10-12.json)
+and [Protobuf guide](../reference/outputs/protobuf.md) for target limits. Go still
+uses its existing upstream generators; Python and TypeScript emit source directly.
+These additions are unreleased.
+
 ## All-language Kafka checks (12 October 2026)
 
 All ten SDK languages have registered Kafka JSON adapters; Symfony adds the PHP

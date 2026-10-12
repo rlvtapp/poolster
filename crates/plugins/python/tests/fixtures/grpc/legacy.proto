@@ -1,0 +1,9 @@
+syntax = "proto2";
+package store.legacy;
+message Legacy {
+  optional string note = 1 [default = "default-note"];
+  required int32 id = 2;
+  oneof choice { string label = 3; int32 count = 4; }
+  extensions 100 to 199;
+}
+extend Legacy { optional string audit = 100; }

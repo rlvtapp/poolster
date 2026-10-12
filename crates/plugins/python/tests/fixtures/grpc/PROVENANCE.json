@@ -1,0 +1,7 @@
+{
+  "schemas": "Poolster-owned unary/client/server/bidirectional RPC fixture with native proto2/proto3 presence, defaults, extensions, maps, oneofs and runtime Timestamp import",
+  "generator": "Poolster-owned Rust source emitters; no protoc or grpcio-tools invocation",
+  "runtime": {"grpcio": "1.78.0", "protobuf": "6.33.5", "setuptools": "80.9.0"},
+  "pinned_upstream_compile_corpus": "../../../../../inputs/protobuf/tests/fixtures/upstream/PROVENANCE.json",
+  "upstream_test_adaptation": "unittest_import_public.proto is byte-identical at upstream/public.proto. unittest_import.proto is retained at upstream/imported.proto with only its import path changed from google/protobuf/unittest_import_public.proto to upstream/public.proto. Native package/message/field semantics are unchanged; this avoids colliding with installed google.protobuf runtime modules. The original vendored hashes/license remain in the referenced corpus."
+}

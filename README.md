@@ -53,7 +53,7 @@ SDK languages and [Kafka producer/consumer packages](docs/reference/outputs/kafk
 for all ten SDK languages, plus Symfony integration over the PHP runtime. This is
 the bounded plaintext JSON Kafka subset, with language-specific limits. See the
 [Kafka capability comparison](docs/reference/outputs/kafka-conformance.md).
-RPC and workflows have their own supported pipelines.
+[Protobuf/gRPC](docs/reference/outputs/protobuf.md) generates Go, Python and TypeScript packages. Python and TypeScript source generation is owned by Poolster and needs no external code generator. Arazzo has a source-resolved TypeScript workflow pipeline.
 
 [Plugin support matrix](docs/plugin-support-matrix.md) ·
 [GraphQL package layouts](docs/reference/outputs/graphql-layout.md) ·

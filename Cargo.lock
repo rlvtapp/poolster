@@ -1156,6 +1156,8 @@ name = "poolster-core"
 version = "0.5.0-alpha.1"
 dependencies = [
  "anyhow",
+ "prost",
+ "prost-types",
  "serde",
  "serde_json",
  "sha2",
@@ -1335,6 +1337,7 @@ version = "0.5.0-alpha.1"
 dependencies = [
  "anyhow",
  "poolster-core",
+ "poolster-input-protobuf",
  "serde_json",
  "tempfile",
 ]
@@ -1415,6 +1418,7 @@ dependencies = [
  "poolster-input-arazzo",
  "poolster-input-asyncapi",
  "poolster-input-graphql",
+ "poolster-input-protobuf",
  "serde",
  "serde_json",
  "tempfile",

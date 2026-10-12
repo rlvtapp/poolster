@@ -4,10 +4,10 @@ Choose a language to see **what Poolster currently generates**, contract by cont
 
 | Language | Capability page | Native protocol outputs beyond HTTP/GraphQL |
 | --- | --- | --- |
-| TypeScript / JavaScript | [TypeScript](typescript.md) | Kafka events; source-resolved Arazzo workflows |
+| TypeScript / JavaScript | [TypeScript](typescript.md) | Kafka events; gRPC; source-resolved Arazzo workflows |
 | Rust | [Rust](rust.md) | Kafka events |
 | Go | [Go](go.md) | Protobuf gRPC clients/server interfaces, including streaming; Kafka events |
-| Python | [Python](python.md) | Kafka events |
+| Python | [Python](python.md) | Kafka events; gRPC |
 | Java | [Java](java.md) | Kafka events |
 | C# | [C#](csharp.md) | Kafka events |
 | PHP / Symfony | [PHP](php.md) | Kafka events; Symfony bundles the PHP SDK and DI integration |

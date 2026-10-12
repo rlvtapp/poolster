@@ -1,0 +1,11 @@
+{
+  "schemas": "Poolster-owned four-mode RPC fixture; imports the provider's standard google/protobuf/timestamp.proto descriptor",
+  "toolchain": {
+    "@grpc/grpc-js": "1.14.6",
+    "@bufbuild/protobuf": "2.16.0",
+    "typescript": "5.9.3",
+    "@types/node": "22.19.15"
+  },
+  "additional_pinned_upstream_compile_corpus": "../../../../../inputs/protobuf/tests/fixtures/upstream/PROVENANCE.json",
+  "generation": "Poolster-owned renderer; no external source generator invoked"
+}

@@ -1,0 +1,9 @@
+syntax = "proto2";
+package legacy;
+import "google/protobuf/unittest_import.proto";
+message Legacy {
+  optional string title = 1 [default = "fallback"];
+  optional int64 number = 2 [default = 42];
+  optional protobuf_unittest_import.PublicImportMessage imported = 3;
+}
+service LegacyService { rpc Read(Legacy) returns (Legacy); }

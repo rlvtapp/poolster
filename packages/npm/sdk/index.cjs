@@ -254,9 +254,9 @@ async function generate(config, options = {}) {
       const loaded = await loadInput(config.input);
       const format = config.input.plugin.format;
       const modelPackages = packages.filter(p => p.mode === 'models');
-      if (!loaded.api && packages.length && ['graphql','asyncapi'].includes(format)) {
+      if (!loaded.api && packages.length && ['graphql','asyncapi','protobuf'].includes(format)) {
         const compatibleModels = modelPackages.filter(p => modelsOutputCompatible(config.input,p));
-        const compatibleSdks = packages.filter(p => p.mode !== 'models' && (format === 'graphql' ? graphqlOutputCompatible(config.input,p) : ['typescript','go','rust','python','java','csharp','php','ruby','swift','elixir','symfony'].includes(p.language)));
+        const compatibleSdks = packages.filter(p => p.mode !== 'models' && (format === 'protobuf' ? ['typescript','python','go'].includes(p.language) : format === 'graphql' ? graphqlOutputCompatible(config.input,p) : ['typescript','go','rust','python','java','csharp','php','ruby','swift','elixir','symfony'].includes(p.language)));
         const compatible = new Set([...compatibleModels,...compatibleSdks]);
         for (const p of packages.filter(p => !compatible.has(p))) {
           const entry = { path:p.path, language:p.language, reason:`${format} output does not yet support this language or generation mode` };
@@ -268,7 +268,9 @@ async function generate(config, options = {}) {
         const modelFiles = compatibleModels.length ? JSON.parse(await native().generateModels(JSON.stringify({ ...request, format, packages:compatibleModels }))) : [];
         let sdkFiles = [];
         if (compatibleSdks.length) {
-          if (format === 'asyncapi') {
+          if (format === 'protobuf') {
+            sdkFiles = JSON.parse(await native().generateRpc(JSON.stringify({ source:request.source, provider:request.provider, importRoots:request.importRoots, packages:compatibleSdks })));
+          } else if (format === 'asyncapi') {
             sdkFiles = JSON.parse(await native().generateEvents(JSON.stringify({
               source:request.source, provider:request.provider, broker:config.input.broker, packages:compatibleSdks,
             })));

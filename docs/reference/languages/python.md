@@ -11,7 +11,7 @@ Audited **12 October 2026**, against this checkout's unreleased alpha.2 generato
 | HTTP / OpenAPI `Api` | SDK, models, declared errors and resource facade |
 | GraphQL operations | Fixed-document query/mutation clients; opt-in SSE subscriptions and experimental multipart incremental delivery |
 | Shared schema-model blocks | Models-only package, including supported AsyncAPI payload/header/key shapes |
-| RPC / Protobuf | Unsupported |
+| RPC / Protobuf | Poolster-owned messages and gRPC clients/server interfaces |
 | Events / AsyncAPI | Typed Kafka JSON producers/consumers over shared models; static plaintext Kafka subset |
 | Workflows / Arazzo | Unsupported |
 | Capabilities / Cap’n Proto | Unsupported |
@@ -123,7 +123,7 @@ CLI/JS models-only mode and Rust block composition support the documented neutra
 
 ## Remaining gaps
 
-No RPC, workflow or capability client is bundled for this language. Kafka security, transactions, schema registry, dynamic topics, nonstring keys/headers and automatic handler retries remain unsupported. GraphQL selections remain fixed documents; dynamic typed `fields:` selection and GraphQL-aware automatic pagination, idempotency and retries remain application work. Experimental incremental delivery is the documented `deferSpec=20220824` dialect, not universal server compatibility.
+Workflow and capability clients remain unsupported. Kafka security, transactions, schema registry, dynamic topics, nonstring keys/headers and automatic handler retries remain unsupported. GraphQL selections remain fixed documents; dynamic typed `fields:` selection and GraphQL-aware automatic pagination, idempotency and retries remain application work. Experimental incremental delivery is the documented `deferSpec=20220824` dialect, not universal server compatibility.
 
 ## Source and test evidence
 
@@ -133,3 +133,32 @@ No RPC, workflow or capability client is bundled for this language. Kafka securi
 - [Shared-model subset](../../../crates/plugins/python/src/shared_models.rs) and [tests](../../../crates/plugins/python/src/shared_models/tests.rs).
 
 - [Kafka generator and subset checks](../../../crates/plugins/python/src/events/mod.rs), [runtime](../../../crates/plugins/python/src/events/runtime.py.tmpl) and [generated installation/local-broker tests](../../../crates/plugins/python/src/events/tests.rs).
+
+
+## Protobuf / gRPC
+
+Poolster writes this contract's source itself in Rust; generation invokes no
+external protoc, target interpreter or code generator. It consumes the selected
+`RpcContract` and the shared owned wire-schema projection, preserving retained
+descriptors for native serialization.
+
+Use `python::grpc("example-rpc").input(source.handle())` in a Python package,
+or select the `grpc` plugin in CLI recipes. The JavaScript SDK reuses
+`pluginPython` with `inputProtobuf`.
+
+Output has per-proto `_pb2.py` message bindings, `.pyi` typing declarations and
+`_pb2_grpc.py` service files, plus separate descriptor/runtime modules and one
+`pyproject.toml`. Runtime dependencies pin protobuf 6.33.5 and
+grpcio 1.78.0. The message classes use the native descriptor/message runtime;
+Poolster emits the bindings and client/server source.
+
+Unary and all streaming directions use native channel APIs. Server implementations
+subclass `<Service>Servicer` and use `add_<Service>Servicer_to_server`. Metadata,
+status errors, timeouts and cancellation follow grpcio. Typing declarations target
+the synchronous API. Proto2 defaults/extensions/required presence, proto3 optional
+fields, oneofs, maps and well-known types remain native runtime semantics. Custom
+files in `google/protobuf/`, module/name collisions and editions are rejected.
+
+These APIs use the native gRPC surface; HTTP/GraphQL raw, flat and idiomatic
+settings do not apply. See the [Protobuf guide](../outputs/protobuf.md) for recipe,
+SDK and call examples.

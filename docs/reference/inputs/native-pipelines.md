@@ -57,7 +57,7 @@ capabilities and release checklists.
 | --- | --- | --- | --- |
 | OpenAPI → existing languages | Existing compiler and adapter | Existing SDK pipelines preserved | Existing target-specific limits still apply |
 | GraphQL → all ten SDK languages | SDL / local introspection JSON, full-file imports and operation documents | Selected clients; opt-in distinct SSE, directional scalar callbacks, experimental multipart 20220824 | WebSockets/reconnect, selective imports, newer incremental variants, dynamic fields and other native output contracts |
-| Protobuf → Go gRPC | Proto2/proto3 descriptors, imports and RPC metadata | Official messages, clients and server interfaces; unary and all streaming directions | Editions, broader official fixture coverage and additional output languages |
+| Protobuf → Go / Python / TypeScript gRPC | Proto2/proto3 descriptors, imports and RPC metadata | Messages, clients and server interfaces; unary and all streaming directions | Editions, target-specific schema limits and additional output languages |
 | AsyncAPI → all ten SDK languages + Symfony | 2.6/3.0/3.1 native document and message blocks | Bounded 3.0/3.1 plaintext JSON Kafka clients with shared models; Symfony PHP DI integration | Broader schemas/bindings, security and other brokers; Swift Linux execution unverified |
 | Arazzo → TypeScript | Native document and explicit local source resolution | Sequential HTTP runners with local workflow dependencies | Actions/retries, richer expressions/criteria and additional source types |
 | Cap’n Proto → Rust | Official compiler request and capability/node blocks | Not implemented | Official capnpc Rust generation, capnp-rpc interfaces and local capability tests |
@@ -187,7 +187,21 @@ queries/mutations, partial/errors, transport failures, abstract selections,
 regeneration and expected consumer compilation failures. See the
 [Rust client guide](../outputs/graphql-rust.md).
 
-## Protobuf → Go gRPC
+## Protobuf → Go / Python / TypeScript gRPC
+
+Python and TypeScript use **Poolster-owned source renderers**. Generation requires
+no protoc, grpcio-tools, ts-proto, Python interpreter or Node process. Poolster
+projects retained descriptor bytes into owned `RpcWireSchema` types, then emits
+messages/types, client stubs, server interfaces and package manifests. Parser
+library types remain private. Serialization and transport use pinned native
+runtime libraries; this is separate from source generation.
+
+Use `python::grpc("example-rpc").input(handle)` or `ts::grpc().input(handle)`.
+CLI recipes use the existing language plugin with `{"name":"grpc"}`. Names,
+versions and source-quality settings use ordinary package configuration. See the
+[Protobuf output guide](../outputs/protobuf.md) for APIs, dependencies and limits.
+
+The existing Go pipeline keeps its established official-generator behavior:
 
 `go::grpc(module).input(handle)` consumes `RpcContract` and invokes pinned official
 **protoc 34.2**, **protoc-gen-go 1.36.11**, and **protoc-gen-go-grpc 1.6.2**.
@@ -287,7 +301,7 @@ servers. This does not establish support for the complete upstream OAuth workflo
 | Input | Package language | Recipe plugin name | Required configuration |
 | --- | --- | --- | --- |
 | GraphQL | `typescript`, `rust`, `go`, `python`, `php`, `java`, `csharp`, `dotnet`, `ruby`, `swift`, `elixir` | `graphql` | `input.options.operation_files`; Runtime scalar callbacks; separately enabled SSE; incremental input selects a separate contract |
-| Protobuf | `go` | `grpc` | Plugin `module`; toolchain paths if not on PATH; source `go_package` or plugin `go_packages` |
+| Protobuf | `go`, `python`, `typescript` | `grpc` | Go requires `module` and its toolchain; Python/TypeScript generation is native and needs no external generator |
 | AsyncAPI | `typescript`, `go`, `rust`, `python`, `java`, `csharp`, `php`, `ruby`, `swift`, `elixir`, `symfony` | `asyncapi` | Supported Kafka servers or `input.options.broker`; target-specific schema limits |
 | Arazzo | `typescript` | `workflow` | `input.options.workflow_sources` |
 
@@ -302,7 +316,7 @@ one input source, and existing `openapi` recipes remain valid.
 
 Completed foundation: contracts, optional blocks, typed hooks, provenance/revision
 checks, OpenAPI input extraction and first-party HTTP output migration. GraphQL →
-all ten SDK languages, Protobuf → Go gRPC, AsyncAPI → ten-language Kafka clients
+all ten SDK languages, Protobuf → Go/Python/TypeScript gRPC, AsyncAPI → ten-language Kafka clients
 with Symfony PHP DI integration, and Arazzo → TypeScript
 have usable, tested subsets described above.
 
@@ -335,7 +349,8 @@ These are the remaining implementation and release gaps:
 - [ ] **WORKFLOW-1:** Add retries/actions and richer expressions/criteria with
   explicit side-effect/cancellation semantics and local execution tests; extend
   authentication and nested workflows.
-- [ ] **RPC-1:** Assess editions/toolchain alignment and additional RPC outputs;
+- [ ] **RPC-OWNED-GO:** Replace the existing Go generator subprocesses with a Poolster-owned renderer over `RpcWireSchema`, preserving wire compatibility, native gRPC APIs and all streaming modes. Keep the current Go path until that replacement passes compilation and interoperability tests.
+- [ ] **RPC-1:** Add more native RPC output languages and messages-only generation; assess editions and target-specific semantics;
   broaden pinned upstream fixtures without treating parser support as generation support.
 - [x] **GRAPHQL-SCALARS:** Separate input/output TypeScript and Rust scalar mappings,
   preserving nullability and presence; runtime callbacks are separately configured.

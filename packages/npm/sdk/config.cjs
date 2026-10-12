@@ -38,6 +38,12 @@ function defineConfig(config) {
     if (config.input.incremental != null && typeof config.input.incremental !== 'boolean') throw new TypeError('GraphQL incremental must be boolean');
     if (config.input.subscriptions != null && typeof config.input.subscriptions !== 'boolean') throw new TypeError('GraphQL subscriptions must be boolean');
   }
+  if (config.input.plugin?.format === 'protobuf') {
+    if (config.input.importRoots != null && (!Array.isArray(config.input.importRoots) || config.input.importRoots.some(p=>typeof p!=='string'||!p))) throw new TypeError('Protobuf importRoots must be directory paths');
+    for (const key of ['operations','incremental','subscriptions','scalars','rustScalars']) {
+      if (config.input[key] !== undefined) throw new TypeError(`Protobuf input does not support ${key}`);
+    }
+  }
   if (config.input.plugin?.format === 'asyncapi') {
     for (const key of ['operations','importRoots','incremental','subscriptions','scalars','rustScalars']) {
       if (config.input[key] !== undefined) throw new TypeError(`AsyncAPI input does not support ${key}; configure broker for event SDKs`);
@@ -61,7 +67,7 @@ function sdkPackage(options) {
   if (typeof options.language !== 'string' || !options.language) {
     throw new TypeError('sdk language is required');
   }
-  const allowed = new Set(['language', 'mode', 'path', 'name', 'version', 'style', 'transport', 'clientName', 'raw', 'jobs', 'scalars', 'groups', 'contracts', 'endpoint', 'commandName', 'subscriptions', 'sourceQuality']);
+  const allowed = new Set(['language', 'mode', 'path', 'name', 'version', 'style', 'transport', 'clientName', 'raw', 'jobs', 'scalars', 'groups', 'contracts', 'contractOptions', 'endpoint', 'commandName', 'subscriptions', 'sourceQuality']);
   for (const key of Object.keys(options)) {
     if (!allowed.has(key)) throw new TypeError(`unknown sdk option ${key}`);
   }
@@ -73,9 +79,27 @@ function sdkPackage(options) {
     const supported = new Set(['language','path','name','version','mode','sourceQuality']);
     for (const [key,value] of Object.entries(options)) if (!supported.has(key) && value !== undefined) throw new TypeError(`models mode does not support ${key}; use mode sdk for styles, transports and runtime options`);
   }
-  const { language, path: outputPath = language, name, version, style, transport, clientName, raw, jobs, scalars, groups, contracts, endpoint, commandName, subscriptions, sourceQuality } = options;
+  if (options.contractOptions != null) {
+    if (typeof options.contractOptions !== 'object' || Array.isArray(options.contractOptions)) throw new TypeError('contractOptions must be an object');
+    for (const key of Object.keys(options.contractOptions)) if (key !== 'protobuf') throw new TypeError(`unknown contractOptions contract ${key}`);
+    const proto = options.contractOptions.protobuf;
+    if (proto != null) {
+      if (typeof proto !== 'object' || Array.isArray(proto)) throw new TypeError('contractOptions.protobuf must be an object');
+      const allowed = new Set(['module','packageName','goPackages','toolchain']);
+      for (const key of Object.keys(proto)) if (!allowed.has(key)) throw new TypeError(`unknown Protobuf option ${key}`);
+      for (const key of ['module','packageName']) if (proto[key] != null && (typeof proto[key] !== 'string' || !proto[key].trim())) throw new TypeError(`Protobuf ${key} must be a nonempty string`);
+      for (const key of ['goPackages','toolchain']) if (proto[key] != null) {
+        if (typeof proto[key] !== 'object' || Array.isArray(proto[key])) throw new TypeError(`Protobuf ${key} must be an object`);
+        for (const [name,value] of Object.entries(proto[key])) {
+          if (key === 'toolchain' && !['protoc','protocGenGo','protocGenGoGrpc'].includes(name)) throw new TypeError(`unknown Protobuf tool ${name}`);
+          if (!name.trim() || typeof value !== 'string' || !value.trim()) throw new TypeError(`Protobuf ${key} entries must be nonempty strings`);
+        }
+      }
+    }
+  }
+  const { language, path: outputPath = language, name, version, style, transport, clientName, raw, jobs, scalars, groups, contracts, contractOptions, endpoint, commandName, subscriptions, sourceQuality } = options;
   if (typeof outputPath !== 'string' || !outputPath) throw new TypeError('sdk path must be a nonempty string');
-  return { language, ...(options.mode != null ? { mode: options.mode } : {}), path: outputPath, name, version, style, transport, clientName, raw, jobs, scalars, groups, contracts, endpoint, commandName, subscriptions, sourceQuality };
+  return { language, ...(options.mode != null ? { mode: options.mode } : {}), path: outputPath, name, version, style, transport, clientName, raw, jobs, scalars, groups, contracts, contractOptions, endpoint, commandName, subscriptions, sourceQuality };
 }
 
 function normalizedPackagePath(value) {

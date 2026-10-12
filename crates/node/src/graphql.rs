@@ -47,6 +47,9 @@ fn generate(request: &str) -> AnyResult<String> {
         if package.mode != sdk_package::PackageMode::Sdk {
             bail!("GraphQL SDK entry point requires mode sdk; use generateModels for mode models");
         }
+        if package.contract_options.protobuf.is_some() {
+            bail!("contractOptions.protobuf requires Protobuf input");
+        }
         output_options::apply(&mut package, "graphql")?;
         let subscriptions = package.subscriptions.unwrap_or(request.subscriptions);
         if ![

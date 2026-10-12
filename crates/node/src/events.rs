@@ -65,7 +65,8 @@ fn generate(request: &str) -> AnyResult<String> {
         if package.mode != sdk_package::PackageMode::Sdk {
             bail!("event SDK entry point requires mode sdk");
         }
-        if package.style.is_some()
+        if package.contract_options.protobuf.is_some()
+            || package.style.is_some()
             || package.raw.is_some()
             || package.transport.is_some()
             || package.client_name.is_some()

@@ -96,20 +96,16 @@ pub(crate) fn build(options: &Generate, input: &NativeInputConfig) -> Result<Pro
                     go_packages: plugin.go_packages.clone(),
                 })
                 .unwrap_or_else(|| options.native_output.clone());
-            let module = output.module.context("Protobuf Go generation requires a module import path: grpc plugin.module or --module")?;
-            let input_provider = provider::<RpcContract>(input, registry.clone());
-            let mut output_plugin = go::grpc(module)
-                .input(input_provider.handle())
-                .toolchain(output.toolchain.into_tools());
-            for (file, mapping) in output.go_packages {
-                output_plugin = output_plugin.go_package(file, mapping);
-            }
-            old.package(
-                go::package(path)
-                    .common(common)
-                    .with(input_provider)
-                    .with(output_plugin),
-            )
+            rpc::append(
+                old,
+                input,
+                registry.clone(),
+                language,
+                path,
+                name,
+                common,
+                output,
+            )?
         } else {
             let package = match input.format.as_str() {
                 "graphql" => {

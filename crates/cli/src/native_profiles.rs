@@ -4,6 +4,7 @@ mod build;
 mod events;
 mod graphql_sdk;
 mod incremental;
+mod rpc;
 mod shared_models;
 pub(super) use build::build;
 use poolster_core::{
@@ -25,21 +26,22 @@ pub(super) fn pipeline(format: &str) -> Option<(&'static str, &'static str)> {
     }
 }
 pub(super) fn language_compatible(format: &str, language: &str) -> bool {
-    (format == "asyncapi"
-        && [
-            "typescript",
-            "go",
-            "rust",
-            "python",
-            "java",
-            "csharp",
-            "php",
-            "ruby",
-            "swift",
-            "elixir",
-            "symfony",
-        ]
-        .contains(&language))
+    (format == "protobuf" && ["go", "python", "typescript"].contains(&language))
+        || (format == "asyncapi"
+            && [
+                "typescript",
+                "go",
+                "rust",
+                "python",
+                "java",
+                "csharp",
+                "php",
+                "ruby",
+                "swift",
+                "elixir",
+                "symfony",
+            ]
+            .contains(&language))
         || (format == "graphql"
             && [
                 "rust",
@@ -62,6 +64,9 @@ pub(super) fn language_compatible(format: &str, language: &str) -> bool {
 pub(super) fn compatible(format: &str, package: &PackageConfig) -> bool {
     if shared_models::compatible(format, package) {
         return true;
+    }
+    if format == "protobuf" && ["go", "python", "typescript"].contains(&package.language.as_str()) {
+        return package.plugins.len() == 1 && package.plugins[0].name == "grpc";
     }
     if format == "asyncapi"
         && [
@@ -224,7 +229,8 @@ pub(super) fn validate_recipe(document: &serde_json::Value, config: &ProjectConf
                 "groups",
                 "contracts",
             ],
-            ("protobuf", _) => &["name", "module", "toolchain", "go_packages"],
+            ("protobuf", "go") => &["name", "module", "toolchain", "go_packages"],
+            ("protobuf", _) => &["name"],
             _ => &["name"],
         };
         for (raw_plugin, plugin) in raw["plugins"]
@@ -300,6 +306,21 @@ pub(super) fn validate_recipe(document: &serde_json::Value, config: &ProjectConf
             );
         }
         if input.format == "protobuf" {
+            if package.language != "go" {
+                ensure!(
+                    plugin.module.is_none() && plugin.go_packages.is_empty(),
+                    "module and go_packages apply only to Go Protobuf output"
+                );
+            }
+            if package.language != "go" {
+                ensure!(
+                    plugin.toolchain.is_none(),
+                    "Python and TypeScript Protobuf outputs do not use an external generator toolchain"
+                );
+            }
+        }
+
+        if input.format == "protobuf" && package.language == "go" {
             ensure!(
                 plugin.module.as_ref().is_some_and(|v| !v.is_empty()),
                 "grpc plugin requires module import path"

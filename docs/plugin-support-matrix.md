@@ -36,7 +36,7 @@ limitations still apply. GraphQL is a separate contract even when its transport 
 
 | Output plugin | Generated output | OpenAPI / HTTP `Api` | GraphQL operations | Protobuf RPC | AsyncAPI models | Kafka transport | Arazzo workflows | Cap’n Proto |
 | --- | --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| TypeScript | HTTP SDK/models; GraphQL client; Kafka message/client package; workflow runner | ✅ | ✅ | — | ✅ | ✅ | ✅ | — |
+| TypeScript | HTTP SDK/models; GraphQL/gRPC client; Kafka message/client package; workflow runner | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — |
 | Zod | HTTP and selected GraphQL validators | ✅ | ✅ | — | — | — | — | — |
 | Faker | HTTP and selected GraphQL fixtures | ✅ | ✅ | — | — | — | — | — |
 | MSW | HTTP and GraphQL mock handlers | ✅ | ✅ | — | — | — | — | — |
@@ -46,7 +46,7 @@ limitations still apply. GraphQL is a separate contract even when its transport 
 | SWR | TypeScript query/mutation hooks | ✅ | ✅ | — | — | — | — | — |
 | Go | HTTP/GraphQL SDK; Protobuf gRPC; Kafka JSON client | ✅ | ✅ | ✅ | ✅ | ✅ | — | — |
 | Rust | HTTP/GraphQL SDK; Kafka JSON client | ✅ | ✅ | — | ✅ | ✅ | — | — |
-| Python | HTTP SDK; synchronous GraphQL client; Kafka JSON client | ✅ | ✅ | — | ✅ | ✅ | — | — |
+| Python | HTTP/GraphQL/gRPC SDK; Kafka JSON client | ✅ | ✅ | ✅ | ✅ | ✅ | — | — |
 | Java | Java HTTP SDK; GraphQL client; Kafka JSON client | ✅ | ✅ | — | ✅ | ✅ | — | — |
 | C# | C# HTTP SDK; GraphQL client; Kafka JSON client | ✅ | ✅ | — | ✅ | ✅ | — | — |
 | PHP | PHP HTTP SDK; GraphQL client; Kafka JSON client | ✅ | ✅ | — | ✅ | ✅ | — | — |
@@ -225,18 +225,23 @@ multiplexing, reconnect/replay or newer ID-based incremental dialect is claimed.
 
 ## Input providers
 
+The new Python and TypeScript Protobuf outputs emit source inside Poolster;
+Go retains its existing upstream-generator route. See the
+[Protobuf checks](verification/verification.md#poolster-owned-protobuf-outputs-12-october-2026)
+and [target limits](reference/outputs/protobuf.md).
+
 | Input format | Parsing / inspection | Usable bundled output |
 | --- | :---: | --- |
 | OpenAPI | ✅ | HTTP output plugins above |
 | GraphQL SDL / local introspection JSON + operation documents | ✅ | All ten SDK languages through Rust API, CLI and npm entry points |
-| Protobuf proto2/proto3 | ✅ | Go messages and gRPC clients/server interfaces |
+| Protobuf proto2/proto3 | ✅ | Go, Python and TypeScript messages and gRPC clients/server interfaces; [target limits](reference/outputs/protobuf.md) |
 | AsyncAPI 2.6 / 3.0 / 3.1 | ✅ | All ten SDK Kafka outputs plus Symfony PHP DI for the bounded plaintext JSON 3.0/3.1 subset; ten-language models-only subsets |
 | Arazzo 1.0.0 / 1.0.1 / 1.1.0 | ✅ | TypeScript sequential runners with resolved local OpenAPI sources |
 | Cap’n Proto | ✅ | — |
 
-The npm input wrappers expose parsing/inspection and GraphQL client generation
-through the existing language packages. Other native package
-pipelines are exposed through Rust / CLI; general typed Node hooks remain open. CLI recipes currently
+The npm input wrappers expose parsing/inspection, GraphQL clients, AsyncAPI Kafka
+packages and Protobuf gRPC packages through the existing language packages.
+General typed Node hooks remain open. CLI recipes currently
 select one input source; Rust plugins can compose multiple typed contracts.
 
 ## GraphQL checks
@@ -323,6 +328,7 @@ failures and successful retries remain in the audit trail. See
 - [x] Provider substitution, typed downstream hooks and regeneration have focused tests.
 - [x] GraphQL → TypeScript and Rust generation, clean packaged consumers and local-server execution.
 - [x] Protobuf → Go official messages, gRPC clients/server interfaces and all streaming modes.
+- [x] Protobuf → Poolster-owned Python and TypeScript source generation using native runtime libraries.
 - [x] AsyncAPI → TypeScript message models and Kafka producer/consumer for the documented subset.
 - [x] Arazzo → source-resolved sequential TypeScript runners and local integration tests.
 - [x] All six inputs expose whole contracts and optional standard block collections.

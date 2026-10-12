@@ -10,6 +10,8 @@ pub(super) struct SdkPackage {
     pub(super) source_quality: Option<poolster_core::SourceQuality>,
     pub(super) language: String,
     #[serde(default)]
+    pub(super) contract_options: super::rpc::ContractOptions,
+    #[serde(default)]
     pub(super) command_name: Option<String>,
     #[serde(default)]
     pub(super) endpoint: Option<String>,
@@ -72,6 +74,9 @@ pub(super) fn package_common(package: &SdkPackage) -> AnyResult<Common> {
 }
 
 pub(super) fn validate_options(package: &SdkPackage) -> AnyResult<()> {
+    if package.contract_options.protobuf.is_some() {
+        bail!("contractOptions.protobuf requires Protobuf input");
+    }
     if package.command_name.is_some() || package.endpoint.is_some() {
         bail!("commandName and endpoint require GraphQL tool output");
     }
@@ -114,7 +119,8 @@ pub(super) fn validate_models(package: &SdkPackage) -> AnyResult<()> {
     if package.path.trim().is_empty() {
         bail!("models package path must not be empty");
     }
-    if package.style.is_some()
+    if package.contract_options.protobuf.is_some()
+        || package.style.is_some()
         || package.transport.is_some()
         || package.client_name.is_some()
         || package.raw.is_some()

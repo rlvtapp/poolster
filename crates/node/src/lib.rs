@@ -6,6 +6,7 @@ mod graphql_addons;
 pub mod materialize;
 pub mod models;
 mod output_options;
+pub mod rpc;
 mod sdk_package;
 use sdk_package::{SdkPackage, package_common, validate_options};
 

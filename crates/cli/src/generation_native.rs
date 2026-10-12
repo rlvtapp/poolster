@@ -120,6 +120,12 @@ pub(super) fn generate(options: Generate) -> Result<()> {
         input.format == "protobuf" || options.native_output == NativeOutputConfig::default(),
         "gRPC module/toolchain/mapping options require Protobuf input"
     );
+    ensure!(
+        input.format != "protobuf"
+            || options.native_output == NativeOutputConfig::default()
+            || options.languages.iter().any(|language| language == "go"),
+        "external gRPC toolchain/module options require a Go output; Python and TypeScript generation is native to Poolster"
+    );
     for language in options
         .languages
         .iter()

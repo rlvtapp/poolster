@@ -1,8 +1,8 @@
 //! Native Python SDK output for Poolster.
 //!
-//! This crate deliberately consumes the normalized `poolster_core::Api`
-//! model rather than OpenAPI directly. It therefore composes with the same
-//! sidecar and profile pipeline as every other Poolster language target.
+//! HTTP outputs consume the normalized HTTP model; GraphQL, events and RPC
+//! outputs consume their dedicated Poolster-owned contracts. Parser-library
+//! types and external code generators are kept out of these output interfaces.
 
 mod docs;
 mod errors;
@@ -76,3 +76,6 @@ pub use shared_models::shared_models;
 
 mod events;
 pub use events::{AsyncApi, KafkaClient, asyncapi};
+
+mod grpc;
+pub use grpc::{Grpc, grpc};

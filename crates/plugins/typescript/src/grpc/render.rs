@@ -1,0 +1,315 @@
+use anyhow::{Result, ensure};
+use poolster_core::{GeneratedFile, native::rpc::*};
+use std::collections::BTreeMap;
+fn quote(s: &str) -> String {
+    serde_json::to_string(s).unwrap()
+}
+fn ident(s: &str) -> String {
+    let mut out = String::new();
+    let mut upper = false;
+    for c in s.chars() {
+        if c == '_' {
+            upper = true;
+        } else if upper {
+            out.extend(c.to_uppercase());
+            upper = false;
+        } else {
+            out.push(c);
+        }
+    }
+    out
+}
+fn property(s: &str) -> String {
+    let name = ident(s);
+    if matches!(
+        name.as_str(),
+        "constructor" | "toString" | "toJSON" | "valueOf"
+    ) {
+        format!("{name}$")
+    } else {
+        name
+    }
+}
+fn symbol(s: &str) -> String {
+    s.split('.').map(ident).collect::<Vec<_>>().join("_")
+}
+fn fields<'a>(messages: &'a [RpcWireMessage], result: &mut Vec<&'a RpcWireMessage>) {
+    for m in messages {
+        if !m.map_entry {
+            result.push(m);
+        }
+        fields(&m.messages, result);
+    }
+}
+fn enums<'a>(messages: &'a [RpcWireMessage], result: &mut Vec<&'a RpcWireEnum>) {
+    for m in messages {
+        result.extend(&m.enums);
+        enums(&m.messages, result);
+    }
+}
+fn relative(from: &str, to: &str) -> String {
+    let mut a = from.split('/').collect::<Vec<_>>();
+    a.pop();
+    let b = to.split('/').collect::<Vec<_>>();
+    let common = a.iter().zip(&b).take_while(|(a, b)| a == b).count();
+    let mut parts = vec![".."; a.len() - common];
+    parts.extend(&b[common..]);
+    let s = parts.join("/");
+    let s = s.strip_suffix(".proto").unwrap_or(&s);
+    format!("{}{}.js", if s.starts_with("..") { "" } else { "./" }, s)
+}
+fn ty(kind: &RpcFieldKind, names: &BTreeMap<String, String>) -> Result<String> {
+    Ok(match kind {
+        RpcFieldKind::Message(n) | RpcFieldKind::Enum(n) => names
+            .get(n)
+            .cloned()
+            .ok_or_else(|| anyhow::anyhow!("unknown Protobuf type {n}"))?,
+        RpcFieldKind::Group(_) => {
+            anyhow::bail!("Protobuf groups are unsupported by TypeScript gRPC")
+        }
+        RpcFieldKind::String => "string".into(),
+        RpcFieldKind::Bytes => "Uint8Array".into(),
+        RpcFieldKind::Bool => "boolean".into(),
+        RpcFieldKind::Int64
+        | RpcFieldKind::Uint64
+        | RpcFieldKind::Sint64
+        | RpcFieldKind::Fixed64
+        | RpcFieldKind::Sfixed64 => "bigint".into(),
+        _ => "number".into(),
+    })
+}
+pub fn generate(wire: &RpcWireSchema, descriptors: &[u8]) -> Result<Vec<GeneratedFile>> {
+    let mut names = BTreeMap::new();
+    let mut symbols = std::collections::BTreeSet::new();
+    let mut owners = BTreeMap::new();
+    let mut maps = BTreeMap::new();
+    fn collect_maps<'a>(ms: &'a [RpcWireMessage], out: &mut BTreeMap<String, &'a RpcWireMessage>) {
+        for m in ms {
+            if m.map_entry {
+                out.insert(m.full_name.clone(), m);
+            }
+            collect_maps(&m.messages, out);
+        }
+    }
+    for f in &wire.files {
+        ensure!(
+            f.name != "poolster-rpc-runtime.proto",
+            "Protobuf file collides with Poolster runtime module"
+        );
+        ensure!(
+            f.name.ends_with(".proto")
+                && !f.name.starts_with('/')
+                && !f.name.contains(['\\', ':'])
+                && f.name
+                    .split('/')
+                    .all(|p| !p.is_empty() && p != ".." && p != "."),
+            "unsafe Protobuf path"
+        );
+        ensure!(
+            f.extensions.is_empty(),
+            "Protobuf extensions are unsupported by TypeScript gRPC"
+        );
+        let mut ms = vec![];
+        fields(&f.messages, &mut ms);
+        collect_maps(&f.messages, &mut maps);
+        let mut es = f.enums.iter().collect::<Vec<_>>();
+        enums(&f.messages, &mut es);
+        for (full, name) in ms
+            .iter()
+            .map(|m| (&m.full_name, &m.name))
+            .chain(es.iter().map(|e| (&e.full_name, &e.name)))
+        {
+            let _ = name;
+            ensure!(
+                symbols.insert(symbol(full)),
+                "Protobuf type names collide after TypeScript normalization: {full}"
+            );
+            names.insert(full.clone(), format!("Pb_{}", symbol(full)));
+            owners.insert(full.clone(), f.name.clone());
+        }
+    }
+    let mut out = vec![GeneratedFile::new(
+        "src/poolster-rpc-runtime.ts",
+        format!(
+            "import {{createFileRegistry,fromBinary}} from '@bufbuild/protobuf';\nimport {{FileDescriptorSetSchema}} from '@bufbuild/protobuf/wkt';\nexport const registry=createFileRegistry(fromBinary(FileDescriptorSetSchema,Uint8Array.from({})));\n",
+            serde_json::to_string(descriptors)?
+        ),
+    )?];
+    for f in &wire.files {
+        let mut s = String::from(
+            "// Generated by Poolster. Native Protobuf descriptors remain authoritative.\nimport {fromBinary,toBinary,type Message} from '@bufbuild/protobuf';\nimport type {GenMessage} from '@bufbuild/protobuf/codegenv2';\nimport {Client,makeGenericClientConstructor,type ClientOptions,type ChannelCredentials,type Metadata,type CallOptions,type ClientUnaryCall,type ClientReadableStream,type ClientWritableStream,type ClientDuplexStream,type ServiceError,type UntypedServiceImplementation,type handleUnaryCall,type handleClientStreamingCall,type handleServerStreamingCall,type handleBidiStreamingCall} from '@grpc/grpc-js';\n",
+        );
+        let runtime = relative(&f.name, "poolster-rpc-runtime.proto");
+        s.push_str(&format!("import {{registry}} from {};\n", quote(&runtime)));
+        for other in &wire.files {
+            if other.name == f.name {
+                continue;
+            }
+            let exports = names
+                .iter()
+                .filter(|(n, _)| owners[*n] == other.name)
+                .map(|(_, n)| format!("{n},{n}Schema"))
+                .collect::<Vec<_>>();
+            if !exports.is_empty() {
+                s.push_str(&format!(
+                    "import {{{}}} from {};\n",
+                    exports.join(","),
+                    quote(&relative(&f.name, &other.name))
+                ));
+            }
+        }
+        let mut es = f.enums.iter().collect::<Vec<_>>();
+        enums(&f.messages, &mut es);
+        for e in es {
+            let n = &names[&e.full_name];
+            s.push_str(&format!("export enum {n} {{\n"));
+            for v in &e.values {
+                s.push_str(&format!("{}={},\n", quote(&v.name), v.number));
+            }
+            s.push_str("}\n");
+            s.push_str(&format!(
+                "export const {n}Schema=registry.getEnum({})!;\n",
+                quote(&e.full_name)
+            ));
+        }
+        let mut ms = vec![];
+        fields(&f.messages, &mut ms);
+        for m in ms {
+            ensure!(m.extensions.is_empty(), "Protobuf extensions unsupported");
+            let n = &names[&m.full_name];
+            s.push_str(&format!(
+                "export type {n}=Message<{}>&{{\n",
+                quote(&m.full_name)
+            ));
+            for field in &m.fields {
+                if field.oneof_index.is_some() && !field.proto3_optional {
+                    continue;
+                }
+                let mut t = if matches!(&field.kind,RpcFieldKind::Message(target) if maps.contains_key(target))
+                {
+                    String::new()
+                } else {
+                    ty(&field.kind, &names)?
+                };
+                if let RpcFieldKind::Message(ref target) = field.kind {
+                    if let Some(map) = maps.get(target) {
+                        ensure!(map.fields.len() == 2, "malformed Protobuf map entry");
+                        let k = ty(&map.fields[0].kind, &names)?;
+                        let v = ty(&map.fields[1].kind, &names)?;
+                        t = format!(
+                            "{{[key:{}]:{v}}}",
+                            if k == "number" { "number" } else { "string" }
+                        );
+                    } else if field.label == RpcFieldLabel::Repeated {
+                        t.push_str("[]");
+                    }
+                } else if field.label == RpcFieldLabel::Repeated {
+                    t.push_str("[]");
+                }
+                let optional = field.proto3_optional
+                    || (field.label != RpcFieldLabel::Repeated
+                        && matches!(field.kind, RpcFieldKind::Message(_)))
+                    || (f.syntax == "proto2" && field.label == RpcFieldLabel::Optional);
+                s.push_str(&format!(
+                    "{}{}:{t};\n",
+                    quote(&property(&field.name)),
+                    if optional { "?" } else { "" }
+                ));
+            }
+            for (i, oneof) in m.oneofs.iter().enumerate() {
+                let fs = m
+                    .fields
+                    .iter()
+                    .filter(|x| x.oneof_index == Some(i) && !x.proto3_optional)
+                    .collect::<Vec<_>>();
+                if fs.is_empty() {
+                    continue;
+                }
+                s.push_str(&format!("{}:", quote(&property(oneof))));
+                for field in fs {
+                    s.push_str(&format!(
+                        "{{case:{};value:{}}}|",
+                        quote(&ident(&field.name)),
+                        ty(&field.kind, &names)?
+                    ));
+                }
+                s.push_str("{case:undefined;value?:undefined};\n");
+            }
+            s.push_str("};\n");
+            s.push_str(&format!(
+                "export const {n}Schema=registry.getMessage({})! as GenMessage<{n}>;\n",
+                quote(&m.full_name)
+            ));
+        }
+        for service in &f.services {
+            let name = service.full_name.rsplit('.').next().unwrap();
+            s.push_str(&format!("export const {name}Service={{\n"));
+            for method in &service.methods {
+                let input = &names[&method.input_type];
+                let output = &names[&method.output_type];
+                let cs = matches!(
+                    method.streaming,
+                    RpcStreaming::Client | RpcStreaming::Bidirectional
+                );
+                let ss = matches!(
+                    method.streaming,
+                    RpcStreaming::Server | RpcStreaming::Bidirectional
+                );
+                s.push_str(&format!("{}:{{path:{},requestStream:{cs},responseStream:{ss},requestSerialize:(x:{input})=>Buffer.from(toBinary({input}Schema,x)),requestDeserialize:(x:Buffer)=>fromBinary({input}Schema,x),responseSerialize:(x:{output})=>Buffer.from(toBinary({output}Schema,x)),responseDeserialize:(x:Buffer)=>fromBinary({output}Schema,x)}},\n",quote(&format!("{}{}",method.name[..1].to_ascii_lowercase(),&method.name[1..])),quote(&format!("/{}/{}",service.full_name,method.name))));
+            }
+            s.push_str("};\n");
+            s.push_str(&format!(
+                "export interface {name}Server extends UntypedServiceImplementation {{\n"
+            ));
+            for m in &service.methods {
+                let i = &names[&m.input_type];
+                let o = &names[&m.output_type];
+                let handle = match m.streaming {
+                    RpcStreaming::Unary => "handleUnaryCall",
+                    RpcStreaming::Client => "handleClientStreamingCall",
+                    RpcStreaming::Server => "handleServerStreamingCall",
+                    RpcStreaming::Bidirectional => "handleBidiStreamingCall",
+                };
+                s.push_str(&format!(
+                    "{}:{handle}<{i},{o}>;\n",
+                    quote(&format!(
+                        "{}{}",
+                        m.name[..1].to_ascii_lowercase(),
+                        &m.name[1..]
+                    ))
+                ));
+            }
+            s.push_str("}\n");
+            s.push_str(&format!(
+                "export interface {name}Client extends Client {{\n"
+            ));
+            for m in &service.methods {
+                let i = &names[&m.input_type];
+                let o = &names[&m.output_type];
+                let n = format!("{}{}", m.name[..1].to_ascii_lowercase(), &m.name[1..]);
+                let cb = format!("callback:(error:ServiceError|null,response:{o})=>void");
+                match m.streaming {RpcStreaming::Unary=>for args in [format!("request:{i},{cb}"),format!("request:{i},metadata:Metadata,{cb}"),format!("request:{i},metadata:Metadata,options:CallOptions,{cb}")] {s.push_str(&format!("{}({args}):ClientUnaryCall;\n",quote(&n)));},RpcStreaming::Server=>s.push_str(&format!("{}(request:{i},metadata?:Metadata,options?:CallOptions):ClientReadableStream<{o}>;\n",quote(&n))),RpcStreaming::Client=>{s.push_str(&format!("{}({cb}):ClientWritableStream<{i}>;\n{}(metadata:Metadata,options:CallOptions,{cb}):ClientWritableStream<{i}>;\n",quote(&n),quote(&n)));},RpcStreaming::Bidirectional=>s.push_str(&format!("{}(metadata?:Metadata,options?:CallOptions):ClientDuplexStream<{i},{o}>;\n",quote(&n)))}
+            }
+            s.push_str("}\n");
+            s.push_str(&format!("export const {name}Client=makeGenericClientConstructor({name}Service,{}) as unknown as {{new(address:string,credentials:ChannelCredentials,options?:ClientOptions):{name}Client}};\n",quote(&service.full_name)));
+        }
+        for (full, n) in &names {
+            if owners[full] == f.name {
+                let short = symbol(
+                    full.strip_prefix(&format!("{}.", f.package))
+                        .unwrap_or(full),
+                );
+                if short != *n {
+                    s.push_str(&format!(
+                        "export {{ {n} as {short}, {n}Schema as {short}Schema }};\n"
+                    ));
+                }
+            }
+        }
+        out.push(GeneratedFile::new(
+            format!("src/{}.ts", f.name.trim_end_matches(".proto")),
+            s,
+        )?);
+    }
+    Ok(out)
+}

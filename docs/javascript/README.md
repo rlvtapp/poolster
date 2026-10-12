@@ -8,7 +8,8 @@ You do not need to write Rust.
 3. [Plugins](plugins.md) — query hooks, validators and test helpers.
 4. [GraphQL](graphql.md) — operations, flat clients and grouping.
 5. [AsyncAPI and Kafka](../reference/outputs/kafka.md#javascript-sdk) — select inputs and generate models or broker clients.
-6. [Regeneration](regeneration.md) — preview, check and write changes.
+6. [Protobuf/gRPC](../reference/outputs/protobuf.md) — Python and TypeScript native generation, plus existing Go support.
+7. [Regeneration](regeneration.md) — preview, check and write changes.
 
 AsyncAPI can generate models or Kafka clients for all ten SDK languages. Kafka
 uses the documented plaintext JSON subset; acknowledgement, schema and platform

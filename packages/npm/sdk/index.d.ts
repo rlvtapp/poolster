@@ -99,6 +99,8 @@ export interface SdkPackageOptions {
   commandName?: string;
   /** Options for the selected bundled HTTP or GraphQL exporter. */
   contracts?: { http?: ContractOutputOptions; graphql?: ContractOutputOptions };
+  /** Protocol-specific generator settings; not HTTP/GraphQL API styles. */
+  contractOptions?: { protobuf?: ProtobufOutputOptions };
   path?: string;
   name?: string;
   version?: string;
@@ -113,6 +115,17 @@ export interface SdkPackageOptions {
   /** GraphQL distinct-connection SSE generation capability. */
   subscriptions?: boolean;
   jobs?: number;
+}
+
+export interface ProtobufOutputOptions {
+  /** Required Go module import path. */
+  module?: string;
+  /** Python distribution name, default poolster-rpc. Import paths follow the proto files. */
+  packageName?: string;
+  /** Go Mfile.proto import mappings. */
+  goPackages?: Record<string, string>;
+  /** Go-only executables for the pinned official toolchain; Python and TypeScript use Poolster rendering. */
+  toolchain?: { protoc?: string; protocGenGo?: string; protocGenGoGrpc?: string };
 }
 
 export interface ContractOutputOptions {

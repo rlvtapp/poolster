@@ -1,0 +1,34 @@
+# Python gRPC package
+
+Poolster emits these message bindings, typing declarations and client/server
+interfaces itself. Generation never invokes protoc, grpcio-tools, Python or a
+network service. Serialization uses protobuf 6.33.5; transport uses grpcio 1.78.0.
+Install with `python -m pip install .` on Python 3.10 or newer. pyproject.toml pins
+runtime dependencies and the setuptools build backend.
+
+`src/<proto-path>_pb2.py` exports native protobuf message classes from retained
+wire descriptors. `_pb2.pyi` contains field/constructor typing declarations.
+`_pb2_grpc.py` exposes `<Service>Stub`, `<Service>Servicer` and
+`add_<Service>Servicer_to_server`; its `.pyi` types the synchronous callables.
+Import modules using original proto paths, for example
+`from store import service_pb2_grpc`. The distribution name does not add an import
+namespace: use namespaced proto paths to avoid collisions with installed SDKs.
+Runtime descriptor loading uses protobuf's default descriptor pool; incompatible
+definitions of the same fully qualified message name cannot coexist.
+
+Implement a generated servicer and register it on `grpc.server(...)`. Construct
+stubs with a channel. Unary and all three streaming modes follow grpcio semantics.
+Pass `timeout=` and `metadata=` to calls; status errors are `grpc.RpcError`.
+Cancellation and transport credentials use the runtime APIs. No credentials,
+automatic retry policy, server implementation or connection is generated.
+Async channels/servers accept the same runtime bindings, but the shipped `.pyi`
+callable annotations describe synchronous APIs only.
+
+Presence, maps, oneofs, defaults, required proto2 fields, extensions and wire
+numbers stay in native protobuf descriptors. Runtime sources, messages, stubs and
+typing declarations are separate files. Sources and FileDescriptorSet bytes
+(encoded as a JSON integer array) remain under `proto/`. Reconstruct a binary
+FileDescriptorSet with `bytes(json.load(open("proto/descriptor-set.json")))`.
+Editions, Python keyword public names, unsafe/case-colliding module paths, custom
+files in runtime-owned `google/protobuf/`, and conflicting exports are rejected.
+Regeneration uses normal Poolster ownership/customization rules.

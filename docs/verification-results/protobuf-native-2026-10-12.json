@@ -1,0 +1,107 @@
+{
+  "date": "2026-10-12",
+  "scope": "Poolster-owned Python and TypeScript Protobuf/gRPC source generation; existing Go route preserved",
+  "workspace": {
+    "test_executables": 108,
+    "effective": {
+      "passed": 1026,
+      "failed": 0,
+      "ignored": 211
+    },
+    "results": "/private/tmp/poolster-parallel-protobuf-tests/results.json",
+    "final_python_unit_refresh": {
+      "passed": 50,
+      "ignored": 6,
+      "log": "/private/tmp/poolster-python-unit-final.log"
+    },
+    "note": "Final Python template fix was additionally verified with refreshed unit and native binaries. These replace affected results, rather than adding to workspace totals."
+  },
+  "native": {
+    "python": {
+      "passed": 4,
+      "failed": 0,
+      "ignored": 0,
+      "log": "/private/tmp/poolster-python-rpc-fresh.log",
+      "coverage": [
+        "installed wheel and packaged typings",
+        "unary/client/server/bidirectional streams",
+        "metadata/errors/deadlines/cancellation",
+        "proto2 required/default/extension presence",
+        "pinned upstream public imports",
+        "Timestamp interoperability",
+        "nested messages, message maps and pickle",
+        "provider substitution and generation without interpreter"
+      ]
+    },
+    "typescript": {
+      "passed": 6,
+      "failed": 0,
+      "ignored": 0,
+      "log": "/private/tmp/poolster-ts-owned-grpc-final.log",
+      "coverage": [
+        "strict compilation and server-interface shape",
+        "all streaming modes against local grpc-js server",
+        "metadata/errors/deadlines/cancellation",
+        "bigint/maps/oneofs/optional presence",
+        "proto2 defaults and explicit presence roundtrip",
+        "reserved field names",
+        "malformed/unsupported schemas",
+        "provider substitution and regeneration"
+      ]
+    },
+    "existing_go": {
+      "passed": 2,
+      "failed": 0,
+      "ignored": 0,
+      "log": "/private/tmp/poolster-protobuf-go-native.log"
+    },
+    "cli_mixed_recipe": {
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0,
+      "log": "/private/tmp/poolster-protobuf-cli-native.log"
+    }
+  },
+  "sdk": {
+    "full_suite": {
+      "passed": 94,
+      "failed": 0,
+      "skipped": 3,
+      "log": "/private/tmp/poolster-protobuf-sdk.log"
+    },
+    "final_rebuilt_addon_protobuf": {
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "log": "/private/tmp/poolster-protobuf-sdk-final.log"
+    }
+  },
+  "quality": {
+    "clippy": "Passed with warnings denied for core, CLI, Node, Python and TypeScript; all targets",
+    "clippy_log": "/private/tmp/poolster-protobuf-clippy.log",
+    "workspace_doctests": "Passed; no runnable doctests; Node cdylib unsupported by Cargo",
+    "doctests_log": "/private/tmp/poolster-protobuf-doctests.log",
+    "format": "passed",
+    "diff": "passed",
+    "source_size": {
+      "authored_files": 781,
+      "violations": 0,
+      "log": "/private/tmp/poolster-protobuf-layout.json"
+    }
+  },
+  "resolved_failures": [
+    "CLI test module lacked a config-loader import; corrected before running the suite",
+    "Wheel initially omitted root .pyi files; packaging fixed and installed-wheel check passed",
+    "Fresh native Python test exposed missing protobuf symbol registration for nested-message pickle; recursive registration fixed and all four native tests passed"
+  ],
+  "boundaries": [
+    "Go still invokes its established upstream generators",
+    "Python typing targets sync clients",
+    "TypeScript targets Node gRPC, not grpc-web",
+    "TypeScript groups/extensions unsupported",
+    "Protobuf editions unsupported",
+    "Messages-only output remains follow-up",
+    "Custom Python files in google/protobuf runtime namespace unsupported"
+  ],
+  "release": "unreleased; no publishing performed"
+}

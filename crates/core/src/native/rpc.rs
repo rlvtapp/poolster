@@ -4,6 +4,10 @@
 //! extensions remain in FileDescriptorSet bytes. They are not flattened into
 //! HTTP schemas or interpreted as GraphQL nullable fields.
 use serde::{Deserialize, Serialize};
+mod wire_projection;
+mod wire_schema;
+mod wire_types;
+pub use wire_types::*;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum RpcStreaming {
@@ -136,3 +140,6 @@ impl RpcContract {
         }
     }
 }
+
+#[cfg(test)]
+mod wire_schema_tests;

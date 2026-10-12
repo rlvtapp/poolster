@@ -52,6 +52,34 @@ package and client package together by giving them different paths. Overlapping
 files produce an ownership error. JSON Schema constraints are retained in model
 schema manifests; declarations alone do not validate runtime values.
 
+## Protobuf gRPC packages
+
+The Go, Python and TypeScript plugins also consume Protobuf RPC contracts.
+Go retains its established upstream toolchain. Python and TypeScript render source
+inside Poolster and depend on protocol runtime libraries; no upstream source
+generator is invoked for those languages.
+
+```js
+import { generate } from '@relevate/poolster';
+import { inputProtobuf, pluginPython, pluginTypeScript } from '@relevate/poolster/plugins';
+
+await generate({
+  input: { path: './proto/service.proto', importRoots: ['./proto'], plugin: inputProtobuf() },
+  output: './generated',
+  plugins: [pluginPython({path:'python', contractOptions:{protobuf:{packageName:'example-rpc'}}}),
+    pluginTypeScript({path:'typescript',name:'@example/rpc'})],
+});
+```
+
+Python `packageName` is the distribution name; import paths follow the proto
+files. Install the generated package dependencies before execution. Go requires
+`contractOptions.protobuf.module`, protoc 34.2, protoc-gen-go 1.36.11 and
+protoc-gen-go-grpc 1.6.2. Go executable paths can be configured in `toolchain`;
+arbitrary generator flags are not accepted. Protobuf has no HTTP/GraphQL
+client style setting. Unsupported output languages return empty output with a
+warning and skipped-plugin report; malformed supported inputs and incompatible
+options fail explicitly.
+
 ## Documentation
 
 | Task | Guide |
