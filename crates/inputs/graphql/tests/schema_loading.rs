@@ -178,3 +178,34 @@ fn retained_documents_revision_tracks_operation_imports() {
         after.get_reference::<GraphqlOperations>().unwrap()
     );
 }
+
+#[test]
+fn anonymous_operation_imports_are_not_introspection_documents() {
+    let dir = tempfile::tempdir().unwrap();
+    let schema = dir.path().join("schema.graphql");
+    let operations = dir.path().join("operations.graphql");
+    let anonymous = "{ greeting }";
+    std::fs::write(&schema, "type Query { greeting: String! }").unwrap();
+    std::fs::write(dir.path().join("anonymous.graphql"), anonymous).unwrap();
+    std::fs::write(&operations, "#import \"anonymous.graphql\"\n").unwrap();
+    let input = GraphqlInput
+        .load_with_options(
+            &schema,
+            &InputOptions {
+                operation_files: vec![operations],
+                ..Default::default()
+            },
+        )
+        .unwrap();
+    let contract = input.get::<GraphqlOperations>().unwrap();
+    assert_eq!(contract.operations.len(), 1);
+    assert!(contract.operations[0].document.contains("greeting"));
+    assert!(
+        input
+            .get::<GraphqlDocument>()
+            .unwrap()
+            .native_documents
+            .values()
+            .any(|text| text == anonymous)
+    );
+}

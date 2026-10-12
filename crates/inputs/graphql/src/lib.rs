@@ -98,12 +98,12 @@ impl poolster_core::input::InputPlugin for GraphqlInput {
             options.broker.is_none() && options.workflow_sources.is_empty(),
             "GraphQL input does not support broker or workflow options"
         );
-        let schema = schema_loading::load(&[path.to_owned()], &options.import_roots)
+        let schema = schema_loading::load_schema(&[path.to_owned()], &options.import_roots)
             .map_err(|error| anyhow!("cannot read contract {}: {error:#}", path.display()))?;
         let source = schema.source;
         let mut document = parse(&source)?;
         let operation_documents =
-            schema_loading::load(&options.operation_files, &options.import_roots)?;
+            schema_loading::load_operations(&options.operation_files, &options.import_roots)?;
         let operations = operation_documents.source;
         document.native_documents = schema.documents;
         document

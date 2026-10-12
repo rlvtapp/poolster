@@ -10,13 +10,26 @@ pub struct Loaded {
     pub source: String,
     pub documents: BTreeMap<String, String>,
 }
-pub fn load(paths: &[PathBuf], roots: &[PathBuf]) -> Result<Loaded> {
+pub fn load_schema(paths: &[PathBuf], roots: &[PathBuf]) -> Result<Loaded> {
+    load(paths, roots, true)
+}
+pub fn load_operations(paths: &[PathBuf], roots: &[PathBuf]) -> Result<Loaded> {
+    load(paths, roots, false)
+}
+fn load(paths: &[PathBuf], roots: &[PathBuf], allow_introspection: bool) -> Result<Loaded> {
     let mut seen = BTreeSet::new();
     let mut stack = BTreeSet::new();
     let mut documents = BTreeMap::new();
     let mut source = String::new();
     for path in paths {
-        source.push_str(&visit(path, roots, &mut seen, &mut stack, &mut documents)?);
+        source.push_str(&visit(
+            path,
+            roots,
+            &mut seen,
+            &mut stack,
+            &mut documents,
+            allow_introspection,
+        )?);
     }
     Ok(Loaded { source, documents })
 }
@@ -26,6 +39,7 @@ fn visit(
     seen: &mut BTreeSet<PathBuf>,
     stack: &mut BTreeSet<PathBuf>,
     documents: &mut BTreeMap<String, String>,
+    allow_introspection: bool,
 ) -> Result<String> {
     let path = path
         .canonicalize()
@@ -42,7 +56,7 @@ fn visit(
     let source = std::fs::read_to_string(&path)
         .with_context(|| format!("cannot read GraphQL source {}", path.display()))?;
     documents.insert(path.to_string_lossy().replace('\\', "/"), source.clone());
-    if source.trim_start().starts_with('{') {
+    if allow_introspection && source.trim_start().starts_with('{') {
         let out = introspection::to_sdl(
             &serde_json::from_str(&source).context("invalid introspection JSON")?,
         )?;
@@ -84,7 +98,14 @@ fn visit(
                     path.display()
                 )
             })?;
-            out.push_str(&visit(target, roots, seen, stack, documents)?);
+            out.push_str(&visit(
+                target,
+                roots,
+                seen,
+                stack,
+                documents,
+                allow_introspection,
+            )?);
         } else if line_trim.starts_with("#import") || line_trim.starts_with("# import") {
             bail!("malformed GraphQL import: {line_trim}");
         } else {
