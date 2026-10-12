@@ -7,7 +7,8 @@ You do not need to write Rust.
 2. [Configuration](configuration.md) — paths, packages and contract options.
 3. [Plugins](plugins.md) — query hooks, validators and test helpers.
 4. [GraphQL](graphql.md) — operations, flat clients and grouping.
-5. [Regeneration](regeneration.md) — preview, check and write changes.
+5. [AsyncAPI and Kafka](../reference/outputs/kafka.md#javascript-sdk) — select inputs and generate models or broker clients.
+6. [Regeneration](regeneration.md) — preview, check and write changes.
 
 Want to create a plugin? Use [JavaScript plugin authoring](../plugins/javascript/README.md).
 

@@ -21,8 +21,11 @@ the source changes. Poolster manages dependency order and file ownership.
 - [Support matrix](../plugin-support-matrix.md) for tested pipelines and limits.
 - [Internals](../internals/README.md) for contracts, blocks and lifecycle rules.
 
-OpenAPI is the established generation path. GraphQL client and companion additions
-in this checkout are unreleased. Other protocols have their own support boundaries.
+OpenAPI is the established generation path. GraphQL clients and companions, and
+AsyncAPI models/Kafka clients in this checkout are unreleased additions. AsyncAPI
+models cover all ten SDK languages; Kafka transports cover six, with four planned.
+See [Kafka capabilities](../reference/outputs/kafka-conformance.md) for differences
+and limitations. Other protocols have their own support boundaries.
 
 [Why Poolster](why-poolster.md) · [Roadmap](../reference/inputs/native-pipelines.md#remaining-work) ·
 [Contributing](contributing.md)

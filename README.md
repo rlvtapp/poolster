@@ -2,7 +2,7 @@
 
 > [!IMPORTANT]
 > **Poolster is under active development. OpenAPI generation is ready to use; GraphQL and other native pipelines are expanding.**
-> See the [support matrix](docs/plugin-support-matrix.md) for tested outputs and limitations. Current GraphQL additions are unreleased.
+> See the [support matrix](docs/plugin-support-matrix.md) for tested outputs and limitations. Current GraphQL and AsyncAPI/Kafka additions are unreleased.
 
 **One contract. Lots of possibilities. Your code.**
 
@@ -48,8 +48,11 @@ clients for all ten SDK languages and TypeScript query, validation and testing c
 in this checkout. Generated GraphQL packages separate models, operations, transport
 and client code, with raw, flat and grouped call styles. GraphQL also generates
 [Postman collections and executable CLIs](docs/reference/outputs/graphql-tools.md).
-RPC, events and workflows
-have their own supported pipelines.
+AsyncAPI generates [shared models](docs/reference/outputs/shared-models.md) for all ten
+SDK languages and [Kafka producer/consumer packages](docs/reference/outputs/kafka.md)
+for TypeScript, Go, Rust, Python, Java and C#. PHP, Ruby, Swift and Elixir Kafka
+transports remain planned. See the [Kafka capability comparison](docs/reference/outputs/kafka-conformance.md).
+RPC and workflows have their own supported pipelines.
 
 [Plugin support matrix](docs/plugin-support-matrix.md) ·
 [GraphQL package layouts](docs/reference/outputs/graphql-layout.md) ·
