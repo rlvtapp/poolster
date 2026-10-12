@@ -3,6 +3,7 @@ use super::{
     messages::{field_name, file_stem, tag},
     plan::*,
 };
+use anyhow::Context;
 use poolster_core::native::rpc::*;
 use std::fmt::Write;
 

@@ -1,6 +1,6 @@
 //! Explicit request-owned queues over validated native unary mappings.
 use super::{plan::*, *};
-use anyhow::Context as _;
+use anyhow::Context;
 use poolster_core::native::rpc::*;
 use std::fmt::Write;
 pub(super) fn emit(

@@ -1,6 +1,6 @@
 use super::plan::*;
 use super::*;
-use anyhow::Context as _;
+use anyhow::Context;
 use poolster_core::native::rpc::*;
 use std::fmt::Write;
 

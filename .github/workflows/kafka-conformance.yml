@@ -41,6 +41,11 @@ jobs:
         if: matrix.language == 'csharp'
         with:
           dotnet-version: '8.0.x'
+      - name: Install Rust Kafka native build dependencies
+        if: matrix.language == 'rust'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes libcurl4-openssl-dev libssl-dev zlib1g-dev cmake pkg-config
       - name: Install TypeScript adapter dependencies
         if: matrix.language == 'typescript'
         run: |
@@ -49,7 +54,7 @@ jobs:
       - name: Install Python adapter dependencies
         if: matrix.language == 'python'
         run: |
-          python -m pip install --disable-pip-version-check kafka-python==3.0.11 jsonschema==4.26.0 setuptools wheel
+          python -m pip install --disable-pip-version-check kafka-python==3.0.11 jsonschema==4.26.0 hatchling==1.27.0 setuptools wheel
           echo "POOLSTER_KAFKA_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
       - name: Fetch locked workspace dependencies for offline adapters
         run: cargo fetch --locked
