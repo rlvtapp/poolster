@@ -994,5 +994,11 @@
         }
       ]
     }
-  }
+  },
+  "pending_languages": [
+    "php",
+    "ruby",
+    "swift",
+    "elixir"
+  ]
 }

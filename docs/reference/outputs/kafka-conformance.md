@@ -4,7 +4,7 @@ The Kafka generators share wire and safety requirements, while retaining native 
 
 ## Compare generated Kafka outputs
 
-This is a **runtime capability and policy comparison**, not an assertion that the clients behave identically. All six generate usable producer/consumer packages for the documented plaintext JSON subset. Their schema/model subsets differ; none has generated TLS/SASL, schema-registry or transaction support. No implementation supplies automatic application-handler retries or exactly-once side effects.
+This is a **runtime capability and policy comparison**, not an assertion that the clients behave identically. Six of the ten SDK languages generate usable producer/consumer packages for the documented plaintext JSON subset. Their schema/model subsets differ; none has generated TLS/SASL, schema-registry or transaction support. No implementation supplies automatic application-handler retries or exactly-once side effects.
 
 | Output plugin | Producer retry / idempotence | Consumer acknowledgement / failed handler | Cancellation | Operation bindings | Generated layout |
 | --- | --- | --- | --- | --- | --- |
@@ -14,30 +14,34 @@ This is a **runtime capability and policy comparison**, not an assertion that th
 | [Python](../languages/python.md) | kafka-python retries default **0**, opt in with `retries=N`; idempotence disabled | Explicit `record.ack()` or handler-success commit; pending record blocks next poll; malformed input poisons subscription | `threading.Event` between polls up to 250 ms; send wait has timeout | Fixed topic/group/client IDs; conflicting group overrides reject | Model modules, per-operation modules, bounded client mixins, runtime/codec; installable typed package |
 | [Java](../languages/java.md) | Native producer idempotence and `acks=all`; retries within 30 s delivery deadline | Partition-ordered manual ack or handler-success commit; pending batch drains before next poll; malformed input invalidates subscription | Native `cancel()` wakes poll; bounded poll duration; send-future cancellation does not retract publication | Fixed topic/group/client IDs; conflicting group overrides reject | Shared records, per-operation event classes, separate runtime/codec/subscription; one Maven package |
 | [C#](../languages/csharp.md) | Native producer idempotence and `acks=all`; 30 s message / 10 s request timeout | Explicit `record.Ack()` or handler-success commit; pending record blocks next poll; malformed input poisons subscription | `CancellationToken`, polling up to 250 ms; send cancellation stops waiting | Fixed topic/group/client IDs; conflicting group overrides reject | Shared `Models/`, per-operation `Events/` classes and separate runtime/codec/subscription; one `.csproj` |
+| [PHP](../languages/php.md) | Not implemented | Not implemented | Not implemented | Not implemented | AsyncAPI shared models only; Kafka transport planned |
+| [Ruby](../languages/ruby.md) | Not implemented | Not implemented | Not implemented | Not implemented | AsyncAPI shared models only; Kafka transport planned |
+| [Swift](../languages/swift.md) | Not implemented | Not implemented | Not implemented | Not implemented | AsyncAPI shared models only; Kafka transport planned |
+| [Elixir](../languages/elixir.md) | Not implemented | Not implemented | Not implemented | Not implemented | AsyncAPI shared models only; Kafka transport planned |
 
 Native producer idempotence protects eligible transport retries, not separate application calls. It does not establish end-to-end deduplication or transactional processing. Keep C# Kafka and HTTP/GraphQL in separate output packages. Per-language pages give call examples, dependencies and exact restrictions.
 
 ## Compare test evidence
 
-**T** = linked maintained probe tests the case; **P** = tested native acknowledgement policy, different from manual acknowledgement; **—** = missing complete evidence for that case, not necessarily an unsupported implementation feature. This grid is generated from the catalog and checked by the runner's unit tests. A T does not erase language-specific semantics or schema boundaries.
+**T** = linked maintained probe tests the case; **P** = tested native acknowledgement policy, different from manual acknowledgement; **—** = missing complete evidence for an implemented transport; **N** = Kafka transport not implemented. Models-only support is separate. This grid is generated from the catalog and checked by the runner's unit tests. A T does not erase language-specific semantics or schema boundaries.
 
 <!-- kafka-evidence:start -->
-| Case | TypeScript | Go | Rust | Python | Java | C# |
-| --- | :---: | :---: | :---: | :---: | :---: | :---: |
-| `package` | T | T | T | T | T | T |
-| `roundtrip` | T | T | T | T | T | T |
-| `outgoing-validation` | T | T | T | T | T | T |
-| `incoming-validation` | T | T | T | T | T | T |
-| `utf8` | T | T | T | T | T | T |
-| `acknowledgement` | P | T | T | T | T | T |
-| `handler-replay` | — | T | T | T | T | T |
-| `cancellation` | — | T | T | T | T | T |
-| `bindings` | — | — | T | T | T | T |
-| `provenance` | T | T | T | T | T | T |
-| `regeneration` | T | T | T | T | T | T |
+| Case | TypeScript | Go | Rust | Python | Java | C# | PHP | Ruby | Swift | Elixir |
+| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| `package` | T | T | T | T | T | T | N | N | N | N |
+| `roundtrip` | T | T | T | T | T | T | N | N | N | N |
+| `outgoing-validation` | T | T | T | T | T | T | N | N | N | N |
+| `incoming-validation` | T | T | T | T | T | T | N | N | N | N |
+| `utf8` | T | T | T | T | T | T | N | N | N | N |
+| `acknowledgement` | P | T | T | T | T | T | N | N | N | N |
+| `handler-replay` | — | T | T | T | T | T | N | N | N | N |
+| `cancellation` | — | T | T | T | T | T | N | N | N | N |
+| `bindings` | — | — | T | T | T | T | N | N | N | N |
+| `provenance` | T | T | T | T | T | T | N | N | N | N |
+| `regeneration` | T | T | T | T | T | T | N | N | N | N |
 <!-- kafka-evidence:end -->
 
-Print the same grid with `python3 scripts/kafka-conformance.py --matrix`. Each catalog cell links to source probes and executable suites. Successful adapters are execution evidence at suite level; this is not per-assertion instrumentation. For example, Go tests malformed UTF-8 through the generated codec, while TypeScript, Rust, Python, Java and C# also inject malformed bytes through a broker producer. The TypeScript `handler-replay` gap concerns reopening the same group after a failed handler; native KafkaJS behavior still applies.
+Print the same grid with `python3 scripts/kafka-conformance.py --matrix`. Implemented transport cells link to source probes and executable suites; pending languages have no executable Kafka adapter. Successful adapters are execution evidence at suite level; this is not per-assertion instrumentation. For example, Go tests malformed UTF-8 through the generated codec, while TypeScript, Rust, Python, Java and C# also inject malformed bytes through a broker producer. The TypeScript `handler-replay` gap concerns reopening the same group after a failed handler; native KafkaJS behavior still applies.
 
 ## Run the baseline
 

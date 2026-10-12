@@ -18,6 +18,9 @@ def validate(catalog, root=ROOT):
     ids = [case['id'] for case in catalog['cases']]
     if len(ids) != len(set(ids)):
         errors.append('duplicate case IDs')
+    pending = catalog.get('pending_languages', [])
+    if len(pending) != len(set(pending)) or set(pending) & set(catalog['languages']):
+        errors.append('pending languages must be unique and have no executable adapter')
     for language, adapter in catalog['languages'].items():
         suite_ids = {suite['id'] for suite in adapter['suites']}
         if set(adapter['coverage']) != set(ids):
@@ -50,14 +53,15 @@ def validate(catalog, root=ROOT):
 def evidence_matrix(catalog):
     """Render deterministic test evidence, never a transport capability promise."""
     titles = {'typescript': 'TypeScript', 'go': 'Go', 'rust': 'Rust',
-              'python': 'Python', 'java': 'Java', 'csharp': 'C#'}
-    languages = list(catalog['languages'])
+              'python': 'Python', 'java': 'Java', 'csharp': 'C#',
+              'php': 'PHP', 'ruby': 'Ruby', 'swift': 'Swift', 'elixir': 'Elixir'}
+    languages = list(catalog['languages']) + catalog.get('pending_languages', [])
     lines = ['| Case | ' + ' | '.join(titles.get(name, name) for name in languages) + ' |',
              '| --- | ' + ' | '.join(':---:' for _ in languages) + ' |']
     symbols = {'tested': 'T', 'native-policy': 'P', 'gap': '—'}
     for case in catalog['cases']:
         row = [symbols[catalog['languages'][name]['coverage'][case['id']]['status']]
-               for name in languages]
+               if name in catalog['languages'] else 'N' for name in languages]
         lines.append('| `' + case['id'] + '` | ' + ' | '.join(row) + ' |')
     return '\n'.join(lines)
 

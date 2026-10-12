@@ -36,6 +36,17 @@ class ConformanceTests(unittest.TestCase):
         grid = doc.split('<!-- kafka-evidence:start -->', 1)[1].split('<!-- kafka-evidence:end -->', 1)[0].strip()
         self.assertEqual(grid, module.evidence_matrix(catalog))
 
+    def test_pending_languages_are_visible_without_executable_adapters(self):
+        catalog = json.loads(module.CATALOG.read_text())
+        self.assertEqual(catalog['pending_languages'], ['php', 'ruby', 'swift', 'elixir'])
+        self.assertFalse(set(catalog['pending_languages']) & set(catalog['languages']))
+        grid = module.evidence_matrix(catalog)
+        self.assertIn('PHP | Ruby | Swift | Elixir', grid)
+        self.assertTrue(all(line.endswith('| N | N | N | N |')
+                            for line in grid.splitlines()[2:]))
+        catalog['pending_languages'].append('go')
+        self.assertTrue(module.validate(catalog))
+
     def test_count_pass_failure_ignore_separately(self):
         output = 'test result: ok. 2 passed; 0 failed; 1 ignored\n' \
                  'test result: FAILED. 1 passed; 1 failed; 0 ignored'
