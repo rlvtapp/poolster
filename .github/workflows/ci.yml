@@ -76,6 +76,8 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
+      - name: Install recipe schema validation dependency
+        run: python -m pip install --disable-pip-version-check 'jsonschema==4.23.0'
       - name: Build OpenAPI compiler for CLI integration tests
         working-directory: openapi
         run: go build -o ../target/debug/poolster-openapi .
