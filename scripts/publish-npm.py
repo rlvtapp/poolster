@@ -14,7 +14,7 @@ def publish(path, tag, run=subprocess.run):
     with tarfile.open(path, 'r:gz') as archive:
         manifest = json.load(archive.extractfile('package/package.json'))
     package = f"{manifest['name']}@{manifest['version']}"
-    result = run(['npm', 'view', package, 'dist.integrity', '--json'], capture_output=True, text=True)
+    result = run(['npm', 'view', package, 'dist.integrity', '--json', '--prefer-online'], capture_output=True, text=True)
     if result.returncode == 0:
         integrity = json.loads(result.stdout)
         expected = 'sha512-' + base64.b64encode(hashlib.sha512(path.read_bytes()).digest()).decode()

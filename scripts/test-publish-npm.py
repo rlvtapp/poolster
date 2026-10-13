@@ -46,6 +46,7 @@ class PublicationTests(unittest.TestCase):
         run = Mock(return_value=SimpleNamespace(returncode=0, stdout=json.dumps(integrity)))
         module.publish(self.path, 'latest', run)
         self.assertEqual(run.call_count, 1)
+        self.assertIn('--prefer-online', run.call_args.args[0])
 
     def test_conflicting_existing_artifact_fails(self):
         run = Mock(return_value=SimpleNamespace(returncode=0, stdout='"sha512-other"'))
