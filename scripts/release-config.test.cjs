@@ -43,6 +43,17 @@ test('release updates inherited workspace and lock versions without changing dep
     assert.deepEqual(after.package[i], expected);
   }
   assert.equal(changed, names.size);
+  const exampleLock = 'examples/custom-plugin/Cargo.lock';
+  const exampleBefore = toml.parse(read(exampleLock));
+  const exampleAfter = toml.parse(updated.get(exampleLock));
+  for (let i = 0; i < exampleBefore.package.length; i++) {
+    const expected = { ...exampleBefore.package[i] };
+    if (names.has(expected.name)) {
+      assert.equal(expected.version, read('version.txt').trim());
+      expected.version = '0.5.1';
+    }
+    assert.deepEqual(exampleAfter.package[i], expected);
+  }
   for (const member of manifest.workspace.members) {
     const beforeManifest = toml.parse(read(`${member}/Cargo.toml`));
     const afterManifest = toml.parse(updated.get(`${member}/Cargo.toml`) ?? read(`${member}/Cargo.toml`));

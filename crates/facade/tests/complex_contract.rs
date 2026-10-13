@@ -31,7 +31,7 @@ fn fixture_is_explicitly_versioned_and_contains_complex_cases() {
 
 #[test]
 #[ignore = "requires built Poolster OpenAPI compiler and Swift 6"]
-fn real_openapi_complex_models_compile_and_round_trip_with_explicit_collision_errors() {
+fn real_openapi_complex_models_compile_and_round_trip_with_disambiguated_names() {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
     let compiler = std::env::var_os("POOLSTER_OPENAPI_BIN")
         .map(PathBuf::from)
@@ -49,31 +49,29 @@ fn real_openapi_complex_models_compile_and_round_trip_with_explicit_collision_er
         "{}",
         String::from_utf8_lossy(&result.stderr)
     );
-    let mut adapted = OpenApiSidecar::new(artifacts, "complex", "1.0.0")
+    let adapted = OpenApiSidecar::new(artifacts, "complex", "1.0.0")
         .load()
         .unwrap();
-    // Colliding names fail with a useful diagnostic rather than invalid source.
+    // Native naming disambiguates colliding identifiers while preserving wire names.
     for profiles in [
         ProfileSet::new("sdk").package(swift::package("swift").with(swift::sdk())),
         ProfileSet::new("sdk").package(java::package("java").with(java::sdk())),
         ProfileSet::new("sdk").package(csharp::package("csharp").with(csharp::sdk())),
     ] {
-        let error = poolster::generate_with_security_catalog(
+        let tree = poolster::generate_with_security_catalog(
             &adapted.api,
             profiles,
             Some(&adapted.security_schemes),
         )
-        .unwrap_err();
-        let message = format!("{error:#}");
-        assert!(
-            message.contains("collide as native identifier"),
-            "{message}"
-        );
+        .unwrap();
+        let collision = tree
+            .iter()
+            .map(|(_, source)| source)
+            .collect::<Vec<_>>()
+            .join("\n");
+        assert!(collision.contains("display-name"));
+        assert!(collision.contains("display_name"));
     }
-    adapted
-        .api
-        .schemas
-        .retain(|schema| schema.name != "Collision");
     let tree = poolster::generate_with_security_catalog(
         &adapted.api,
         ProfileSet::new("sdk").package(
@@ -85,7 +83,7 @@ fn real_openapi_complex_models_compile_and_round_trip_with_explicit_collision_er
     )
     .unwrap();
     tree.write_to(temp.path()).unwrap();
-    let models = temp.path().join("sdk/swift/Sources/ComplexSDK/Models");
+    let models = temp.path().join("sdk/swift/Sources/ComplexSdk/Models");
     let main = temp.path().join("main.swift");
     std::fs::write(&main, r##"
 import Foundation
@@ -100,6 +98,12 @@ import Foundation
         let absent = try JSONDecoder().decode(Node.self, from: Data(#"{"id":"x","nullable":null}"#.utf8))
         let absentObject = try JSONSerialization.jsonObject(with: JSONEncoder().encode(absent)) as! [String:Any]
         precondition(absentObject["optional"] == nil && absentObject["nullable"] is NSNull)
+        let collisionInput = Data(#"{"display-name":"hyphen","display_name":"underscore"}"#.utf8)
+        let collision = try JSONDecoder().decode(Collision.self, from: collisionInput)
+        let collisionOutput = try JSONEncoder().encode(collision)
+        let collisionBefore = try JSONSerialization.jsonObject(with: collisionInput) as! NSDictionary
+        let collisionAfter = try JSONSerialization.jsonObject(with: collisionOutput) as! NSDictionary
+        precondition(collisionBefore == collisionAfter)
         // Swift currently has closed native enums: unknown wire cases reject.
         do { _ = try JSONDecoder().decode(Mode.self, from: Data(#""future""#.utf8)); preconditionFailure() }
         catch is DecodingError {}
@@ -115,7 +119,7 @@ import Foundation
         .collect::<Vec<_>>();
     sources.push(
         temp.path()
-            .join("sdk/swift/Sources/ComplexSDK/JSONValue.swift"),
+            .join("sdk/swift/Sources/ComplexSdk/JSONValue.swift"),
     );
     sources.push(main);
     let executable = temp.path().join("probe");

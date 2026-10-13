@@ -188,8 +188,7 @@ pub(super) fn render_advanced(
     }
     let mut tree = GeneratedTree::default();
     let inherited = method_traits("Client", &methods, &mut files, &mut models.names)?;
-    let runtime = include_str!("runtime/runtime.php.tmpl").replace("__NAMESPACE__", &namespace);
-    let (runtime, client) = runtime.split_once("class Client\n{").unwrap();
+    let (runtime, client) = split_runtime(include_str!("runtime/runtime.php.tmpl"), &namespace)?;
     tree.insert(GeneratedFile::new(
         "src/Runtime.php",
         format!("{runtime}\nrequire_once __DIR__ . '/Streaming.php';\n"),
@@ -222,4 +221,31 @@ pub(super) fn render_advanced(
     tree.insert(GeneratedFile::new("README.md","# GraphQL client\n\nPHP 8.2+, Composer autoload. Query/mutation fixed-operation clients use selection-specific immutable models. Optional fields use Presence::missing() versus Presence::of(null). Responses preserve partial data and errors; requireData() rejects errors. Raw functions, flat Client methods or grouped accessors. HTTP streams by default, injectable callable transport for PSR-18/Symfony. Opt-in subscriptions use distinct-connection graphql-sse. Incremental inputs use multipart/mixed deferSpec=20220824 with raw partial snapshots and final typed envelopes. Per-client scalarCodecs encode/decode callbacks walk model shapes; null and absence are retained. No reconnect, multiplexing or alternate incremental dialect.\n")?)?;
     source_layout::diagnostics(&mut tree)?;
     Ok((tree, symbols))
+}
+
+// Embedded templates may be checked out with CRLF on Windows.
+fn split_runtime(source: &str, namespace: &str) -> Result<(String, String)> {
+    let source = source
+        .replace("\r\n", "\n")
+        .replace("__NAMESPACE__", namespace);
+    let (runtime, client) = source.split_once("class Client\n{").ok_or_else(|| {
+        anyhow::anyhow!("PHP GraphQL runtime template is missing the Client declaration")
+    })?;
+    Ok((runtime.to_owned(), client.to_owned()))
+}
+
+#[cfg(test)]
+mod template_tests {
+    use super::split_runtime;
+
+    #[test]
+    fn embedded_runtime_accepts_windows_and_unix_line_endings() {
+        let source = include_str!("runtime/runtime.php.tmpl").replace("\r\n", "\n");
+        let unix = split_runtime(&source, "Example").unwrap();
+        let windows = split_runtime(&source.replace("\n", "\r\n"), "Example").unwrap();
+        assert_eq!(unix, windows);
+        assert!(unix.0.contains("namespace Example"));
+        assert!(!unix.1.contains("__NAMESPACE__"));
+        assert!(split_runtime("missing declaration", "Example").is_err());
+    }
 }

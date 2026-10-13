@@ -6,7 +6,9 @@ fn generated_php_compiles_and_runs_against_kafka() {
         std::env::var("POOLSTER_KAFKA_PHP_CONTAINER").unwrap_or("poolster-events-php".into());
     let broker_container =
         std::env::var("POOLSTER_KAFKA_BROKER_CONTAINER").unwrap_or("poolster-alpha2-kafka".into());
-    let root = std::path::PathBuf::from("/private/tmp/poolster-php-events-generated");
+    let root = std::env::var_os("POOLSTER_PHP_EVENTS_OUTPUT")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| "/private/tmp/poolster-php-events-generated".into());
     let mut input = input();
     let unique = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)

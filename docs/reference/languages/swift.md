@@ -107,7 +107,7 @@ See [shared-model output](../outputs/shared-models.md) and the matrix for per-la
 
 ## Kafka event features
 
-Swift 6 / macOS 13+ packages use Codable, actors and a small C bridge to official **librdkafka 2.12.0**, release commit `2f2208847f7f91eaf54bcbd2cedf5dbb2dd3a3fe`. SwiftPM declares a system library; install the pinned native library and configure its include/library/pkg-config paths. Runtime checks the exact library version. Native execution was verified with Swift 6.4 on macOS ARM64; Linux execution remains unverified.
+Swift 6 / macOS 13+ packages use Codable, actors and a small C bridge to official **librdkafka 2.12.0**, release commit `2f2208847f7f91eaf54bcbd2cedf5dbb2dd3a3fe`. SwiftPM declares a system library; install the pinned native library and configure its include/library/pkg-config paths. Runtime checks the exact library version. Native execution was verified with Swift 6.4 on macOS ARM64 and Swift 6.0.3 on Ubuntu 22.04 AMD64 against the pinned local broker.
 
 CLI recipes select `asyncapi`, JS uses `pluginSwift()`, and Rust uses `swift::asyncapi(provider).using_models(models.handle())`.
 

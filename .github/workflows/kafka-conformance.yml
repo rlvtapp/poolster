@@ -1,18 +1,28 @@
 name: Native Kafka conformance
 on:
-  workflow_dispatch:
-  workflow_call:
+  workflow_dispatch: null
+  workflow_call: null
 permissions:
   contents: read
 jobs:
   native:
     name: Kafka / ${{ matrix.language }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.language == 'swift' && 'ubuntu-22.04' || 'ubuntu-latest' }}
     timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        language: [typescript, go, rust, python, java, csharp]
+        language:
+          - typescript
+          - go
+          - rust
+          - python
+          - java
+          - csharp
+          - php
+          - elixir
+          - swift
+          - ruby
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
@@ -22,7 +32,7 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/main' }}
       - uses: actions/setup-python@v7
         with:
-          python-version: '3.12'
+          python-version: "3.12"
       - uses: actions/setup-node@v7
         if: matrix.language == 'typescript'
         with:
@@ -33,14 +43,44 @@ jobs:
           go-version-file: openapi/go.mod
           cache-dependency-path: openapi/go.sum
       - uses: actions/setup-java@v6
-        if: matrix.language == 'java'
+        if: matrix.language == 'java' || matrix.language == 'elixir' || matrix.language == 'ruby'
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
       - uses: actions/setup-dotnet@v6
         if: matrix.language == 'csharp'
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: 8.0.x
+      - uses: erlef/setup-beam@v1
+        if: matrix.language == 'elixir'
+        with:
+          otp-version: "27.0"
+          elixir-version: 1.17.3
+      - uses: ruby/setup-ruby@v1
+        if: matrix.language == 'ruby'
+        with:
+          ruby-version: "3.3"
+      - uses: swift-actions/setup-swift@v2
+        if: matrix.language == 'swift'
+        with:
+          swift-version: 6.0.3
+      - name: Prepare native Mix runner
+        if: matrix.language == 'elixir'
+        run: |-
+          mix local.hex --force
+          mix local.rebar --force
+          printf 'POOLSTER_ELIXIR_EVENTS_RUNNER=%s/scripts/ci/run-mix-probe.sh\n' "$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+      - name: Prepare native Ruby runner
+        if: matrix.language == 'ruby'
+        run: |-
+          printf 'POOLSTER_RUBY_EVENTS_RUNNER=%s/scripts/ci/run-ruby-probe.sh\n' "$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+          printf 'POOLSTER_RUBY_BUNDLE_PATH=%s/ruby-bundle\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
+      - name: Prepare pinned Kafka Java wire injector
+        if: matrix.language == 'elixir' || matrix.language == 'ruby'
+        run: bash scripts/ci/prepare-kafka-java.sh
+      - name: Build pinned Swift Kafka native library
+        if: matrix.language == 'swift'
+        run: bash scripts/ci/prepare-swift-kafka.sh
       - name: Install Rust Kafka native build dependencies
         if: matrix.language == 'rust'
         run: |
@@ -61,6 +101,7 @@ jobs:
       - name: Start local Kafka broker and wait for readiness
         run: |
           docker compose -f crates/plugins/typescript/tests/fixtures/kafka-broker.compose.yaml up -d
+          printf 'POOLSTER_KAFKA_BROKER_CONTAINER=%s\n' "$(docker compose -f crates/plugins/typescript/tests/fixtures/kafka-broker.compose.yaml ps -q kafka)" >> "$GITHUB_ENV"
           for attempt in $(seq 1 60); do
             if docker compose -f crates/plugins/typescript/tests/fixtures/kafka-broker.compose.yaml exec -T kafka rpk cluster info --brokers 127.0.0.1:29092; then
               exit 0
@@ -68,12 +109,19 @@ jobs:
             sleep 2
           done
           exit 1
+      - name: Prepare pinned native PHP Kafka container
+        if: matrix.language == 'php'
+        env:
+          POOLSTER_KAFKA_FIXTURE_ROOT: ${{ runner.temp }}/php-kafka-fixtures
+          POOLSTER_KAFKA_PHP_CONTAINER: poolster-events-php
+        run: |-
+          bash crates/plugins/php/tests/fixtures/kafka/setup.sh
+          printf 'POOLSTER_KAFKA_PHP_CONTAINER=poolster-events-php\n' >> "$GITHUB_ENV"
+          printf 'POOLSTER_PHP_EVENTS_OUTPUT=%s/php-kafka-fixtures/poolster-php-events-generated\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
       - name: Execute generated-package conformance adapters
         env:
           POOLSTER_KAFKA_BROKER: 127.0.0.1:29092
-        run: >-
-          python scripts/kafka-conformance.py --languages "${{ matrix.language }}" --native
-          --logs "${{ runner.temp }}/kafka-logs" --output "${{ runner.temp }}/kafka-report.json"
+        run: python scripts/kafka-conformance.py --languages "${{ matrix.language }}" --native --logs "${{ runner.temp }}/kafka-logs" --output "${{ runner.temp }}/kafka-report.json"
       - name: Verify Node event embedding against the live broker
         if: matrix.language == 'typescript'
         env:
@@ -98,4 +146,6 @@ jobs:
           retention-days: 7
       - name: Stop broker
         if: always()
-        run: docker compose -f crates/plugins/typescript/tests/fixtures/kafka-broker.compose.yaml down -v
+        run: |-
+          if [ "${{ matrix.language }}" = php ]; then docker rm -f poolster-events-php || true; fi
+          docker compose -f crates/plugins/typescript/tests/fixtures/kafka-broker.compose.yaml down -v

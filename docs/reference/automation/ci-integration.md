@@ -61,7 +61,9 @@ suite, CLI schema/reference/migration checks, the ejected CLI rebuild, and the
 OpenAPI compiler each have their own job. Native TypeScript HTTP/GraphQL,
 frameworks, Postman, Terraform, SDK mock contracts, and the plugin example run
 as six independent jobs in `native-conformance.yml`. Kafka keeps its separate
-six-language broker matrix.
+ten-language broker matrix. PHP, Elixir and Swift broker probes run there with
+their required native toolchains; SDK jobs run their HTTP/GraphQL probes with
+pinned GraphQL.js and graphql-sse servers.
 
 Fixture generation does not wait for those test suites. It builds the generator,
 checks output structure and regeneration, and exports the generated SDK, public
@@ -78,7 +80,7 @@ flowchart LR
   start[Commit] --> rust[Rust lint and tests]
   start --> cli[CLI checks and ejected rebuild]
   start --> native[Six native conformance jobs]
-  start --> kafka[Six Kafka broker jobs]
+  start --> kafka[Ten Kafka broker jobs]
   start --> go[OpenAPI compiler tests]
   start --> source[Source and release checks]
   start --> fixtures[Build generator and export fixtures]

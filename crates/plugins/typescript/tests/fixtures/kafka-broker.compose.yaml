@@ -9,6 +9,15 @@ services:
       - dev-container
       - --smp
       - '1'
+      - --memory
+      - 1G
+      - --reserve-memory
+      - 0M
+      # Keep internal RPC below Linux's ephemeral client-port range.
+      - --rpc-addr
+      - 0.0.0.0:13345
+      - --advertise-rpc-addr
+      - 127.0.0.1:13345
       - --kafka-addr
       - 0.0.0.0:29092
       - --advertise-kafka-addr

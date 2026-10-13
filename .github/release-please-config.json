@@ -19,6 +19,11 @@
           "jsonpath": "$.package[?(@.name.value == \"poolster-core\" || @.name.value == \"poolster\" || @.name.value == \"poolster-cli\" || @.name.value == \"poolster-node\" || @.name.value == \"poolster-plugin-rust\" || @.name.value == \"poolster-plugin-typescript\" || @.name.value == \"poolster-plugin-typescript-cli\" || @.name.value == \"poolster-plugin-rust-cli\" || @.name.value == \"poolster-plugin-go\" || @.name.value == \"poolster-plugin-python\" || @.name.value == \"poolster-plugin-php\" || @.name.value == \"poolster-plugin-symfony\" || @.name.value == \"poolster-plugin-terraform\" || @.name.value == \"poolster-plugin-postman\" || @.name.value == \"poolster-plugin-java\" || @.name.value == \"poolster-plugin-csharp\" || @.name.value == \"poolster-plugin-elixir\" || @.name.value == \"poolster-plugin-ruby\" || @.name.value == \"poolster-plugin-swift\" || @.name.value == \"poolster-input-openapi\" || @.name.value == \"poolster-inputs\" || @.name.value == \"poolster-input-graphql\" || @.name.value == \"poolster-input-asyncapi\" || @.name.value == \"poolster-input-arazzo\" || @.name.value == \"poolster-input-protobuf\" || @.name.value == \"poolster-input-capnproto\")].version"
         },
         {
+          "type": "toml",
+          "path": "examples/custom-plugin/Cargo.lock",
+          "jsonpath": "$.package[?(@.name.value == \"poolster-core\")].version"
+        },
+        {
           "type": "json",
           "path": "packages/npm/cli/package.json",
           "jsonpath": "$.version"
