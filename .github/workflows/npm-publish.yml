@@ -3,6 +3,10 @@ name: Publish release packages
 on:
   workflow_dispatch:
     inputs:
+      publish_unplugin:
+        description: Also publish a separately versioned unplugin release
+        type: boolean
+        default: false
       recovery_run:
         description: Original fully validated release run ID (npm recovery only)
         type: string
@@ -393,7 +397,11 @@ jobs:
           python scripts/publish-npm.py --tag "$NPM_DIST_TAG"
           release-artifacts/native/*.tgz release-artifacts/sdk-native/*.tgz
           release-artifacts/cli/*.tgz release-artifacts/sdk/*.tgz
-          release-artifacts/node-plugins release-artifacts/unplugin/*.tgz
+          release-artifacts/node-plugins
+
+      - name: Publish independent unplugin release when requested
+        if: inputs.publish_unplugin
+        run: python scripts/publish-npm.py --tag "$NPM_DIST_TAG" release-artifacts/unplugin/*.tgz
 
   publish-crates:
     name: Publish Rust SDK to crates.io
@@ -554,4 +562,7 @@ jobs:
           python scripts/publish-npm.py --tag "$NPM_DIST_TAG"
           release-artifacts/native/*.tgz release-artifacts/sdk-native/*.tgz
           release-artifacts/cli/*.tgz release-artifacts/sdk/*.tgz
-          release-artifacts/node-plugins release-artifacts/unplugin/*.tgz
+          release-artifacts/node-plugins
+      - name: Publish independent unplugin release when requested
+        if: inputs.publish_unplugin
+        run: python scripts/publish-npm.py --tag "$NPM_DIST_TAG" release-artifacts/unplugin/*.tgz

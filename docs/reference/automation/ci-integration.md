@@ -147,7 +147,11 @@ uploading anything:
 python scripts/publish-crates.py --plan --tag "v$(cat version.txt)"
 ```
 
-The Rust publish job alone receives `id-token: write`. Cargo still performs the
+New crate names require an initial manual publication: crates.io trusted tokens
+cannot create crates. Publish those names from the intended release tag using
+local Cargo credentials, then configure their trusted publishers.
+
+The Rust publish job receives `id-token: write`. Cargo still performs the
 package verification and publishes dependencies before consumers. If a job fails,
 its next run obtains a fresh temporary token and skips already published versions.
 Local `cargo login` does not establish the GitHub workflow's trusted identity.
@@ -156,6 +160,16 @@ Publication is serialized across releases. A manual `windows_only` run builds
 artifacts but cannot publish to any registry. Retry a failed publish job using
 its original artifacts: npm recovery skips an existing version only if its
 SHA-512 integrity matches the packed artifact, preserving existing dist-tags.
+For npm-only recovery after all original build gates passed, dispatch
+`npm-publish.yml` on main with `recovery_run` set to the original release run ID
+and `recovery_tag` set to its immutable tag. The job verifies the source SHA and
+build results and reuses the original archives, including nested plugin folders.
+It does not republish PyPI wheels or rebuild native packages.
+
+The unplugin integration has an independent version. Normal Poolster releases
+leave that existing version alone; set `publish_unplugin` only when deliberately
+releasing a new unplugin version. Its checksum checks remain enforced.
+
 Rebuilding native binaries can produce different bytes and requires investigation
 rather than overwriting an existing version. PyPI retries skip existing wheels;
 Cargo's publication helper already supports dependency ordering and recovery.
