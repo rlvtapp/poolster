@@ -7,7 +7,7 @@ Use Node.js 22 or newer and an OpenAPI document named `openapi.yaml`.
 ## 1. Install
 
 ```sh
-npm install -D @relevate/poolster @relevate/poolster-plugin-typescript
+npm install -D @relevate/poolster@alpha @relevate/poolster-plugin-typescript@alpha
 ```
 
 ## 2. Configure

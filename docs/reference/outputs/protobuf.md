@@ -166,4 +166,4 @@ not retain hidden provenance. Combining alternate representations with external
 
 See the language pages for target-specific limits and the
 [earlier verification record](../../verification-results/protobuf-native-2026-10-12.json).
-These additions are unreleased.
+These additions are published in `0.5.0-alpha.2`.

@@ -1,6 +1,6 @@
 # Advanced GraphQL capabilities
 
-Unreleased alpha.2 work. All ten SDK outputs provide opt-in subscriptions, runtime
+Published in `0.5.0-alpha.2`. All ten SDK outputs provide opt-in subscriptions, runtime
 scalar callbacks and experimental incremental delivery. The CLI and Postman
 **output generators** still generate fixed query/mutation tools; these SDK
 capabilities do not extend those tools or the query-hook integrations.

@@ -8,6 +8,7 @@ Keep a `poolster.json` recipe. Generate, review, repeat.
 ## Generate your first package
 
 ```sh
+npm install -D poolster@alpha
 npx poolster init --input ./openapi.yaml --output ./generated
 npx poolster generate --config poolster.json
 npx poolster generate --config poolster.json --check
@@ -16,7 +17,7 @@ npx poolster generate --config poolster.json --check
 The last command checks for drift without writing output. Build and test the
 generated package separately with its native tools.
 
-Prefer pip? Install `poolster-cli` and use `poolster` in place of `npx poolster`.
+Prefer pip? Run `python -m pip install poolster==0.5.0a2` and use `poolster` in place of `npx poolster`.
 Both launchers bundle the generator and OpenAPI compiler.
 [Installation and source builds →](reference.md)
 

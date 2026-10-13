@@ -176,7 +176,7 @@ ID-based incremental protocols and custom executable directives remain unsupport
 See the [advanced capability guide](graphql-capabilities.md). See the [support matrix](../../plugin-support-matrix.md) and
 [remaining work](../inputs/native-pipelines.md#remaining-work).
 
-Changes in this checkout are not part of the already published alpha.1 packages.
+These changes are published in alpha.2; alpha.1 packages do not include them.
 
 ## Generated source layout
 

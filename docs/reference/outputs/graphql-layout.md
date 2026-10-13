@@ -42,7 +42,7 @@ Existing call paths stay available. Java model imports move from nested
 Generated-source customizations targeting former monolithic files need new paths;
 review ownership conflicts before replacing edited generated files.
 
-These layouts are unreleased checkout changes; published alpha.1 packages do not
+These layouts are published in alpha.2; alpha.1 packages do not
 include them. Source organization does not expand protocol support: subscriptions,
 abstract selections and scalar support still have language-specific boundaries.
 See the [support matrix](../../plugin-support-matrix.md#graphql-language-boundaries)

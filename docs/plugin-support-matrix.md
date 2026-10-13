@@ -1,11 +1,12 @@
 # Poolster plugin support matrix
 
-Audited **12 October 2026**, against the unreleased alpha.2 implementation in this checkout.
+Implementation audited **12 October 2026**; alpha.2 published **13 October 2026**.
 
 For runtime behavior and raw/flat/idiomatic examples, see the
 [per-language capability pages](reference/languages/README.md).
-Manifests still use `0.5.0-alpha.1`; the additions below are unreleased alpha.2
-work. This matrix describes implemented generation, not parser availability.
+Released **13 October 2026** as [`0.5.0-alpha.2`](https://github.com/rlvtapp/poolster/releases/tag/v0.5.0-alpha.2).
+All 33 npm packages and 24 public Rust crates are published; PyPI uses `0.5.0a2`.
+This matrix describes implemented generation, not parser availability.
 The [generated SDK specification](specifications/generated-sdk.md) defines target
 requirements for capabilities, API styles, source layout, naming and formatting;
 it is separate from current implementation coverage.
@@ -24,7 +25,7 @@ delivery. TypeScript incremental generation is raw only; scalar value boundaries
 vary by language. All selections remain fixed operation documents. See the
 [advanced capability guide](reference/outputs/graphql-capabilities.md).
 See the [language guides](reference/README.md) and [verification](verification/verification.md#advanced-graphql-checks-10-october-2026)
-for tested features and per-language limits. These additions are not yet published.
+for tested features and per-language limits. These additions are published in `0.5.0-alpha.2`.
 
 The [12 October Kafka verification record](verification-results/kafka-all-languages-2026-10-12.json) records all ten adapters: **21 suites passed, no failed/skipped adapters**, and **1,007 effective workspace passes, 0 remaining failures, 205 ignored**. Native probes are separate from default workspace totals.
 
@@ -280,8 +281,8 @@ select one input source; Rust plugins can compose multiple typed contracts.
 - [ ] Remote introspection and selective named imports.
 - [x] Experimental `@defer` / `@stream` with multipart deferSpec=20220824.
 - [ ] Newer ID-based incremental dialects and custom executable directives.
-- [x] GraphQL support in Zod, Faker, MSW, Cypress and query-hook outputs (current checkout; unreleased).
-- [x] GraphQL generation through the npm configuration engine (current checkout; unreleased).
+- [x] GraphQL support in Zod, Faker, MSW, Cypress and query-hook outputs (published in alpha.2).
+- [x] GraphQL generation through the npm configuration engine (published in alpha.2).
 
 Unsupported output packages succeed with warnings and a structured skipped-plugin
 report. An all-skipped run leaves existing files untouched. Invalid input and
@@ -363,7 +364,7 @@ failures and successful retries remain in the audit trail. See
 See [native pipelines](reference/inputs/native-pipelines.md) for exact feature limits and concrete
 implementation/verification requirements for each follow-up.
 
-## Generation planning (unreleased)
+## Generation planning
 
 The [CLI planner](cli/plan.md) renders terminal lines or exports JSON/HTML without
 loading protocol inputs. [Rust planning](rust/planning.md) exposes the resolved
@@ -438,7 +439,7 @@ environments. These outputs do not include subscriptions, incremental delivery,
 GraphQL OAuth login discovery or dynamically selected fields.
 
 See [configuration and usage](reference/outputs/graphql-tools.md). These additions
-are unreleased; HTTP generators retain their existing behavior.
+are published in alpha.2; HTTP generators retain their existing behavior.
 
 The [GraphQL tool verification record](verification-results/graphql-tools-2026-10-10.json)
 records generated compilation/runtime probes, actual Newman execution and preserved

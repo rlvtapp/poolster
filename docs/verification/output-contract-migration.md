@@ -1,6 +1,6 @@
 # Output contracts and blocks
 
-Updated 9 October 2026 for the unreleased `alpha-2` working tree.
+Audited 9 October 2026 for the alpha.2 implementation, published 13 October 2026.
 
 First-party HTTP output plugin entry points can select an authoritative
 `AdaptedApi` contract and optional complete `Blocks<Schema>` and

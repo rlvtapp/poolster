@@ -5,7 +5,7 @@ actual emitted symbols, operation definitions and scalar mappings. They do not
 convert GraphQL operations into HTTP endpoints. Fixed operation documents determine
 variables and selected results in raw, flat and grouped client styles alike.
 
-This work is unreleased. Consult the [support matrix](../../plugin-support-matrix.md)
+This work is published in `0.5.0-alpha.2`. Consult the [support matrix](../../plugin-support-matrix.md)
 and [verification record](../../verification/verification.md) for completed checks and limitations.
 
 ## Compose a package

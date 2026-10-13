@@ -39,7 +39,7 @@ against pinned GraphQL.js 16.14.2. See the [support matrix](../../plugin-support
 
 See [subscriptions, scalar callbacks and incremental delivery](graphql-capabilities.md)
 for opt-in configuration, native stream lifetime and the tested protocol boundary.
-These additions are unreleased; historical checks below predate them.
+These additions are published in `0.5.0-alpha.2`; historical checks below predate them.
 
 ## Generated source layout
 

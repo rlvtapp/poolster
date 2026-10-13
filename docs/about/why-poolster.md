@@ -22,7 +22,7 @@ Choose the artifacts your project needs and generate them together:
 | Cap’n Proto | Parsing and inspection; bundled generation remains planned |
 
 These are specific supported pipelines, not universal support for every protocol
-feature or output plugin. Some additions are unreleased. The
+feature or output plugin. The documented native additions are published in `0.5.0-alpha.2`. The
 [support matrix](../plugin-support-matrix.md) records the exact boundaries and
 verification status.
 

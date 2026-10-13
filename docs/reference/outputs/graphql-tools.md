@@ -1,6 +1,6 @@
 # GraphQL collections and command-line clients
 
-These unreleased generators consume a schema plus named operation documents,
+These alpha.2 generators consume a schema plus named operation documents,
 using the same native GraphQL contract as the SDKs. Postman exports native GraphQL
 requests. Rust and TypeScript CLI packages expose one command per query or mutation.
 They do not require an OpenAPI description of the GraphQL endpoint.

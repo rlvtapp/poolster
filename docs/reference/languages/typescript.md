@@ -1,6 +1,6 @@
 # TypeScript generated packages
 
-Audited **11 October 2026**, against the unreleased checkout. These are implemented
+Audited **11 October 2026**, against the alpha.2 implementation. These are implemented
 capabilities, not the [SDK specification](../../specifications/generated-sdk.md)'s
 future requirements. Compiled ESM packages also work from plain JavaScript; types
 are erased at build time. [Compare languages](README.md).

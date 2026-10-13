@@ -6,7 +6,7 @@ its adjacent Go OpenAPI compiler. Installing it does not require Node.js, Rust,
 or Go and never downloads an executable at runtime.
 
 ```sh
-python -m pip install poolster
+python -m pip install poolster==0.5.0a2
 poolster init --input ./openapi.yaml --output ./generated
 poolster generate
 ```

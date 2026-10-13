@@ -3,7 +3,7 @@
 Generate packages from API contracts using a JavaScript config and selected plugins.
 
 ```sh
-npm install -D @relevate/poolster @relevate/poolster-plugin-typescript
+npm install -D @relevate/poolster@alpha @relevate/poolster-plugin-typescript@alpha
 ```
 
 ```js
@@ -92,8 +92,8 @@ options fail explicitly.
 | Understand lifecycle and contracts | [Internals](../../../docs/internals/README.md) |
 | Look up an API | [Type declarations](index.d.ts) |
 
-The docs describe the current checkout. GraphQL client and companion additions
-are unreleased and are not all present in published `0.5.0-alpha.1` packages.
+GraphQL clients and companions are published in `0.5.0-alpha.2`. Install the
+prerelease explicitly; alpha.1 does not include every feature shown here.
 [Support matrix](../../../docs/plugin-support-matrix.md).
 
 ## Development

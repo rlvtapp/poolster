@@ -23,7 +23,7 @@ with `preserveExisting: true` for code the user will maintain.
 Install the separate command package if needed:
 
 ```sh
-npm install -D poolster
+npm install -D poolster@alpha
 npx poolster generate --config poolster.config.mjs --check
 ```
 

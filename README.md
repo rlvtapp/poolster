@@ -2,7 +2,7 @@
 
 > [!IMPORTANT]
 > **Poolster is under active development. OpenAPI generation is ready to use; GraphQL and other native pipelines are expanding.**
-> See the [support matrix](docs/plugin-support-matrix.md) for tested outputs and limitations. Current GraphQL and AsyncAPI/Kafka additions are unreleased.
+> See the [support matrix](docs/plugin-support-matrix.md) for tested outputs and limitations. GraphQL and AsyncAPI/Kafka pipelines are published in [0.5.0-alpha.2](https://github.com/rlvtapp/poolster/releases/tag/v0.5.0-alpha.2).
 
 **One contract. Lots of possibilities. Your code.**
 
@@ -11,8 +11,13 @@ and output plugins, then regenerate when your contract changes.
 
 ## Quick start
 
+Install the published **0.5.0-alpha.2** prerelease explicitly. It is available on
+[npm](https://www.npmjs.com/package/poolster),
+[crates.io](https://crates.io/crates/poolster/0.5.0-alpha.2) and
+[PyPI](https://pypi.org/project/poolster/0.5.0a2/).
+
 ```sh
-npm install -D @relevate/poolster @relevate/poolster-plugin-typescript
+npm install -D @relevate/poolster@alpha @relevate/poolster-plugin-typescript@alpha
 ```
 
 ```js
@@ -45,7 +50,7 @@ await generate({
 
 OpenAPI supports the established HTTP SDKs and helpers. GraphQL supports
 clients for all ten SDK languages and TypeScript query, validation and testing companions
-in this checkout. Generated GraphQL packages separate models, operations, transport
+in alpha.2. Generated GraphQL packages separate models, operations, transport
 and client code, with raw, flat and grouped call styles. GraphQL also generates
 [Postman collections and executable CLIs](docs/reference/outputs/graphql-tools.md).
 AsyncAPI generates [shared models](docs/reference/outputs/shared-models.md) for all ten

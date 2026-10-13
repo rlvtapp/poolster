@@ -4,7 +4,7 @@ The Symfony output includes the portable PHP GraphQL SDK and a Symfony bundle in
 one Composer package. Use named query/mutation documents. Generated models,
 variables, error envelopes and raw/flat/grouped methods are the PHP SDK's existing
 implementation; the bundle adds HttpClient transport and container services.
-This is unreleased checkout functionality.
+This functionality is published in `0.5.0-alpha.2`.
 
 ## Generate
 

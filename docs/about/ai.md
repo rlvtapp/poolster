@@ -1,8 +1,8 @@
 # Help an AI help you with Poolster
 
-Poolster generates SDKs and API artifacts from Swagger 2.0 and OpenAPI 3.0/3.1.
-This context belongs to the 0.5.0 branch. A branch version does not mean that
-version is already published. Match instructions to the user's installed version.
+Poolster generates SDKs and API artifacts from HTTP, GraphQL, RPC, event and
+workflow contracts. This context describes published `0.5.0-alpha.2`; consult the
+support matrix for supported pipelines and match instructions to the installed version.
 
 ## Find the right guide
 

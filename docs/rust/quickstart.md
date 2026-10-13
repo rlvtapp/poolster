@@ -2,15 +2,15 @@
 
 ← [Rust SDK](README.md)
 
-Add the crates you use. For the unreleased checkout, use local paths:
+Add the published alpha.2 crates you use:
 
 ```toml
 [dependencies]
 anyhow = "1"
-poolster = { path = "../poolster/crates/facade" }
-poolster-core = { path = "../poolster/crates/core" }
-poolster-input-openapi = { path = "../poolster/crates/inputs/openapi" }
-poolster-plugin-rust = { path = "../poolster/crates/plugins/rust" }
+poolster = "=0.5.0-alpha.2"
+poolster-core = "=0.5.0-alpha.2"
+poolster-input-openapi = "=0.5.0-alpha.2"
+poolster-plugin-rust = "=0.5.0-alpha.2"
 ```
 
 ## Generate a package

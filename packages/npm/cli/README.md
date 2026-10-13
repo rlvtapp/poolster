@@ -11,7 +11,7 @@ No npm release is implied by this source tree.
 After publication:
 
 ```sh
-npm install --save-dev poolster
+npm install --save-dev poolster@alpha
 npx poolster generate ./openapi.yaml --output ./sdk --language go,typescript
 npx poolster languages
 npx poolster --help

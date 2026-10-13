@@ -1,5 +1,16 @@
 # Verify an SDK before shipping it
 
+Release status: **0.5.0-alpha.2 published 13 October 2026**. The dated records
+below preserve historical test counts, ignored tests and conditions. References
+to work being unreleased describe its status at the time of those checks.
+
+Release build gates passed on all four platforms, including the Windows CRLF
+regression fix. Registry recovery completed: **33 npm packages** (original
+archive checksums verified), **24 Rust crates**, and PyPI **0.5.0a2**.
+[Successful recovery](https://github.com/rlvtapp/poolster/actions/runs/38390921930) ·
+[Release](https://github.com/rlvtapp/poolster/releases/tag/v0.5.0-alpha.2).
+This does not imply a new 205-contract corpus run or full protocol conformance.
+
 Generation, compilation and API behavior are separate checks. Run all three
 for the package you ship.
 

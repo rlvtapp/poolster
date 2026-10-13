@@ -15,9 +15,9 @@ Choose a language to see **what Poolster currently generates**, contract by cont
 | Swift | [Swift](swift.md) | Kafka events; native macOS checks, Linux unverified |
 | Elixir | [Elixir](elixir.md) | Kafka events; required nonempty declared keys/headers and asynchronous offset commits |
 
-Updated **12 October 2026** against the unreleased checkout; each language page
+Updated **12 October 2026** against the alpha.2 implementation; each language page
 states its own audit date. These pages describe
-implemented output, not the already published alpha.1 release. Language support does
+implemented output published in `0.5.0-alpha.2`. Language support does
 not mean every contract, schema feature or runtime option is implemented.
 
 The [Protobuf conformance requirements](../../specifications/protobuf-conformance.md)

@@ -2,7 +2,7 @@
 
 Updated on **2026-10-09**. Native protocol work has its own
 [implemented pipeline matrix and remaining checklist](../reference/inputs/native-pipelines.md#remaining-work).
-The alpha.2 additions are merged into `main` and unreleased. The frozen-build
+The alpha.2 additions are merged into `main` and published as `0.5.0-alpha.2`. The frozen-build
 HTTP corpus is complete (2,050 effective passes); corpus coverage of the final
 migrated binaries remains open. Checked items are delivered; unchecked items retain
 remaining work. This backlog covers SDKs, framework helpers and generated artifacts. The
@@ -11,10 +11,9 @@ native compilation; the [feature catalog](../about/features.md) describes curren
 
 ## Native protocol priorities
 
-GraphQL → all ten SDK languages, Protobuf → Go gRPC, AsyncAPI → TypeScript/Kafka and Arazzo →
+GraphQL → all ten SDK languages, Protobuf → Go/Python/TypeScript gRPC, AsyncAPI → all ten SDK languages for models/Kafka and Arazzo →
 TypeScript runners are implemented for documented subsets. Next: Cap’n Proto →
-Rust, standalone AsyncAPI message types, broader protocol features, npm native
-generation wiring and shared naming adoption. Forge overlays/migration and Cap’n
+Rust, broader protocol features and completion of the documented conformance targets. Forge overlays/migration and Cap’n
 Web remain separate unimplemented work. Follow the linked native checklist rather
 than treating parser availability as generated-output support.
 

@@ -66,7 +66,7 @@ registry-specific verification and retry behavior.
 [Release and publishing](../reference/automation/sdk-publishing.md) explains the
 exact release boundary. These are SDK delivery capabilities, separate from
 publishing Poolster itself. Pin the action and launcher to versions that contain
-the commands you use; this checkout includes unreleased features.
+the commands you use; these guides describe the published alpha.2 feature set.
 
 **More:** [Repository action](../../packages/integrations/github/README.md) ·
 [Periodic specification fetching](../reference/automation/github-actions.md#fetch-a-remote-specification-periodically)

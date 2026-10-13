@@ -19,7 +19,7 @@ when commits reach `main`. The PR can remain open while development continues.
 It uses the simple strategy and explicit TOML updates because member crates inherit
 `workspace.package.version`. `version.txt` tracks the source version; the release
 manifest tracks the last published version, currently `0.4.0`. Minor features bump
-the minor version before 1.0, so the pending feature release is `0.5.0`.
+the minor version before 1.0. Poolster `0.5.0-alpha.2` is published; stable `0.5.0` remains a future release.
 
 Merging a Release Please release PR creates its GitHub release/tag. Publication
 runs for version tags; a manual retry must select the same release tag.

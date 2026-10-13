@@ -1,8 +1,8 @@
 # Native generation in Poolster
 
-Audited **9 October 2026** against the unreleased alpha.2 implementation in this checkout.
-The manifests still carry `0.5.0-alpha.1`; this is implementation status, not a
-claim that the additions are already in that published release.
+Audited **9 October 2026** against the published `0.5.0-alpha.2` implementation in this checkout.
+Released **13 October 2026** as `0.5.0-alpha.2`. This page describes implemented
+pipelines and their remaining work; parsing support alone is not generation support.
 
 Poolster uses capability contracts between input and output plugins. A format name
 selects a parser; a typed requirement selects what a generator can consume.
@@ -394,8 +394,9 @@ These are the remaining implementation and release gaps:
   keep this distinct from the completed frozen-build run.
 - [ ] **HTTP-1:** Address PHP optional-before-required deprecation warnings and
   strengthen generated HTTP runtime checks beyond compilation/syntax lint.
-- [ ] **RELEASE-1:** Set alpha.2 versions, verify built artifacts/installations and
-  publish only after the final release checks.
+- [x] **RELEASE-1:** Alpha.2 versions, platform builds and release checks passed;
+  all 33 npm packages, 24 Rust crates and the PyPI package are published. npm
+  recovery verified the original artifact checksums; [release](https://github.com/rlvtapp/poolster/releases/tag/v0.5.0-alpha.2).
 
 The separate Forge audit below remains open. The [general generator backlog](../../proposals/generator-backlog.md)
 tracks output layout, framework helpers and other HTTP artifacts.
@@ -417,7 +418,7 @@ schema overlays. It cannot validate that a schema-level JSONPath overlay was
 applied. A format parser, workflow inspector or configuration translator alone is
 insufficient evidence of Forge compatibility.
 
-### GraphQL Go and Python clients (unreleased)
+### GraphQL Go and Python clients
 
 The existing Go and Python output packages now consume `GraphqlOperations` through
 Rust composition, CLI recipes and npm configuration. Both support raw, flat and

@@ -1,6 +1,6 @@
 # Ruby capabilities and generated APIs
 
-Audited **11 October 2026**, against this checkout's unreleased alpha.2 generators. This is implemented behavior, not the target [SDK specification](../../specifications/generated-sdk.md), and not a claim that every native test runs in every environment.
+Audited **11 October 2026**, against this checkout's published `0.5.0-alpha.2` generators. This is implemented behavior, not the target [SDK specification](../../specifications/generated-sdk.md), and not a claim that every native test runs in every environment.
 
 `Built-in` means Poolster emits the behavior. `Driver` means the native library owns it. `Application` means callers must implement the policy. An HTTP transport does not make GraphQL an HTTP contract.
 
