@@ -18,7 +18,9 @@ private func next(_ subscription: Subscription) async throws -> Record {
 private func rejected(_ body: () throws -> Void) {
     do { try body(); XCTFail("Invalid value accepted") } catch { }
 }
-@MainActor final class KafkaTests: XCTestCase {
+// The fixture has no mutable instance state; Linux XCTest discovers its sync
+// and async entrypoints without a global actor.
+final class KafkaTests: XCTestCase, @unchecked Sendable {
     func testCodec() throws {
         guard case .object(let schema) = try KafkaJSON.parse(Data(SendOrderEvent.definition.payloadSchema.utf8)) else { return XCTFail("Missing schema object") }
         XCTAssertEqual(schema["description"], .string(#"literal \(fatalError("metadata executed"))"# + "\n\0"))

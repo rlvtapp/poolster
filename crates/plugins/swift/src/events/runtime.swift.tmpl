@@ -77,7 +77,7 @@ func kafkaOpen(_ brokers: String, _ clientID: String, _ group: String?, _ topic:
         if let group, let topic { return group.withCString { group in topic.withCString { topic in pk_open(brokers, id, group, topic, &error, error.count) } } }
         return pk_open(brokers, id, nil, nil, &error, error.count)
     } }
-    guard let handle else { throw KafkaError.broker(String(cString: error)) }
+    guard let handle else { throw KafkaError.broker(String(decoding: error.prefix { $0 != 0 }.map { UInt8(bitPattern: $0) }, as: UTF8.self)) }
     return handle
 }
 func kafkaEnqueue(_ handle: OpaquePointer, _ topic: String, _ wire: KafkaWire, _ token: UInt64) -> Int32 {

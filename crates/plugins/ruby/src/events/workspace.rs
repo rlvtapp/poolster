@@ -36,6 +36,12 @@ impl Workspace {
         );
         cx.files
             .emit(GeneratedFile::new(format!("{library}.gemspec"), manifest)?)?;
+        if cx.workspace.events {
+            cx.files.emit(GeneratedFile::new(
+                "Gemfile",
+                "source 'https://rubygems.org'\ngemspec\n",
+            )?)?;
+        }
         let mut index = cx.workspace.model_index.clone();
         if cx.workspace.events {
             index.push_str(&format!("require_relative '{library}/events'\n"));

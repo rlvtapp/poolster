@@ -467,14 +467,27 @@ fn advanced_transports_compile_and_execute() {
                 }
             };
             let check=if incremental{"var frames:[GraphqlIncrementalSnapshot<ReadUserResult>]=[];for try await item in try await CALL {frames.append(item)};guard frames.count==2,!frames[0].complete,frames[1].complete else {fatalError(\"incremental frames\")};guard case .object(let first)?=frames[0].data,case .object(let user)?=first[\"readUser\"],user[\"name\"]==nil else{fatalError(\"snapshot mutated\")};guard case .string(let name) = try frames[1].decodeData().readUser!.name,name==\"decoded:Ada\" else{fatalError(\"scalar decode\")}"}else{"var frames:[GraphqlResponse<ReadUserResult>]=[];for try await item in try await CALL{frames.append(item)};guard frames.count==2,frames[1].errors?.count==1,case .string(let name)=frames[0].data!.readUser!.name,name==\"decoded:Ada\" else{fatalError(\"SSE scalar envelope\")}"}.replace("CALL",call);
-            let branches = r#"if CommandLine.arguments.count>2 && CommandLine.arguments[2]=="cancel" {let task=Task {for try await _ in try await CALL{}};try await Task.sleep(nanoseconds:30_000_000);task.cancel();_ = try? await task.value;return} else if CommandLine.arguments.count>2 && CommandLine.arguments[2]=="json" {var frames:[GraphqlIncrementalSnapshot<ReadUserResult>]=[];for try await item in try await CALL{frames.append(item)};guard frames.count==1,frames[0].complete,case .string(let name)=try frames[0].decodeData().readUser!.name,name=="decoded:Ada" else{fatalError("JSON fallback")};return} else if CommandLine.arguments.count>2 {var failed=false;do {for try await _ in try await CALL{}}catch{failed=true};guard failed else{fatalError("Expected malformed stream failure")};return}"#;
+            let branches = r#"if CommandLine.arguments.count>2 && CommandLine.arguments[2]=="cancel" {let ready=CancellationReady();let task=Task {for try await _ in try await CALL{await ready.signal()}};await ready.wait();task.cancel();_ = try? await task.value;return} else if CommandLine.arguments.count>2 && CommandLine.arguments[2]=="json" {var frames:[GraphqlIncrementalSnapshot<ReadUserResult>]=[];for try await item in try await CALL{frames.append(item)};guard frames.count==1,frames[0].complete,case .string(let name)=try frames[0].decodeData().readUser!.name,name=="decoded:Ada" else{fatalError("JSON fallback")};return} else if CommandLine.arguments.count>2 {var failed=false;do {for try await _ in try await CALL{}}catch{failed=true};guard failed else{fatalError("Expected malformed stream failure")};return}"#;
             let branches = if incremental {
                 branches.to_owned()
             } else {
                 branches.replace(" else if CommandLine.arguments.count>2 && CommandLine.arguments[2]==\"json\" {var frames:[GraphqlIncrementalSnapshot<ReadUserResult>]=[];for try await item in try await CALL{frames.append(item)};guard frames.count==1,frames[0].complete,case .string(let name)=try frames[0].decodeData().readUser!.name,name==\"decoded:Ada\" else{fatalError(\"JSON fallback\")};return}", "")
             };
             let check = format!("{} else {{{check}}}", branches.replace("CALL", call));
-            fs::write(dir.path().join("Program.swift"),format!("import Foundation\n@main struct Main {{static func main()async throws{{let codecs=[\"ID\":GraphqlScalarCodec(encode:{{value in guard case .string(let text)=value else{{throw URLError(.badServerResponse)}};return .string(text+\"!\")}},decode:{{$0}}),\"Date\":GraphqlScalarCodec(encode:{{$0}},decode:{{value in guard case .string(let text)=value else{{throw URLError(.badServerResponse)}};return .string(\"decoded:\"+text)}})];let client=GraphqlClient(endpoint:URL(string:CommandLine.arguments[1])!,scalarCodecs:codecs);let variables=ReadUserVariables(id:\"1\");{check}}}}}")).unwrap();
+            let cancellation_signal = r#"actor CancellationReady {
+  private var ready = false
+  private var continuation: CheckedContinuation<Void, Never>?
+  func wait() async {
+    if ready { return }
+    await withCheckedContinuation { continuation = $0 }
+  }
+  func signal() {
+    ready = true
+    continuation?.resume()
+    continuation = nil
+  }
+}"#;
+            fs::write(dir.path().join("Program.swift"),format!("import Foundation\n{cancellation_signal}\n@main struct Main {{static func main()async throws{{let codecs=[\"ID\":GraphqlScalarCodec(encode:{{value in guard case .string(let text)=value else{{throw URLError(.badServerResponse)}};return .string(text+\"!\")}},decode:{{$0}}),\"Date\":GraphqlScalarCodec(encode:{{$0}},decode:{{value in guard case .string(let text)=value else{{throw URLError(.badServerResponse)}};return .string(\"decoded:\"+text)}})];let client=GraphqlClient(endpoint:URL(string:CommandLine.arguments[1])!,scalarCodecs:codecs);let variables=ReadUserVariables(id:\"1\");{check}}}}}")).unwrap();
             let output = Command::new("swiftc")
                 .args([
                     "-swift-version",

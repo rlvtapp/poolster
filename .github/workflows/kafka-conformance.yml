@@ -51,10 +51,6 @@ jobs:
         if: matrix.language == 'csharp'
         with:
           dotnet-version: 8.0.x
-      - uses: docker/setup-qemu-action@v3
-        if: matrix.language == 'php'
-        with:
-          platforms: arm64
       - uses: erlef/setup-beam@v1
         if: matrix.language == 'elixir'
         with:

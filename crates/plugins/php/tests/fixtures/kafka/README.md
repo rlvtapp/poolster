@@ -2,7 +2,7 @@
 
 These tests compile the emitted PHP package, install its real Composer dependencies, send messages to a local Kafka broker, and instantiate the generated Symfony DI container. They are ignored by ordinary Cargo test runs because they require Docker, native dependencies and a broker.
 
-The checked-in setup uses PHP **8.2.34** from the immutable official image `php:8.2-cli@sha256:185eb902246c5757dbbb7e439bf92dfea32f627a401b1e2785bee0770fe0c41b`, php-rdkafka **6.0.5**, Debian librdkafka **2.8.0-1**, and Composer **2.8.12** (SHA-256 verified). The generated package pins Opis JSON Schema **2.6.0**. The tested image is Linux ARM64; other hosts need Docker ARM64 emulation. The setup pins direct runtime dependencies; Debian's Git/unzip utility dependencies remain selected by its package repository.
+The checked-in setup uses PHP **8.2.34** from the immutable official image `php:8.2-cli@sha256:185eb902246c5757dbbb7e439bf92dfea32f627a401b1e2785bee0770fe0c41b`, php-rdkafka **6.0.5**, Debian librdkafka **2.8.0-1**, and Composer **2.8.12** (SHA-256 verified). The generated package pins Opis JSON Schema **2.6.0**. The pinned official image includes Linux ARM64 and AMD64 variants; Docker selects the host architecture by default. Set `POOLSTER_KAFKA_PHP_PLATFORM` only when intentionally testing another architecture. The setup pins direct runtime dependencies; Debian's Git/unzip utility dependencies remain selected by its package repository.
 
 From the repository root, start the pinned broker fixture:
 
