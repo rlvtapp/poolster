@@ -26,6 +26,21 @@ class PublicationTests(unittest.TestCase):
             info.size = len(data)
             archive.addfile(info, io.BytesIO(data))
 
+    def test_nested_artifact_directories_are_resolved(self):
+        nested = Path(self.temp.name) / 'plugins' / 'typescript'
+        nested.mkdir(parents=True)
+        target = nested / 'plugin.tgz'
+        target.write_bytes(self.path.read_bytes())
+        self.assertEqual(module.collect_artifacts([nested.parent]), [target])
+        self.assertEqual(module.collect_artifacts([target, target]), [target])
+
+    def test_empty_and_missing_artifacts_fail_preflight(self):
+        empty = Path(self.temp.name) / 'empty'
+        empty.mkdir()
+        for path in [empty, empty / 'missing.tgz']:
+            with self.assertRaisesRegex(ValueError, 'missing artifact'):
+                module.collect_artifacts([self.path, path])
+
     def test_identical_artifact_is_skipped_without_changing_tags(self):
         integrity = 'sha512-' + base64.b64encode(hashlib.sha512(self.path.read_bytes()).digest()).decode()
         run = Mock(return_value=SimpleNamespace(returncode=0, stdout=json.dumps(integrity)))

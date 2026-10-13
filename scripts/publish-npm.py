@@ -32,17 +32,29 @@ def publish(path, tag, run=subprocess.run):
     run(['npm', 'publish', str(path), '--ignore-scripts', '--access', 'public', '--tag', tag], check=True)
 
 
+def collect_artifacts(paths):
+    artifacts = []
+    for path in map(Path, paths):
+        matches = sorted(path.rglob('*.tgz')) if path.is_dir() else [path]
+        if not matches or any(not match.is_file() for match in matches):
+            raise ValueError(f'missing artifact: {path}')
+        artifacts.extend(matches)
+    return list(dict.fromkeys(artifacts))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--tag', required=True)
     parser.add_argument('artifacts', nargs='+', type=Path)
     args = parser.parse_args()
-    # Check all input files before the first irreversible registry write.
-    for path in args.artifacts:
-        if not path.is_file():
-            parser.error(f'missing artifact: {path}')
-    for path in args.artifacts:
+    # Resolve nested downloads and validate every path before registry writes.
+    try:
+        artifacts = collect_artifacts(args.artifacts)
+    except ValueError as error:
+        parser.error(str(error))
+    for path in artifacts:
         publish(path, args.tag)
+
 
 
 if __name__ == '__main__':

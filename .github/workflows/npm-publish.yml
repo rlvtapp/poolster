@@ -3,6 +3,14 @@ name: Publish release packages
 on:
   workflow_dispatch:
     inputs:
+      recovery_run:
+        description: Original fully validated release run ID (npm recovery only)
+        type: string
+        default: ''
+      recovery_tag:
+        description: Immutable release tag for recovery
+        type: string
+        default: ''
       windows_only:
         description: Rebuild only the Windows native artifacts
         type: boolean
@@ -20,9 +28,11 @@ concurrency:
 
 jobs:
   kafka:
+    if: inputs.recovery_run == ''
     uses: ./.github/workflows/kafka-conformance.yml
 
   verify:
+    if: inputs.recovery_run == ''
     name: Verify release inputs
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -198,6 +208,7 @@ jobs:
           esac
 
   native:
+    if: inputs.recovery_run == ''
     name: Build ${{ matrix.platform }} package
     strategy:
       fail-fast: false
@@ -258,6 +269,7 @@ jobs:
           if-no-files-found: error
 
   launchers:
+    if: inputs.recovery_run == ''
     name: Pack Node launchers
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -381,7 +393,7 @@ jobs:
           python scripts/publish-npm.py --tag "$NPM_DIST_TAG"
           release-artifacts/native/*.tgz release-artifacts/sdk-native/*.tgz
           release-artifacts/cli/*.tgz release-artifacts/sdk/*.tgz
-          release-artifacts/node-plugins/*.tgz release-artifacts/unplugin/*.tgz
+          release-artifacts/node-plugins release-artifacts/unplugin/*.tgz
 
   publish-crates:
     name: Publish Rust SDK to crates.io
@@ -443,3 +455,103 @@ jobs:
         with:
           packages-dir: release-artifacts/python
           skip-existing: true
+
+  recover-npm:
+    name: Recover npm publication
+    if: inputs.recovery_run != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    env:
+      RECOVERY_TAG: ${{ inputs.recovery_tag }}
+      RECOVERY_RUN: ${{ inputs.recovery_run }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Verify original release source and successful build gates
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [[ "$RECOVERY_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$ ]]
+          [[ "$RECOVERY_RUN" =~ ^[0-9]+$ ]]
+          export RELEASE_SHA="$(git rev-parse "$RECOVERY_TAG^{commit}")"
+          gh run view "$RECOVERY_RUN" --json headSha,name,jobs > "$RUNNER_TEMP/original-release.json"
+          python - "$RUNNER_TEMP/original-release.json" <<'PYCODE'
+          import json, os, sys
+          run = json.load(open(sys.argv[1]))
+          assert run['headSha'] == os.environ['RELEASE_SHA'], 'Artifact source does not match release tag'
+          assert run['name'] == 'Publish release packages', 'Unexpected source workflow'
+          builds = [j for j in run['jobs'] if not j['name'].startswith('Publish ')]
+          assert builds and all(j['conclusion'] == 'success' for j in builds), 'Release build gates did not pass'
+          PYCODE
+      - uses: actions/download-artifact@v8
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.recovery_run }}
+          pattern: native-*
+          path: release-artifacts/native
+          merge-multiple: true
+      - uses: actions/download-artifact@v8
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.recovery_run }}
+          pattern: sdk-native-*
+          path: release-artifacts/sdk-native
+          merge-multiple: true
+      - uses: actions/download-artifact@v8
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.recovery_run }}
+          name: node-packages
+          path: release-artifacts/cli
+      - uses: actions/download-artifact@v8
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.recovery_run }}
+          name: node-sdk
+          path: release-artifacts/sdk
+      - uses: actions/download-artifact@v8
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.recovery_run }}
+          name: node-plugins
+          path: release-artifacts/node-plugins
+      - uses: actions/download-artifact@v8
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.recovery_run }}
+          name: node-unplugin
+          path: release-artifacts/unplugin
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: Select npm distribution channel
+        run: |
+          case "${RECOVERY_TAG#v}" in
+            *-*) echo "NPM_DIST_TAG=alpha" >> "$GITHUB_ENV" ;;
+            *) echo "NPM_DIST_TAG=latest" >> "$GITHUB_ENV" ;;
+          esac
+      - name: Verify release version
+        run: |
+          tag="${RECOVERY_TAG#v}"
+          test "$tag" = "$(node -p "require('./packages/npm/cli/package.json').version")"
+          test "$tag" = "$(node -p "require('./packages/npm/sdk/package.json').version")"
+          for package in packages/npm/plugins/*/package.json packages/npm/inputs/*/package.json packages/npm/plugins-all/package.json; do
+            test "$tag" = "$(node -p "require('./$package').version")"
+          done
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Verify npm supports trusted publishing
+        run: node -e 'const {execSync} = require("node:child_process"); const [major, minor, patch] = execSync("npm --version", {encoding:"utf8"}).trim().split(".").map(Number); if (major < 11 || (major === 11 && (minor < 5 || (minor === 5 && patch < 1)))) process.exit(1)'
+      - name: Publish packages with partial-release recovery
+        run: >-
+          python scripts/publish-npm.py --tag "$NPM_DIST_TAG"
+          release-artifacts/native/*.tgz release-artifacts/sdk-native/*.tgz
+          release-artifacts/cli/*.tgz release-artifacts/sdk/*.tgz
+          release-artifacts/node-plugins release-artifacts/unplugin/*.tgz
