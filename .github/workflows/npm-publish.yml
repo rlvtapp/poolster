@@ -49,6 +49,8 @@ jobs:
         with:
           php-version: '8.2'
           tools: none
+      - name: Install schema validation dependency
+        run: python -m pip install --disable-pip-version-check 'jsonschema==4.23.0'
       - name: Verify Rust workspace
         run: |
           cargo fmt --all --check

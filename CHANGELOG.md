@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+## 0.5.0-alpha.2 — 2026-10-13
+
+### Added
+
+- Typed contracts and optional building blocks with revision tracking, provenance,
+  deterministic naming and capability diagnostics.
+- GraphQL clients across ten SDK languages, operation-specific types and client
+  styles, framework integrations, Postman collections and generated CLIs.
+- AsyncAPI message models and Kafka producer/consumer pipelines across ten SDK
+  languages, verified against local brokers.
+- Native Protobuf/gRPC generation for TypeScript, Go and Python.
+- Plugin lifecycle flow inspection and expanded language capability documentation.
+
+### Fixed
+
+- Native package layout, regeneration and wire-name collision handling.
+- CI provisioning and parallel execution, with all 38 main checks passing before
+  release preparation.
+- Registry trusted publishing configuration for npm, PyPI and crates.io.
+
+This is an alpha release. The support matrix documents protocol restrictions and
+remaining pipelines; this release does not imply universal protocol parity.
+
 ## 0.5.0 — 2026-10-08
 
 ### Changed
