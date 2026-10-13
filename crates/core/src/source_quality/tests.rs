@@ -2,17 +2,18 @@ use super::*;
 
 #[cfg(unix)]
 fn fixture(script: &str) -> (tempfile::TempDir, SourceFormatter) {
-    use std::os::unix::fs::PermissionsExt;
     let directory = tempfile::tempdir().unwrap();
     let program = directory.path().join("formatter");
     fs::write(&program,format!("#!/bin/sh\nset -eu\nif [ \"$1\" = --version ]; then echo formatter-1; exit 0; fi\n{script}\n")).unwrap();
-    fs::set_permissions(&program, fs::Permissions::from_mode(0o755)).unwrap();
     (
         directory,
         SourceFormatter {
-            program: program.to_string_lossy().into(),
-            arguments: vec!["{file}".into()],
-            version_arguments: vec!["--version".into()],
+            // Executing a freshly written script can race another thread's
+            // inherited write descriptor on Linux (ETXTBSY). Read it through
+            // the existing shell binary instead.
+            program: "/bin/sh".into(),
+            arguments: vec![program.to_string_lossy().into(), "{file}".into()],
+            version_arguments: vec![program.to_string_lossy().into(), "--version".into()],
             expected_version: "formatter-1".into(),
             extensions: vec!["php".into()],
             timeout_seconds: 2,

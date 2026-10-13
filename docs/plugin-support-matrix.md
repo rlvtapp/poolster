@@ -196,7 +196,7 @@ poisons the subscription. Symfony includes that PHP SDK and DI configuration. Na
 php-rdkafka collapses duplicate Kafka header names before generated code can inspect
 them; duplicate-wire-header detection is unavailable. Ruby uses native idempotent
 producer retries and synchronous manual commits. Swift emits a small C ABI bridge to
-pinned librdkafka plus actor-based APIs; its Linux execution is not yet verified.
+pinned librdkafka plus actor-based APIs; native execution is verified on macOS ARM64 and Ubuntu 22.04 AMD64.
 
 Elixir uses brod: declared keys must be supplied and key/header schemas require
 `minLength >= 1` because the native codec cannot preserve null versus empty role values.

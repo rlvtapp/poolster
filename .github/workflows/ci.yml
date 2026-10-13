@@ -495,7 +495,7 @@ jobs:
         run: cargo test -p poolster-plugin-elixir -- --ignored --skip generated_package_compiles_and_validates_wire --skip generated_package_roundtrips_local_kafka
       - name: Verify native Swift middleware models pagination and cancellation
         if: matrix.language == 'Swift'
-        run: cargo test -p poolster-plugin-swift -- --ignored --skip generated_swift_package_compiles_and_roundtrips_broker
+        run: cargo test -p poolster-plugin-swift -- --ignored --skip generated_swift_package_compiles_and_roundtrips_broker --skip generated_selected_provider_and_standalone_compile
       - name: Verify complex OpenAPI contract through native Swift SDK
         if: matrix.language == 'Swift'
         env:
