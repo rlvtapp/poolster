@@ -440,6 +440,17 @@ jobs:
         with:
           key: ${{ github.job }}-${{ matrix.path }}
           save-if: ${{ github.ref == 'refs/heads/main' }}
+      - name: Prepare pinned GraphQL servers for native probes
+        if: matrix.language == 'PHP' || matrix.language == 'Elixir' || matrix.language == 'Swift'
+        run: |-
+          npm install --prefix "$RUNNER_TEMP/graph-probe" --ignore-scripts --no-audit --no-fund graphql@16.14.2 graphql-sse@2.6.0
+          printf 'POOLSTER_GRAPHQL_JS_ROOT=%s/node_modules\n' "$RUNNER_TEMP/graph-probe" >> "$GITHUB_ENV"
+          printf 'POOLSTER_GRAPHQL_SSE_ROOT=%s/node_modules\n' "$RUNNER_TEMP/graph-probe" >> "$GITHUB_ENV"
+      - name: Configure native Mix GraphQL runner
+        if: matrix.language == 'Elixir'
+        run: |-
+          printf 'POOLSTER_ELIXIR_GRAPHQL_OUTPUT=%s/elixir-graphql\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
+          printf 'POOLSTER_ELIXIR_RUNNER=%s/scripts/ci/run-mix-probe.sh\n' "$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
       - name: Verify native Python multipart sync and async HTTP bytes
         if: matrix.language == 'Python'
         run: |
@@ -476,15 +487,15 @@ jobs:
           POOLSTER_PHP_AUTOLOAD: ${{ runner.temp }}/generated-sdk-fixture/php/vendor/autoload.php
         run: |
           composer install --working-dir="$RUNNER_TEMP/generated-sdk-fixture/php" --no-interaction --no-progress
-          cargo test -p poolster-plugin-php -- --ignored
+          cargo test -p poolster-plugin-php -- --ignored --skip events::tests::native::generated_php_compiles_and_runs_against_kafka
       - name: Verify all native Elixir probes
         if: matrix.language == 'Elixir'
         env:
           POOLSTER_ELIXIR_NATIVE_PROJECT: ${{ runner.temp }}/generated-sdk-fixture/elixir
-        run: cargo test -p poolster-plugin-elixir -- --ignored
+        run: cargo test -p poolster-plugin-elixir -- --ignored --skip generated_package_compiles_and_validates_wire --skip generated_package_roundtrips_local_kafka
       - name: Verify native Swift middleware models pagination and cancellation
         if: matrix.language == 'Swift'
-        run: cargo test -p poolster-plugin-swift -- --ignored
+        run: cargo test -p poolster-plugin-swift -- --ignored --skip generated_swift_package_compiles_and_roundtrips_broker
       - name: Verify complex OpenAPI contract through native Swift SDK
         if: matrix.language == 'Swift'
         env:

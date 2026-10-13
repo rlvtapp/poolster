@@ -97,7 +97,7 @@ fn generate(mut source: Source, shared: bool, broker: bool) -> poolster_core::Ge
         let result = std::process::Command::new("docker")
             .args([
                 "exec",
-                "poolster-alpha2-kafka",
+                &broker_container(),
                 "rpk",
                 "topic",
                 "create",
@@ -261,7 +261,7 @@ fn native(broker: bool) {
                 let result = std::process::Command::new("docker")
                     .args([
                         "exec",
-                        "poolster-alpha2-kafka",
+                        &broker_container(),
                         "rpk",
                         "topic",
                         "create",
@@ -373,4 +373,9 @@ fn reserved_runtime_operation_names_are_rejected() {
         .generate_native()
         .unwrap_err();
     assert!(format!("{error:#}").contains("runtime symbol"));
+}
+
+fn broker_container() -> String {
+    std::env::var("POOLSTER_KAFKA_BROKER_CONTAINER")
+        .unwrap_or_else(|_| "poolster-alpha2-kafka".into())
 }

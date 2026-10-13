@@ -5,17 +5,18 @@ set -euo pipefail
 php_container="${POOLSTER_KAFKA_PHP_CONTAINER:-poolster-events-php}"
 broker_container="${POOLSTER_KAFKA_BROKER_CONTAINER:-poolster-alpha2-kafka}"
 php_image='php:8.2-cli@sha256:185eb902246c5757dbbb7e439bf92dfea32f627a401b1e2785bee0770fe0c41b'
+fixture_root="${POOLSTER_KAFKA_FIXTURE_ROOT:-/private/tmp}"
 composer_sha='f446ea719708bb85fcbf4ef18def5d0515f1f9b4d703f6d820c9c1656e10a2f2'
 
 docker inspect "$broker_container" >/dev/null
 if ! docker inspect "$php_container" >/dev/null 2>&1; then
     # Sharing the broker network namespace makes its advertised 127.0.0.1 address reachable.
-    # /private/tmp is the native Rust fixture output directory on every host.
-    mkdir -p /private/tmp
+    # Mount the configured host fixture root at the same path inside PHP.
+    mkdir -p "$fixture_root"
     docker run -d --name "$php_container" --platform linux/arm64 \
         --label poolster.native-kafka-fixture=true \
         --network "container:$broker_container" \
-        --mount type=bind,source=/private/tmp,target=/private/tmp \
+        --mount "type=bind,source=$fixture_root,target=$fixture_root" \
         "$php_image" sleep infinity
     docker exec "$php_container" sh -ec '
         apt-get update

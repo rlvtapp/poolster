@@ -239,7 +239,7 @@ fn generated_swift_package_compiles_and_roundtrips_broker() {
         .chain((0..9).map(|n| format!("{topic}-invalid-{n}")))
         .collect();
     let provision = std::process::Command::new("docker")
-        .args(["exec", "poolster-alpha2-kafka", "rpk", "topic", "create"])
+        .args(["exec", &broker_container(), "rpk", "topic", "create"])
         .args(&topics)
         .output()
         .unwrap();
@@ -429,4 +429,9 @@ final class StandaloneTests: XCTestCase {
 }
 "#,
     );
+}
+
+fn broker_container() -> String {
+    std::env::var("POOLSTER_KAFKA_BROKER_CONTAINER")
+        .unwrap_or_else(|_| "poolster-alpha2-kafka".into())
 }
