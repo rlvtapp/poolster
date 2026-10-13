@@ -228,7 +228,7 @@ jobs:
       - name: Export shared native runtime contract fixture
         env:
           POOLSTER_RUNTIME_EXPORT: ${{ runner.temp }}/runtime-contract-fixture
-        run: cargo test -p poolster --test runtime_conformance --locked
+        run: cargo test -p poolster --features all-plugins --test runtime_conformance --locked
       - uses: actions/upload-artifact@v7
         with:
           name: runtime-contract-fixture
@@ -491,7 +491,7 @@ jobs:
           POOLSTER_OPENAPI_BIN: ${{ github.workspace }}/target/debug/poolster-openapi
         run: |
           (cd openapi && go build -o ../target/debug/poolster-openapi .)
-          cargo test -p poolster --test complex_contract -- --ignored
+          cargo test -p poolster --features all-plugins --test complex_contract -- --ignored
       - name: Verify native C# URL pagination
         if: matrix.language == 'C#'
         run: cargo test -p poolster-plugin-csharp native_url_pages_reject_unsafe_origins_preserve_auth_and_cancel_lazily -- --ignored
