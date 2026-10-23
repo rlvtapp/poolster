@@ -13,7 +13,7 @@ import sys
 
 LANGUAGES = ('typescript', 'rust', 'go', 'python', 'php', 'java', 'csharp',
              'ruby', 'swift', 'elixir', 'symfony')
-EXTENSIONS = {'.ts', '.rs', '.go', '.py', '.php', '.java', '.cs', '.rb', '.swift', '.ex'}
+EXTENSIONS = {'.ts', '.rs', '.go', '.py', '.php', '.java', '.cs', '.rb', '.rbs', '.swift', '.ex', '.exs'}
 
 
 def statistics(root, budget):

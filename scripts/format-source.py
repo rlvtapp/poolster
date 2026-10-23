@@ -69,7 +69,8 @@ def main():
             'program':sys.executable, 'arguments':[str(Path(__file__).resolve()), '--tools', str(tools),
                 '--language', args.language, '{file}'], 'versionArguments':[str(Path(__file__).resolve()),
                 '--tools', str(tools), '--language', args.language, '--version'],
-            'expectedVersion':identity, 'extensions':[extensions[args.language]], 'timeoutSeconds':120}}
+            'expectedVersion':identity, 'extensions':(['ex', 'exs'] if args.language == 'elixir'
+                                                     else [extensions[args.language]]), 'timeoutSeconds':120}}
         args.write_profile.write_text(json.dumps(profile, indent=2) + '\n')
         return
     if not args.file:

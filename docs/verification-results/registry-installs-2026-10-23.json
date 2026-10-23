@@ -1,0 +1,393 @@
+{
+  "date": "2026-10-23",
+  "release": "0.5.0-alpha.2",
+  "status": "passed",
+  "run": "https://github.com/rlvtapp/poolster/actions/runs/39940620024",
+  "scope": "Published npm CLI and SDK, PyPI platform wheels, and crates.io Rust facade consumers on all four supported native platforms",
+  "installation_policy": "Fresh consumers; no native binary/compiler overrides; npm/PyPI runtime execution with compiler toolchains removed from PATH",
+  "source": "scripts/release-install-check.py",
+  "source_sha256": "93be844bd009409170cbf66d0113842091c8a626e78785ef1b4f39a709cb3fc1",
+  "initial_attempt": {
+    "run": "https://github.com/rlvtapp/poolster/actions/runs/39940188208",
+    "status": "failed",
+    "reason": "The Rust consumer probe omitted an explicit Packages import. npm CLI/SDK and PyPI phases already passed; corrected probe reran all four platforms."
+  },
+  "reports": {
+    "installed-win32-x64-msvc": {
+      "platform": "Windows-2025Server-10.0.26100-SP0",
+      "machine": "AMD64",
+      "version": "0.5.0-alpha.2",
+      "status": "passed",
+      "checks": {
+        "npm_install": {
+          "command": [
+            "C:\\Windows\\system32\\cmd.exe",
+            "/d",
+            "/c",
+            "C:\\hostedtoolcache\\windows\\node\\22.23.4\\x64\\npm.cmd",
+            "install",
+            "--prefix",
+            "D:\\a\\_temp\\poolster-installed",
+            "--ignore-scripts",
+            "--no-audit",
+            "--no-fund",
+            "poolster@0.5.0-alpha.2",
+            "@relevate/poolster@0.5.0-alpha.2",
+            "@relevate/poolster-plugin-typescript@0.5.0-alpha.2"
+          ],
+          "exit_code": 0
+        },
+        "npm_cli": {
+          "command": [
+            "C:\\hostedtoolcache\\windows\\node\\22.23.4\\x64\\node.EXE",
+            "D:\\a\\_temp\\poolster-installed\\node_modules\\poolster\\bin\\poolster.cjs",
+            "generate",
+            "D:\\a\\poolster\\poolster\\crates\\cli\\tests\\fixtures\\pets.yaml",
+            "--language",
+            "go,typescript,python",
+            "--output",
+            "D:\\a\\_temp\\poolster-installed\\cli-output"
+          ],
+          "exit_code": 0
+        },
+        "npm_sdk": {
+          "command": [
+            "C:\\hostedtoolcache\\windows\\node\\22.23.4\\x64\\node.EXE",
+            "D:\\a\\_temp\\poolster-installed\\sdk-probe.cjs",
+            "D:\\a\\poolster\\poolster\\crates\\cli\\tests\\fixtures\\pets.yaml",
+            "D:\\a\\_temp\\poolster-installed\\sdk-output"
+          ],
+          "exit_code": 0
+        },
+        "pypi_install": {
+          "command": [
+            "C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\python.exe",
+            "-m",
+            "pip",
+            "install",
+            "--disable-pip-version-check",
+            "--only-binary=:all:",
+            "--no-deps",
+            "--target",
+            "D:\\a\\_temp\\poolster-installed\\python-package",
+            "poolster==0.5.0a2"
+          ],
+          "exit_code": 0
+        },
+        "pypi_cli": {
+          "command": [
+            "C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\python.exe",
+            "-c",
+            "from poolster import main; main()",
+            "generate",
+            "D:\\a\\poolster\\poolster\\crates\\cli\\tests\\fixtures\\pets.yaml",
+            "--language",
+            "go,typescript,python",
+            "--output",
+            "D:\\a\\_temp\\poolster-installed\\python-output"
+          ],
+          "exit_code": 0
+        },
+        "crates_consumer": {
+          "command": [
+            "cargo",
+            "run",
+            "--quiet",
+            "--manifest-path",
+            "D:\\a\\_temp\\poolster-installed\\rust-consumer\\Cargo.toml"
+          ],
+          "exit_code": 0
+        }
+      },
+      "installed_native_files": {
+        "node_modules/@relevate/poolster-cli-win32-x64-msvc/poolster-openapi.exe": "a7b7fc09b78570781ad7d0bc8602635a323d4c1a9cd0140cdbd4a15a3c18753d",
+        "node_modules/@relevate/poolster-cli-win32-x64-msvc/poolster.exe": "a4439227320a1c57a30290e15c631bb1a5b7354083085018071de20861f27824",
+        "node_modules/@relevate/poolster-node-win32-x64-msvc/poolster-openapi.exe": "a7b7fc09b78570781ad7d0bc8602635a323d4c1a9cd0140cdbd4a15a3c18753d",
+        "node_modules/@relevate/poolster-node-win32-x64-msvc/poolster_node.node": "4ae9c1f24bd932eaac359bf45f3070a8b0e470cf9ba4f5703e196c65fc302ec0",
+        "python-package/poolster/bin/poolster-openapi.exe": "a7b7fc09b78570781ad7d0bc8602635a323d4c1a9cd0140cdbd4a15a3c18753d",
+        "python-package/poolster/bin/poolster.exe": "a4439227320a1c57a30290e15c631bb1a5b7354083085018071de20861f27824"
+      }
+    },
+    "installed-linux-x64-gnu": {
+      "platform": "Linux-6.8.0-1064-azure-x86_64-with-glibc2.35",
+      "machine": "x86_64",
+      "version": "0.5.0-alpha.2",
+      "status": "passed",
+      "checks": {
+        "npm_install": {
+          "command": [
+            "/opt/hostedtoolcache/node/22.23.3/x64/bin/npm",
+            "install",
+            "--prefix",
+            "/home/runner/work/_temp/poolster-installed",
+            "--ignore-scripts",
+            "--no-audit",
+            "--no-fund",
+            "poolster@0.5.0-alpha.2",
+            "@relevate/poolster@0.5.0-alpha.2",
+            "@relevate/poolster-plugin-typescript@0.5.0-alpha.2"
+          ],
+          "exit_code": 0
+        },
+        "npm_cli": {
+          "command": [
+            "/opt/hostedtoolcache/node/22.23.3/x64/bin/node",
+            "/home/runner/work/_temp/poolster-installed/node_modules/poolster/bin/poolster.cjs",
+            "generate",
+            "/home/runner/work/poolster/poolster/crates/cli/tests/fixtures/pets.yaml",
+            "--language",
+            "go,typescript,python",
+            "--output",
+            "/home/runner/work/_temp/poolster-installed/cli-output"
+          ],
+          "exit_code": 0
+        },
+        "npm_sdk": {
+          "command": [
+            "/opt/hostedtoolcache/node/22.23.3/x64/bin/node",
+            "/home/runner/work/_temp/poolster-installed/sdk-probe.cjs",
+            "/home/runner/work/poolster/poolster/crates/cli/tests/fixtures/pets.yaml",
+            "/home/runner/work/_temp/poolster-installed/sdk-output"
+          ],
+          "exit_code": 0
+        },
+        "pypi_install": {
+          "command": [
+            "/opt/hostedtoolcache/Python/3.12.15/x64/bin/python",
+            "-m",
+            "pip",
+            "install",
+            "--disable-pip-version-check",
+            "--only-binary=:all:",
+            "--no-deps",
+            "--target",
+            "/home/runner/work/_temp/poolster-installed/python-package",
+            "poolster==0.5.0a2"
+          ],
+          "exit_code": 0
+        },
+        "pypi_cli": {
+          "command": [
+            "/opt/hostedtoolcache/Python/3.12.15/x64/bin/python",
+            "-c",
+            "from poolster import main; main()",
+            "generate",
+            "/home/runner/work/poolster/poolster/crates/cli/tests/fixtures/pets.yaml",
+            "--language",
+            "go,typescript,python",
+            "--output",
+            "/home/runner/work/_temp/poolster-installed/python-output"
+          ],
+          "exit_code": 0
+        },
+        "crates_consumer": {
+          "command": [
+            "cargo",
+            "run",
+            "--quiet",
+            "--manifest-path",
+            "/home/runner/work/_temp/poolster-installed/rust-consumer/Cargo.toml"
+          ],
+          "exit_code": 0
+        }
+      },
+      "installed_native_files": {
+        "node_modules/@relevate/poolster-node-linux-x64-gnu/poolster-openapi": "9cc542d33f12ff84875d48c2890a4625f3da8922d29cec344014f04042ba5a51",
+        "node_modules/@relevate/poolster-node-linux-x64-gnu/poolster_node.node": "3df52ac394c86067066c3bfdae8f16538d3987ba75ca5e7d96778c44a8b4bc27",
+        "node_modules/@relevate/poolster-cli-linux-x64-gnu/poolster": "c22b91e2b27cf0a568494ca386d4a4a7a9fa0ab76a57c67b8c0b94e7022e3fef",
+        "node_modules/@relevate/poolster-cli-linux-x64-gnu/poolster-openapi": "9cc542d33f12ff84875d48c2890a4625f3da8922d29cec344014f04042ba5a51",
+        "python-package/poolster/bin/poolster": "c22b91e2b27cf0a568494ca386d4a4a7a9fa0ab76a57c67b8c0b94e7022e3fef",
+        "python-package/poolster/bin/poolster-openapi": "9cc542d33f12ff84875d48c2890a4625f3da8922d29cec344014f04042ba5a51"
+      }
+    },
+    "installed-darwin-x64": {
+      "platform": "macOS-15.7.9-x86_64-i386-64bit",
+      "machine": "x86_64",
+      "version": "0.5.0-alpha.2",
+      "status": "passed",
+      "checks": {
+        "npm_install": {
+          "command": [
+            "/Users/runner/hostedtoolcache/node/22.23.2/x64/bin/npm",
+            "install",
+            "--prefix",
+            "/Users/runner/work/_temp/poolster-installed",
+            "--ignore-scripts",
+            "--no-audit",
+            "--no-fund",
+            "poolster@0.5.0-alpha.2",
+            "@relevate/poolster@0.5.0-alpha.2",
+            "@relevate/poolster-plugin-typescript@0.5.0-alpha.2"
+          ],
+          "exit_code": 0
+        },
+        "npm_cli": {
+          "command": [
+            "/Users/runner/hostedtoolcache/node/22.23.2/x64/bin/node",
+            "/Users/runner/work/_temp/poolster-installed/node_modules/poolster/bin/poolster.cjs",
+            "generate",
+            "/Users/runner/work/poolster/poolster/crates/cli/tests/fixtures/pets.yaml",
+            "--language",
+            "go,typescript,python",
+            "--output",
+            "/Users/runner/work/_temp/poolster-installed/cli-output"
+          ],
+          "exit_code": 0
+        },
+        "npm_sdk": {
+          "command": [
+            "/Users/runner/hostedtoolcache/node/22.23.2/x64/bin/node",
+            "/Users/runner/work/_temp/poolster-installed/sdk-probe.cjs",
+            "/Users/runner/work/poolster/poolster/crates/cli/tests/fixtures/pets.yaml",
+            "/Users/runner/work/_temp/poolster-installed/sdk-output"
+          ],
+          "exit_code": 0
+        },
+        "pypi_install": {
+          "command": [
+            "/Library/Frameworks/Python.framework/Versions/3.12/bin/python",
+            "-m",
+            "pip",
+            "install",
+            "--disable-pip-version-check",
+            "--only-binary=:all:",
+            "--no-deps",
+            "--target",
+            "/Users/runner/work/_temp/poolster-installed/python-package",
+            "poolster==0.5.0a2"
+          ],
+          "exit_code": 0
+        },
+        "pypi_cli": {
+          "command": [
+            "/Library/Frameworks/Python.framework/Versions/3.12/bin/python",
+            "-c",
+            "from poolster import main; main()",
+            "generate",
+            "/Users/runner/work/poolster/poolster/crates/cli/tests/fixtures/pets.yaml",
+            "--language",
+            "go,typescript,python",
+            "--output",
+            "/Users/runner/work/_temp/poolster-installed/python-output"
+          ],
+          "exit_code": 0
+        },
+        "crates_consumer": {
+          "command": [
+            "cargo",
+            "run",
+            "--quiet",
+            "--manifest-path",
+            "/Users/runner/work/_temp/poolster-installed/rust-consumer/Cargo.toml"
+          ],
+          "exit_code": 0
+        }
+      },
+      "installed_native_files": {
+        "node_modules/@relevate/poolster-cli-darwin-x64/poolster-openapi": "ca300aede0cef927068df3c500ba8af82548d3b002521ec3e1787f9f1537d48c",
+        "node_modules/@relevate/poolster-cli-darwin-x64/poolster": "883cc36d64316614e8154ccb0abbd8ce460dfa27dd335febd0cfa49f6319d866",
+        "node_modules/@relevate/poolster-node-darwin-x64/poolster_node.node": "f8cbc7c664456cb3802f6a0cf3310e78f46b4289a21253ec853214b758d8ed73",
+        "node_modules/@relevate/poolster-node-darwin-x64/poolster-openapi": "ca300aede0cef927068df3c500ba8af82548d3b002521ec3e1787f9f1537d48c",
+        "python-package/poolster/bin/poolster-openapi": "ca300aede0cef927068df3c500ba8af82548d3b002521ec3e1787f9f1537d48c",
+        "python-package/poolster/bin/poolster": "883cc36d64316614e8154ccb0abbd8ce460dfa27dd335febd0cfa49f6319d866"
+      }
+    },
+    "installed-darwin-arm64": {
+      "platform": "macOS-14.8.9-arm64-arm-64bit",
+      "machine": "arm64",
+      "version": "0.5.0-alpha.2",
+      "status": "passed",
+      "checks": {
+        "npm_install": {
+          "command": [
+            "/Users/runner/hostedtoolcache/node/22.23.2/arm64/bin/npm",
+            "install",
+            "--prefix",
+            "/Users/runner/work/_temp/poolster-installed",
+            "--ignore-scripts",
+            "--no-audit",
+            "--no-fund",
+            "poolster@0.5.0-alpha.2",
+            "@relevate/poolster@0.5.0-alpha.2",
+            "@relevate/poolster-plugin-typescript@0.5.0-alpha.2"
+          ],
+          "exit_code": 0
+        },
+        "npm_cli": {
+          "command": [
+            "/Users/runner/hostedtoolcache/node/22.23.2/arm64/bin/node",
+            "/Users/runner/work/_temp/poolster-installed/node_modules/poolster/bin/poolster.cjs",
+            "generate",
+            "/Users/runner/work/poolster/poolster/crates/cli/tests/fixtures/pets.yaml",
+            "--language",
+            "go,typescript,python",
+            "--output",
+            "/Users/runner/work/_temp/poolster-installed/cli-output"
+          ],
+          "exit_code": 0
+        },
+        "npm_sdk": {
+          "command": [
+            "/Users/runner/hostedtoolcache/node/22.23.2/arm64/bin/node",
+            "/Users/runner/work/_temp/poolster-installed/sdk-probe.cjs",
+            "/Users/runner/work/poolster/poolster/crates/cli/tests/fixtures/pets.yaml",
+            "/Users/runner/work/_temp/poolster-installed/sdk-output"
+          ],
+          "exit_code": 0
+        },
+        "pypi_install": {
+          "command": [
+            "/Library/Frameworks/Python.framework/Versions/3.12/bin/python",
+            "-m",
+            "pip",
+            "install",
+            "--disable-pip-version-check",
+            "--only-binary=:all:",
+            "--no-deps",
+            "--target",
+            "/Users/runner/work/_temp/poolster-installed/python-package",
+            "poolster==0.5.0a2"
+          ],
+          "exit_code": 0
+        },
+        "pypi_cli": {
+          "command": [
+            "/Library/Frameworks/Python.framework/Versions/3.12/bin/python",
+            "-c",
+            "from poolster import main; main()",
+            "generate",
+            "/Users/runner/work/poolster/poolster/crates/cli/tests/fixtures/pets.yaml",
+            "--language",
+            "go,typescript,python",
+            "--output",
+            "/Users/runner/work/_temp/poolster-installed/python-output"
+          ],
+          "exit_code": 0
+        },
+        "crates_consumer": {
+          "command": [
+            "cargo",
+            "run",
+            "--quiet",
+            "--manifest-path",
+            "/Users/runner/work/_temp/poolster-installed/rust-consumer/Cargo.toml"
+          ],
+          "exit_code": 0
+        }
+      },
+      "installed_native_files": {
+        "node_modules/@relevate/poolster-node-darwin-arm64/poolster_node.node": "f2bd61cb148446802018fbddab541e625ae08b3a80e7ccafd096b139ba18a400",
+        "node_modules/@relevate/poolster-node-darwin-arm64/poolster-openapi": "a343e800f7d35f01173d120ec089a427be1590fb4850af6bb45e6ec032cde879",
+        "node_modules/@relevate/poolster-cli-darwin-arm64/poolster-openapi": "a343e800f7d35f01173d120ec089a427be1590fb4850af6bb45e6ec032cde879",
+        "node_modules/@relevate/poolster-cli-darwin-arm64/poolster": "d811824bb7d8fed3cc6073558647160bca1c5d0efcc313473d51b8cef8a4a9d9",
+        "python-package/poolster/bin/poolster-openapi": "a343e800f7d35f01173d120ec089a427be1590fb4850af6bb45e6ec032cde879",
+        "python-package/poolster/bin/poolster": "d811824bb7d8fed3cc6073558647160bca1c5d0efcc313473d51b8cef8a4a9d9"
+      }
+    }
+  },
+  "boundaries": [
+    "Published alpha.2 artifacts, not publication of the fixes on this branch",
+    "Node 22, Python 3.12 and stable Rust runners; not a complete toolchain-version matrix",
+    "Rust facade is consumed as a library; the repository CLI crate is not published on crates.io"
+  ]
+}

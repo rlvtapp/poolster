@@ -11,6 +11,15 @@ loader.loader.exec_module(audit)
 
 
 class OutputAuditTests(unittest.TestCase):
+    def test_build_scripts_and_rbs_signatures_are_measured_as_source(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'mix.exs').write_text('defmodule Build do\nend\n')
+            (root / 'model.rbs').write_bytes(b'class Model\r\nend\r\n')
+            result = audit.statistics(root, 128 * 1024)
+            self.assertEqual(len(result['source_files']), 2)
+            self.assertEqual([file['path'] for file in result['violations']], ['model.rbs'])
+
     def test_final_source_bytes_and_newlines_are_checked(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
