@@ -360,7 +360,7 @@ failures and successful retries remain in the audit trail. See
 - [ ] Audited Forge migration and a tested compatibility matrix.
 - [ ] Confirm Cap’n Web scope, then implement and test output.
 - [x] Alpha.2 versioning, final packaging and publication; see the native pipeline release record.
-- [ ] Complete clean-install verification of release artifacts across supported platforms.
+- [x] Clean-install alpha.2 npm CLI/SDK, PyPI wheel and crates.io facade consumers on macOS ARM64/Intel, Linux x64 glibc and Windows x64; [23 October evidence](verification-results/registry-installs-2026-10-23.json).
 
 See [native pipelines](reference/inputs/native-pipelines.md) for exact feature limits and concrete
 implementation/verification requirements for each follow-up.

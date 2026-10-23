@@ -20,10 +20,11 @@ than treating parser availability as generated-output support.
 ## Generated source quality specification
 
 The [generated SDK specification](../specifications/generated-sdk.md) defines
-requirements for all language outputs. These are adoption tasks, not completed claims:
+requirements for all language outputs. Executed audits and remaining adoption work
+are distinguished below:
 
 - [ ] Replace compact PHP GraphQL models, methods and runtime blocks with conventional formatted source, including Symfony output.
-- [ ] Audit and pin each target formatter/configuration; verify emitted source and clean consumer imports.
+- [x] Pin and execute target formatter/configuration checks for all ten HTTP/GraphQL SDK languages plus Symfony: 55 style/protocol cases, formatter fixed points, regeneration, final byte budgets and native consumers. See the [23 October formatter audit](../verification-results/formatter-audit-2026-10-23.json). This bounded audit does not certify other protocol outputs or all large-contract formatting budgets.
 - [ ] Measure final formatted file budgets and verify bounded facade/export splitting per target.
 - [ ] Record style, naming and package conformance against the specification, with executed evidence and explicit exceptions.
 
