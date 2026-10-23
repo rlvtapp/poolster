@@ -7,10 +7,10 @@ Add the published alpha.2 crates you use:
 ```toml
 [dependencies]
 anyhow = "1"
-poolster = "=0.5.0-alpha.2"
-poolster-core = "=0.5.0-alpha.2"
-poolster-input-openapi = "=0.5.0-alpha.2"
-poolster-plugin-rust = "=0.5.0-alpha.2"
+poolster = "=0.5.0-alpha.3"
+poolster-core = "=0.5.0-alpha.3"
+poolster-input-openapi = "=0.5.0-alpha.3"
+poolster-plugin-rust = "=0.5.0-alpha.3"
 ```
 
 ## Generate a package

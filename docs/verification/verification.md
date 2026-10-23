@@ -1,10 +1,10 @@
 # Verify an SDK before shipping it
 
-Release status: **0.5.0-alpha.2 published 13 October 2026**. The dated records
+Release status: **0.5.0-alpha.3 published 23 October 2026**. The dated records
 below preserve historical test counts, ignored tests and conditions. References
 to work being unreleased describe its status at the time of those checks.
 
-Release build gates passed on all four platforms, including the Windows CRLF
+Earlier alpha.2 release build gates passed on all four platforms, including the Windows CRLF
 regression fix. Registry recovery completed: **33 npm packages** (original
 archive checksums verified), **24 Rust crates**, and PyPI **0.5.0a2**.
 [Successful recovery](https://github.com/rlvtapp/poolster/actions/runs/38390921930) ·
@@ -696,7 +696,8 @@ Ruby GraphQL RBS union parentheses. Focused native regressions cover all three.
 The [published-package install audit](../verification-results/registry-installs-2026-10-23.json)
 passes **4/4 platforms**: Linux x64, Windows x64, macOS Intel and macOS ARM64,
 covering npm, PyPI and the Rust facade. These installs verify published alpha.2
-artifacts; the generator fixes above are source changes awaiting release.
+artifacts. The generator fixes above are now published in alpha.3, with separate
+post-publication installation evidence below.
 
 The [formatter audit](../verification-results/formatter-audit-2026-10-23.json)
 passes **55/55 cases**, covering ten SDK languages plus Symfony across HTTP and
@@ -710,3 +711,34 @@ Local validation also passed: PHP 40 tests, Rust 35, Ruby 29, fresh Node addon
 100 tests (two gated skips), 26 corpus/provenance tests, three reconciliation tests
 and six output-audit tests. Warning-denied Clippy and Rust formatting passed for
 the changed language crates. Ignored native regressions were run separately.
+
+
+## Alpha.3 publication and clean installs (23 October 2026)
+
+[0.5.0-alpha.3](https://github.com/rlvtapp/poolster/releases/tag/v0.5.0-alpha.3)
+is published from commit `53f170618ff5e42d10ee542354833a2834294461`.
+[PR #19](https://github.com/rlvtapp/poolster/pull/19) passed all 37 CI jobs;
+[PR #7](https://github.com/rlvtapp/poolster/pull/7) synchronized release versions.
+The release build passed its full workspace, generated GraphQL execution, Node
+embedding, Kafka, ten generated-language checks and four-platform native builds.
+The approved output snapshot was refreshed for the two Rust HTTP method files
+before the successful CI run.
+
+The [registry and install ledger](../verification-results/release-alpha3-2026-10-23.json)
+independently confirms all **33 npm packages**, **24 non-yanked Rust crates** and
+**four PyPI wheels**, preserving registry integrity hashes and crate checksums.
+The [publication workflow](https://github.com/rlvtapp/poolster/actions/runs/39961368299)
+is successful on attempt two. Its first attempt published npm and PyPI plus
+`poolster-core`; crates.io rejected the next crate because trusted publishing
+was missing. Existing local Cargo credentials safely resumed the remaining
+23 crates; the user added the missing OpenAPI publisher. The CI reconciliation
+rerun skipped all existing versions. This validates release completeness, not
+fresh-upload authorization for every crate in a future release.
+
+The [post-publication install audit](https://github.com/rlvtapp/poolster/actions/runs/39966398995)
+passes **4/4**: macOS ARM64, macOS Intel, Linux x64 glibc and Windows x64.
+Each consumer installs exact alpha.3 npm CLI/SDK packages, the matching PyPI
+wheel and the crates.io Rust facade. CLI/SDK consumers generate output with
+compiler/binary overrides removed and toolchains absent from runtime PATH; npm
+SDK regeneration is unchanged. These checks verify installed packages from
+registries rather than local build overrides.
