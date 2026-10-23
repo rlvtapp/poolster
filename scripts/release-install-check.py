@@ -82,7 +82,7 @@ const {pluginTypeScript} = require('@relevate/poolster-plugin-typescript');
         (consumer / 'Cargo.toml').write_text('[package]\nname="release_consumer"\nversion="0.1.0"\nedition="2024"\n'
             f'[dependencies]\npoolster={{version="={args.version}",features=["typescript"]}}\n'
             f'poolster-core="={args.version}"\n')
-        (consumer / 'src/main.rs').write_text('use poolster::prelude::*;\nfn main() {\n'
+        (consumer / 'src/main.rs').write_text('use poolster::prelude::*;\nuse poolster_core::engine::Packages;\nfn main() {\n'
             'let api = poolster_core::Api { name: "Install probe".into(), version: "1".into(), ..Default::default() };\n'
             'let tree = Packages::new().package(poolster::ts::package("sdk").with(poolster::ts::types())).generate(&api, None).unwrap();\n'
             'assert!(tree.iter().any(|(path, _)| path.extension().is_some_and(|ext| ext == "ts")));\n}\n')
