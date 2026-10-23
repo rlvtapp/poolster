@@ -59,11 +59,14 @@ jobs:
     timeout-minutes: 60
     env:
       FORMAT_LANGUAGE: ${{ matrix.language }}
-      FORMAT_TOOLS: ${{ runner.temp }}/formatter-tools
-      POOLSTER_OPENAPI_BIN: ${{ github.workspace }}/target/debug/poolster-openapi
-      DOTNET_INSTALL_DIR: ${{ runner.temp }}/audit-dotnet
     steps:
       - uses: actions/checkout@v7
+      - name: Initialize isolated tool paths
+        shell: bash
+        run: |
+          echo "FORMAT_TOOLS=$RUNNER_TEMP/formatter-tools" >> "$GITHUB_ENV"
+          echo "POOLSTER_OPENAPI_BIN=$GITHUB_WORKSPACE/target/debug/poolster-openapi" >> "$GITHUB_ENV"
+          echo "DOTNET_INSTALL_DIR=$RUNNER_TEMP/audit-dotnet" >> "$GITHUB_ENV"
       - uses: actions/download-artifact@v8
         with:
           name: formatter-generator-${{ matrix.host }}
