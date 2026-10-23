@@ -459,7 +459,7 @@ jobs:
           python -m pip install --disable-pip-version-check 'packaging==25.0'
           python -c 'import sys; from packaging.version import Version; assert Version(sys.argv[1]) == Version(sys.argv[2]), f"release version mismatch: {sys.argv[1]} != {sys.argv[2]}"' "$tag" "$version"
       - name: Publish platform-native wheels
-        uses: pypa/gh-action-pypi-publish@v1.14.2
+        uses: pypa/gh-action-pypi-publish@v1.14.3
         with:
           packages-dir: release-artifacts/python
           skip-existing: true
