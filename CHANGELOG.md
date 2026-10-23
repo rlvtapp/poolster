@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## [0.5.0-alpha.3](https://github.com/rlvtapp/poolster/compare/v0.5.0-alpha.2...v0.5.0-alpha.3) (2026-10-23)
+
+
+### Bug Fixes
+
+* release verified generators and npm query controls ([#19](https://github.com/rlvtapp/poolster/issues/19)) ([ac24089](https://github.com/rlvtapp/poolster/commit/ac240892adc888abba3b92e9dcb990438f950dea))
+
 ## 0.5.0-alpha.2 — 2026-10-13
 
 ### Added
