@@ -10,7 +10,7 @@ API artifacts and delivery files belong to you. Optional plugins are selected in
 **Implemented** means available in source. **Verified** means the stated tests
 executed. **Limited** identifies a supported subset. **Prepared** means workflow
 code exists without a real external run. None of these implies every contract is
-supported. Version `0.5.0-alpha.2` is published; use the documented prerelease installs.
+supported. Version `0.5.0-alpha.3` is published; use the documented prerelease installs.
 
 ## Start with your goal
 

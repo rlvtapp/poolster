@@ -1,0 +1,1121 @@
+{
+  "date": "2026-10-23",
+  "version": "0.5.0-alpha.3",
+  "release_commit": "53f170618ff5e42d10ee542354833a2834294461",
+  "release_url": "https://github.com/rlvtapp/poolster/releases/tag/v0.5.0-alpha.3",
+  "publication_run": "https://github.com/rlvtapp/poolster/actions/runs/39961368299",
+  "publication_attempts": {
+    "first": "npm and PyPI succeeded; crates.io rejected poolster-input-openapi after poolster-core because trusted publisher was absent",
+    "recovery": "Existing local Cargo credentials published remaining 23 crates from the immutable release source; failed CI job rerun skips all 24 existing versions and passes"
+  },
+  "npm": [
+    {
+      "name": "@relevate/poolster",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "9a651d1ef1bc1c1963eb44181b674a4f13133dba",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster/-/poolster-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-c2XV7rhUDmFC5wrEW+bH/WKbAqULbCkVqnP5Dwaklw3nR2eapDfo3qvoUfwUzHJ0Ts7am9m4dFVGf0JQ1KRusw==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-cli-darwin-arm64",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "a8bdcaa8708c8c55cdfa9b5638713240d02ef57a",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-cli-darwin-arm64/-/poolster-cli-darwin-arm64-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-I39dB5/Sdh/eBvAIZfM0aJpI08QE8ewaArUoc0F7qLS2qQKAnJNFUrQwlmfBPgIWFW9PfTzxCFmXunDKieuM8A==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-cli-darwin-arm64@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-cli-darwin-x64",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "d4b71b1a279ef94af05a93cc2f6fb55900ec1338",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-cli-darwin-x64/-/poolster-cli-darwin-x64-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-M+VCjrrNDoQqq64wnZcKgIThdQGOJk/Z8mc0jXyvg63/joJw+lTnGfRvSlWFbHYJOlEtin7qG1nrAD+M7t2TQg==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-cli-darwin-x64@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-cli-linux-x64-gnu",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "7de8289295835922305b819ab8b102af428d11a1",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-cli-linux-x64-gnu/-/poolster-cli-linux-x64-gnu-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-OAnd+Ke5SW7wpO2CXygl59NNY6uwsXsWeWI0rIuNecYV1gsLdnDnRZlzWv3j2QVpNj0P2RN+B8VJev0EykMYxQ==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-cli-linux-x64-gnu@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-cli-win32-x64-msvc",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "88721780d208ecbcd144eca43099de50b582dc26",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-cli-win32-x64-msvc/-/poolster-cli-win32-x64-msvc-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-1cu7chXE09b1hD7YReeCm/cUtKCG2vE0AxQWSHuOlQOEfOuUOCgqICqfCZNzVra2eDLOOEKiXofazNn6fjYP2w==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-cli-win32-x64-msvc@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-input-arazzo",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "3582606037d09904e0a216b980529bca5d9c377e",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-input-arazzo/-/poolster-input-arazzo-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-7ReQBnMdphuLu/SIfHacHNta6BXURbUxATuTZosk6MUWBKNO0sKXWSCpwT/f0XBnoO97ZSEKmHZN9mabQdIJKw==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-input-arazzo@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-input-asyncapi",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "860672c18b607604c7d430e86d41e28ea01ec242",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-input-asyncapi/-/poolster-input-asyncapi-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-cwV6anGUksMdl6eS09KuszX/+3RrWbvJpiXNx/qe8+PN89T/sytR3Ge5aEVBPsR2Q9GFVoGhyFZVtbJH5useVQ==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-input-asyncapi@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-input-capnproto",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "468b9ec1e09ab47663667a9f264dab99c8ee33ee",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-input-capnproto/-/poolster-input-capnproto-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-1I7AF6w0So9D+HWUkFD5uwpbgszkAeucnGPaIrRG1LjgCVp9LvvTmxTobKwU5AX5ksm3WlTQObbMREqtDyZiLA==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-input-capnproto@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-input-graphql",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "182b8d201f7d467d98a15fa849dad2659a96d3cd",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-input-graphql/-/poolster-input-graphql-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-nuVjvNMRxuYeQQAG7c6Q+6wKtbUqSEuzEephLUJU1lkKEBkf9E109IXlhRL5ML+3Vl2PiOFBrCizHtxi3pm2fg==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-input-graphql@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-input-protobuf",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "6d4316098b286d1f291e08b681da74f6d4320e60",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-input-protobuf/-/poolster-input-protobuf-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-/b8IvsU0CT3kqIoaZ2grL4quqij+eqrNDNesgTam0U5Z9ONlhUBdlHl5nqDkSM5ZZaIslbco5Zfj/NzUhW1y8Q==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-input-protobuf@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-node-darwin-arm64",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "0cf87f1f67ff7a57ef06c8442d78abc688989096",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-node-darwin-arm64/-/poolster-node-darwin-arm64-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-zHxU3YXsyxjitEEBjnSiTp2dlNaSLY1Gs0SQTQgD04f5fBi83BoM8qVA9PJea8hs4ORyimdtMWGkJQyXPECCUw==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-node-darwin-arm64@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-node-darwin-x64",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "ed13d3b8fde8b6acfdc256e545fa852d0ef99d19",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-node-darwin-x64/-/poolster-node-darwin-x64-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-Osr82KpS+u3+AmbIJLjZfB1RL4/Z/PbzIFnx77XtFk3NE+Oks8MmOJaiGx88hBDSyz0zL5AtXgdcDq3Bhi2P2w==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-node-darwin-x64@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-node-linux-x64-gnu",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "a8f3391ed064b77b9c071dd50884c9683c83381d",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-node-linux-x64-gnu/-/poolster-node-linux-x64-gnu-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-EF9kOfywL6q7mPIAr6k5eXVelxEcNdNOIL1z1Yuq3qMw2JYzvuniaNpe09sk9eV8yDAzFIBuceaEjoBx7UCLXQ==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-node-linux-x64-gnu@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-node-win32-x64-msvc",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "a848b7625be63ca3e794a48fdb406307bc8dcc8f",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-node-win32-x64-msvc/-/poolster-node-win32-x64-msvc-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-toRg7SlP7gkmJDNpuLqXGqjS823Tf/HSNdmh3yAfKd2fouLjv0b67Ar9vRYAtbOwd0Ic/1Kx9XUCp9QqAt4k/w==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-node-win32-x64-msvc@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-plugin-csharp",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "a904b4a648c05cc658521740994538872b5749dc",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-plugin-csharp/-/poolster-plugin-csharp-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-em21LsPtFlPkc+3XqGZadaDQdXwbm1zrTku8wavrkYzKNWkUclHQz2r2oCqsZltJ58tVvmOiYa8MGEHHH6F46A==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-plugin-csharp@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-plugin-cypress",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "00b9831418bfc5002cfc183e6f7a6061af6ff5f7",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-plugin-cypress/-/poolster-plugin-cypress-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-VhNcy3BYKIj0OjjmUIVhU1O4dhguFXiAlP89fJCPxR+wC2cULu9P7vxe9wz7ZTiWou/J/WtZue5ctDTo4Ty9wg==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-plugin-cypress@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-plugin-elixir",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "d6f98b93a819ef64c1fa26f9a23beb11f4f49f68",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-plugin-elixir/-/poolster-plugin-elixir-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-Ck7YwN9ZUON2NWJGZBIdZWzcWclBZm71zl/5v+NHWxu2rEDJmP/i4EhwVfc5sawTX1zMl9+ymsYFTXXA6DZUUQ==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-plugin-elixir@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-plugin-faker",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "5b9744c5b98b13d425348d35eacf9aec31e29041",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-plugin-faker/-/poolster-plugin-faker-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-mClnP5cQfAvCftx9wlK0M1SWYTil1dK3YvJS5t3JEVQ+pswujeb3MdtaWGAybRuamjrX7mzdE0lcBK/xkP1wVw==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-plugin-faker@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-plugin-go",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "87e3d8fbca994b33e46476ee2d95b76686d3f990",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-plugin-go/-/poolster-plugin-go-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-nYCzpnid+kaHJJGzxIf66ZKopFx6Qx/YfWv/u+IB2IbK8kv2aYmuDBlGDikUb8KXzzN0cntCaSQHWymh4wEo+A==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-plugin-go@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-plugin-java",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "77a529a4cb527859e06618a39f9bec68e9767d1d",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-plugin-java/-/poolster-plugin-java-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-qXgJc++0mfv3nlqDhzjL/IP6ZGGuwO3XMUbO3e70YxZEq6rDBgWzWBEZ1GDuRJj6a5LobkA/K5m0oEbYGEv34A==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-plugin-java@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-plugin-msw",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "cfb31b675d97f38f3882f57790d4284ec5c80140",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-plugin-msw/-/poolster-plugin-msw-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-EMJ2uDdum0Tr+HLg5s9GtzEpfUxCftI2K/RK+m+e7/ASt9UF7vj9ovem6Oe3pn+J1aWQCVLpLxBtd3Ta9a0U3A==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-plugin-msw@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-plugin-php",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "adbd56c7d95156c8fefde0217e33bcd785f4be7a",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-plugin-php/-/poolster-plugin-php-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-GcpPBe/CnqyvWzsYv21wuh5en8dDkSarkiFsc9hny2d3woLhwBzhXkawQutl1s2nCUy/3B54nxibvmgqisK8Jw==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-plugin-php@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-plugin-python",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "c3b6e3d6b36949d275ed7e13c96d0db6d6e2a620",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-plugin-python/-/poolster-plugin-python-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-zsV7l858zAhuivNpAwjAw++A7hBsGVmSNo02KutviCU4FwZ+HNTiwpeBA3WsEqgvU30PHnPJZiN/IuN7oRryvg==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-plugin-python@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-plugin-react-query",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "5afed6ae5cff8dbd74e63ec67dc5a6e1be0b12f8",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-plugin-react-query/-/poolster-plugin-react-query-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-UJgwQbfJjkz0WYCjUebSNleG2QQ+Pf2jZDHDo4BVS8bDedpUKgNTBWkWG6kcTxIbYDSMea9+SYTJsCUnSk1UEA==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-plugin-react-query@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-plugin-ruby",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "03726b25a7af0b663722046f57f713e73d24bbf4",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-plugin-ruby/-/poolster-plugin-ruby-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-z8r2b2Xqqv5D8iEWbMBdMTCr5iszKOgPPnKXD7i7/VrR7HsK1RHe+B8eDx3LoRblsME3y0P0Aj6lQYA0E0K1Qw==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-plugin-ruby@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-plugin-rust",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "b3d56c1b2b63832a0414c1dbf3672cdcb3150607",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-plugin-rust/-/poolster-plugin-rust-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-J6Yreas6kR4JmijwR/2AZDmJ858pvtKODdzhp8R5HgxM/e0ejKfzlfTUsh90nf/RF3jpUBN1twwzyScorGHsXA==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-plugin-rust@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-plugin-swift",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "0ecec8516a05b89773ebb18ecb27159e19ac164f",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-plugin-swift/-/poolster-plugin-swift-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-I+RlKGxptw/UOB/Qhd3EiBD5mz9ufCpL3dLJ+jdxNaa71DLIY7HoVp7y3dRaMX1H3/bOTEevrmjqx0RYsb25BQ==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-plugin-swift@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-plugin-swr",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "2373e4372035cb88eede4d7d564b398839ea1bb8",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-plugin-swr/-/poolster-plugin-swr-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-exHNGfKXmudsToy3IrABmUzEjHjDA3SwuwRByEEgNGJUzG2S6C6NiojhCkGdag2opZXY2ph2HewCOLEZtJQvlA==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-plugin-swr@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-plugin-typescript",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "72bf2978dbd3f140b4d96a5f864f2c4c0840aa71",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-plugin-typescript/-/poolster-plugin-typescript-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-eImBfJwcxfLLE2vEGfbFFjxFM4aAIRvCqYKP5pmA0wK6m9CJZrudBoBpuhiN89wFbUOzC8bcV3D3O3zEw1Xeyg==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-plugin-typescript@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-plugin-vue-query",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "d2943816ece55d937c01f98f6fc8feb4205e3430",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-plugin-vue-query/-/poolster-plugin-vue-query-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-EUjaG+XU6HHxq17NkBCEk8c+7qT/iye945GKd7NakNF7ofIE2IPdj9PmwcAQTulhCIoobvNKuMhbUMsU6WxSkw==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-plugin-vue-query@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-plugin-zod",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "67f0e8a9f6ae113988848270087fa28f7e024d9c",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-plugin-zod/-/poolster-plugin-zod-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-Lwlz7IPkp5BlInDhMSohX389cuRB1rFL/hVyXhdNVhoBVw5Rw8mkVGPp3x4aeeBaTbFTx3fsLCyANmHGrbimMg==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-plugin-zod@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "@relevate/poolster-plugins",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "96c0b5668f7c098516f65f19a2293c24f61e82de",
+        "tarball": "https://registry.npmjs.org/@relevate/poolster-plugins/-/poolster-plugins-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-VVvd2bQS0erHDUJPEG2f7BGSkei3sLtajKHlrBHh25fA4ryi7QDMg+TUxMbT5kYrx58NfB1CWi1eu4vAldKf1w==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@relevate%2fpoolster-plugins@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    },
+    {
+      "name": "poolster",
+      "version": "0.5.0-alpha.3",
+      "dist": {
+        "shasum": "0fd9a6a86b9e7d42844666a4f58bb466d13884ac",
+        "tarball": "https://registry.npmjs.org/poolster/-/poolster-0.5.0-alpha.3.tgz",
+        "integrity": "sha512-vcAz957VvLliS22M76+qwVdg8qmWGfl8NZfZHt3kv3f8ivyMZin1LA+zjkH6owORUsIiWCqFwDoUerXL5rAvyg==",
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/poolster@0.5.0-alpha.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        }
+      }
+    }
+  ],
+  "crates": [
+    {
+      "name": "poolster-core",
+      "version": "0.5.0-alpha.3",
+      "checksum": "d775e02b03655e388fcf90cc23aa0be42550d1b15b1b818fbdc268d189d25d24",
+      "created_at": "2026-10-23T13:57:56.472695Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-input-openapi",
+      "version": "0.5.0-alpha.3",
+      "checksum": "d9a6926780a966eb0ea601eb1b229b39763cb1cb5c476170ad1ba3899898f4b0",
+      "created_at": "2026-10-23T14:01:06.759911Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-input-asyncapi",
+      "version": "0.5.0-alpha.3",
+      "checksum": "74d0f7356ad8db9c8a1d8f82ec50e76153a6431bb83fb293c15e2b19e652c046",
+      "created_at": "2026-10-23T14:01:20.701163Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-plugin-csharp",
+      "version": "0.5.0-alpha.3",
+      "checksum": "cdb661f62f452c1ce8977df5ea9c53a69ff009150489fef918ea6ff9e8fcc9cd",
+      "created_at": "2026-10-23T14:01:25.718303Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-input-graphql",
+      "version": "0.5.0-alpha.3",
+      "checksum": "71c1a5408384a39b0387b846010ab9e7843cf3324056bc9b43dea89389549a86",
+      "created_at": "2026-10-23T14:01:39.336582Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-plugin-elixir",
+      "version": "0.5.0-alpha.3",
+      "checksum": "953e848d00c49ca627e8fc69aaad4384492995973d3f56f8ee42c422b5db517c",
+      "created_at": "2026-10-23T14:01:46.249810Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-input-protobuf",
+      "version": "0.5.0-alpha.3",
+      "checksum": "65478bf4cd8111c45d4bab28a1f5333ac21f135154d288e711ab475d8f38c636",
+      "created_at": "2026-10-23T14:01:56.335366Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-plugin-go",
+      "version": "0.5.0-alpha.3",
+      "checksum": "1f55819c89e3a87990c02fe99e250f2a6ccf2a832e23f17388e147ac839ab85d",
+      "created_at": "2026-10-23T14:02:02.150147Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-plugin-java",
+      "version": "0.5.0-alpha.3",
+      "checksum": "3c5f5cca659429db5dfd1ef1cf32a60880a48ae2ff72e27a0033c4b701024cde",
+      "created_at": "2026-10-23T14:02:07.294157Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-plugin-php",
+      "version": "0.5.0-alpha.3",
+      "checksum": "41ad6f5283c2eec39d64bb6dfe3a34ed6934ca4b7ae57a3a589bb8082ad72b6b",
+      "created_at": "2026-10-23T14:02:12.352868Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-plugin-postman",
+      "version": "0.5.0-alpha.3",
+      "checksum": "cfbe32de0ef06286ee7b85081148f04dfadf707314ff2eaa37e5e878cccbc973",
+      "created_at": "2026-10-23T14:02:16.519660Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-plugin-python",
+      "version": "0.5.0-alpha.3",
+      "checksum": "ad9b0a12c031a85e88b3e4dc6d4c355b3c2639d93a029ca64ff3b06a071188e6",
+      "created_at": "2026-10-23T14:02:22.691572Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-plugin-ruby",
+      "version": "0.5.0-alpha.3",
+      "checksum": "ebc72996772148c17d8c3c9fe7e20bd01258bc535776266b35ef3d785ae19317",
+      "created_at": "2026-10-23T14:02:28.235203Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-plugin-rust",
+      "version": "0.5.0-alpha.3",
+      "checksum": "93967ce500c40379a2d28acab330e38b6a2e639ad1129120cc6db92f64a35b4c",
+      "created_at": "2026-10-23T14:02:33.128411Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-plugin-rust-cli",
+      "version": "0.5.0-alpha.3",
+      "checksum": "4381863476f7b7f66a0f96c4f8168f62f25526bbfbb0d41e270ff1ecd8819ca7",
+      "created_at": "2026-10-23T14:02:36.875439Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-plugin-swift",
+      "version": "0.5.0-alpha.3",
+      "checksum": "d75da0fa0782379976631556d6e822fe740538a6ff803b55a977395e85166c5c",
+      "created_at": "2026-10-23T14:02:41.620326Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-plugin-symfony",
+      "version": "0.5.0-alpha.3",
+      "checksum": "dbaf890839cbf2c51caecfe1ae5cb31f8f8b7cd9e1db6085b1868ed43e53f657",
+      "created_at": "2026-10-23T14:02:46.783181Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-plugin-terraform",
+      "version": "0.5.0-alpha.3",
+      "checksum": "3a81802606294b801585760756c20db24510aad4b816b6becf217e437c99440a",
+      "created_at": "2026-10-23T14:02:51.488688Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-input-arazzo",
+      "version": "0.5.0-alpha.3",
+      "checksum": "9400ed61d898943a5668ad5b924f32c01ce5dd0054ae9808f50c0981232e971f",
+      "created_at": "2026-10-23T14:02:57.010430Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-plugin-typescript",
+      "version": "0.5.0-alpha.3",
+      "checksum": "6ddaaf4a2b314a397a9478b9b5897f73ee784b4db9b5f208ac936d6a64b9844c",
+      "created_at": "2026-10-23T14:03:03.273743Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-plugin-typescript-cli",
+      "version": "0.5.0-alpha.3",
+      "checksum": "5ad67e84050b7f3dfd7b246aac7680fb5d54a73b2741980a59704d753410c767",
+      "created_at": "2026-10-23T14:03:07.293247Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster",
+      "version": "0.5.0-alpha.3",
+      "checksum": "0291c653262225764e5fcd69a422d021fefc45117a9ef418c80c81a242a0a07b",
+      "created_at": "2026-10-23T14:03:11.762934Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-input-capnproto",
+      "version": "0.5.0-alpha.3",
+      "checksum": "ebe9a447aa19365eab9dbc62ca8b436958bbea7b3d57f572158d72cac13a0e46",
+      "created_at": "2026-10-23T14:03:16.606003Z",
+      "yanked": false
+    },
+    {
+      "name": "poolster-inputs",
+      "version": "0.5.0-alpha.3",
+      "checksum": "368ae4150fd0ac883ce3201a6fd992b3bd9f2fe6b6df1f7bafb96ba5c8332084",
+      "created_at": "2026-10-23T14:03:27.509430Z",
+      "yanked": false
+    }
+  ],
+  "pypi": {
+    "version": "0.5.0a3",
+    "files": [
+      {
+        "filename": "poolster-0.5.0a3-py3-none-macosx_10_13_x86_64.whl",
+        "sha256": "8b16f53ac0c52bbc05488611e9249e69cfbae757591dcb14ab82f7e09fd494c2",
+        "size": 20231089,
+        "url": "https://files.pythonhosted.org/packages/3b/57/2e90e68b0eddf9b8975b1314ecde98ec6fb6bd4b4c5f0bfba651a474ad9c/poolster-0.5.0a3-py3-none-macosx_10_13_x86_64.whl"
+      },
+      {
+        "filename": "poolster-0.5.0a3-py3-none-macosx_11_0_arm64.whl",
+        "sha256": "df294a3b4fe1cdc25053765073991cfcf118b9003dde5c8a164ee3f10533afd4",
+        "size": 19162970,
+        "url": "https://files.pythonhosted.org/packages/f8/73/aa472ada16f03c1c0224a938ca2bb03506676065d25fae1a5eae6420d4f6/poolster-0.5.0a3-py3-none-macosx_11_0_arm64.whl"
+      },
+      {
+        "filename": "poolster-0.5.0a3-py3-none-manylinux_2_35_x86_64.whl",
+        "sha256": "9d4c013b6b365d96b71f029a9131d4e25c404a9506f05d876db80151ef7d9e8b",
+        "size": 20740161,
+        "url": "https://files.pythonhosted.org/packages/8d/1e/94bbe259088e1e662a06d889f6951433be10b706a3c7b55e8a0961336746/poolster-0.5.0a3-py3-none-manylinux_2_35_x86_64.whl"
+      },
+      {
+        "filename": "poolster-0.5.0a3-py3-none-win_amd64.whl",
+        "sha256": "27180ab2c23dde33acbca978fa658b5367077f4a3a6cc22a6c92c57026a1ad0d",
+        "size": 19659517,
+        "url": "https://files.pythonhosted.org/packages/21/03/b2a02d795bc87de7d225d05fbe1fcd63a400e6ea9d6ecdf2cafcd0596d99/poolster-0.5.0a3-py3-none-win_amd64.whl"
+      }
+    ]
+  },
+  "local_crates_recovery_log_sha256": "d599f2020b0c3ec13e97f097deb8b62df86b0e40bd3bb005cd25949e66535c48",
+  "install_audit": {
+    "workflow_url": "https://github.com/rlvtapp/poolster/actions/runs/39966398995",
+    "status": "passed",
+    "platforms": [
+      {
+        "artifact": "installed-darwin-arm64",
+        "platform": "macOS-14.8.9-arm64-arm-64bit",
+        "machine": "arm64",
+        "version": "0.5.0-alpha.3",
+        "status": "passed",
+        "checks": {
+          "npm_install": {
+            "command": [
+              "/Users/runner/hostedtoolcache/node/22.23.2/arm64/bin/npm",
+              "install",
+              "--prefix",
+              "/Users/runner/work/_temp/poolster-installed",
+              "--ignore-scripts",
+              "--no-audit",
+              "--no-fund",
+              "poolster@0.5.0-alpha.3",
+              "@relevate/poolster@0.5.0-alpha.3",
+              "@relevate/poolster-plugin-typescript@0.5.0-alpha.3"
+            ],
+            "exit_code": 0
+          },
+          "npm_cli": {
+            "command": [
+              "/Users/runner/hostedtoolcache/node/22.23.2/arm64/bin/node",
+              "/Users/runner/work/_temp/poolster-installed/node_modules/poolster/bin/poolster.cjs",
+              "generate",
+              "/Users/runner/work/poolster/poolster/crates/cli/tests/fixtures/pets.yaml",
+              "--language",
+              "go,typescript,python",
+              "--output",
+              "/Users/runner/work/_temp/poolster-installed/cli-output"
+            ],
+            "exit_code": 0
+          },
+          "npm_sdk": {
+            "command": [
+              "/Users/runner/hostedtoolcache/node/22.23.2/arm64/bin/node",
+              "/Users/runner/work/_temp/poolster-installed/sdk-probe.cjs",
+              "/Users/runner/work/poolster/poolster/crates/cli/tests/fixtures/pets.yaml",
+              "/Users/runner/work/_temp/poolster-installed/sdk-output"
+            ],
+            "exit_code": 0
+          },
+          "pypi_install": {
+            "command": [
+              "/Library/Frameworks/Python.framework/Versions/3.12/bin/python",
+              "-m",
+              "pip",
+              "install",
+              "--disable-pip-version-check",
+              "--only-binary=:all:",
+              "--no-deps",
+              "--target",
+              "/Users/runner/work/_temp/poolster-installed/python-package",
+              "poolster==0.5.0a3"
+            ],
+            "exit_code": 0
+          },
+          "pypi_cli": {
+            "command": [
+              "/Library/Frameworks/Python.framework/Versions/3.12/bin/python",
+              "-c",
+              "from poolster import main; main()",
+              "generate",
+              "/Users/runner/work/poolster/poolster/crates/cli/tests/fixtures/pets.yaml",
+              "--language",
+              "go,typescript,python",
+              "--output",
+              "/Users/runner/work/_temp/poolster-installed/python-output"
+            ],
+            "exit_code": 0
+          },
+          "crates_consumer": {
+            "command": [
+              "cargo",
+              "run",
+              "--quiet",
+              "--manifest-path",
+              "/Users/runner/work/_temp/poolster-installed/rust-consumer/Cargo.toml"
+            ],
+            "exit_code": 0
+          }
+        },
+        "installed_native_files": {
+          "node_modules/@relevate/poolster-node-darwin-arm64/poolster_node.node": "d06bb56261f5edcc88a61b60a4ebbeb0a3215261c2165aaca31c430e3f9b56f3",
+          "node_modules/@relevate/poolster-node-darwin-arm64/poolster-openapi": "de693f6096687512d91b239acadc785fe97450e5a3ccaed40eb9a1648772cb50",
+          "node_modules/@relevate/poolster-cli-darwin-arm64/poolster-openapi": "de693f6096687512d91b239acadc785fe97450e5a3ccaed40eb9a1648772cb50",
+          "node_modules/@relevate/poolster-cli-darwin-arm64/poolster": "339f0bb3fed938b1e1c180eb05bc6f4db03cbc9b43567385964a5276fd8c0713",
+          "python-package/poolster/bin/poolster-openapi": "de693f6096687512d91b239acadc785fe97450e5a3ccaed40eb9a1648772cb50",
+          "python-package/poolster/bin/poolster": "339f0bb3fed938b1e1c180eb05bc6f4db03cbc9b43567385964a5276fd8c0713"
+        }
+      },
+      {
+        "artifact": "installed-darwin-x64",
+        "platform": "macOS-15.7.9-x86_64-i386-64bit",
+        "machine": "x86_64",
+        "version": "0.5.0-alpha.3",
+        "status": "passed",
+        "checks": {
+          "npm_install": {
+            "command": [
+              "/Users/runner/hostedtoolcache/node/22.23.2/x64/bin/npm",
+              "install",
+              "--prefix",
+              "/Users/runner/work/_temp/poolster-installed",
+              "--ignore-scripts",
+              "--no-audit",
+              "--no-fund",
+              "poolster@0.5.0-alpha.3",
+              "@relevate/poolster@0.5.0-alpha.3",
+              "@relevate/poolster-plugin-typescript@0.5.0-alpha.3"
+            ],
+            "exit_code": 0
+          },
+          "npm_cli": {
+            "command": [
+              "/Users/runner/hostedtoolcache/node/22.23.2/x64/bin/node",
+              "/Users/runner/work/_temp/poolster-installed/node_modules/poolster/bin/poolster.cjs",
+              "generate",
+              "/Users/runner/work/poolster/poolster/crates/cli/tests/fixtures/pets.yaml",
+              "--language",
+              "go,typescript,python",
+              "--output",
+              "/Users/runner/work/_temp/poolster-installed/cli-output"
+            ],
+            "exit_code": 0
+          },
+          "npm_sdk": {
+            "command": [
+              "/Users/runner/hostedtoolcache/node/22.23.2/x64/bin/node",
+              "/Users/runner/work/_temp/poolster-installed/sdk-probe.cjs",
+              "/Users/runner/work/poolster/poolster/crates/cli/tests/fixtures/pets.yaml",
+              "/Users/runner/work/_temp/poolster-installed/sdk-output"
+            ],
+            "exit_code": 0
+          },
+          "pypi_install": {
+            "command": [
+              "/Library/Frameworks/Python.framework/Versions/3.12/bin/python",
+              "-m",
+              "pip",
+              "install",
+              "--disable-pip-version-check",
+              "--only-binary=:all:",
+              "--no-deps",
+              "--target",
+              "/Users/runner/work/_temp/poolster-installed/python-package",
+              "poolster==0.5.0a3"
+            ],
+            "exit_code": 0
+          },
+          "pypi_cli": {
+            "command": [
+              "/Library/Frameworks/Python.framework/Versions/3.12/bin/python",
+              "-c",
+              "from poolster import main; main()",
+              "generate",
+              "/Users/runner/work/poolster/poolster/crates/cli/tests/fixtures/pets.yaml",
+              "--language",
+              "go,typescript,python",
+              "--output",
+              "/Users/runner/work/_temp/poolster-installed/python-output"
+            ],
+            "exit_code": 0
+          },
+          "crates_consumer": {
+            "command": [
+              "cargo",
+              "run",
+              "--quiet",
+              "--manifest-path",
+              "/Users/runner/work/_temp/poolster-installed/rust-consumer/Cargo.toml"
+            ],
+            "exit_code": 0
+          }
+        },
+        "installed_native_files": {
+          "node_modules/@relevate/poolster-cli-darwin-x64/poolster-openapi": "14a97b98cd342da04d28181aa9dada787e09441f13109f4dc4d86803b9c84fd8",
+          "node_modules/@relevate/poolster-cli-darwin-x64/poolster": "828fddc6102dd672cb5d5250230fe21b3035bc59f50f5af96623634c818484cd",
+          "node_modules/@relevate/poolster-node-darwin-x64/poolster_node.node": "b78546fe3723f6d61d65b903866bd284f8af641c5b59df4dccbe9cd2996463ac",
+          "node_modules/@relevate/poolster-node-darwin-x64/poolster-openapi": "14a97b98cd342da04d28181aa9dada787e09441f13109f4dc4d86803b9c84fd8",
+          "python-package/poolster/bin/poolster-openapi": "14a97b98cd342da04d28181aa9dada787e09441f13109f4dc4d86803b9c84fd8",
+          "python-package/poolster/bin/poolster": "828fddc6102dd672cb5d5250230fe21b3035bc59f50f5af96623634c818484cd"
+        }
+      },
+      {
+        "artifact": "installed-linux-x64-gnu",
+        "platform": "Linux-6.8.0-1064-azure-x86_64-with-glibc2.35",
+        "machine": "x86_64",
+        "version": "0.5.0-alpha.3",
+        "status": "passed",
+        "checks": {
+          "npm_install": {
+            "command": [
+              "/opt/hostedtoolcache/node/22.23.3/x64/bin/npm",
+              "install",
+              "--prefix",
+              "/home/runner/work/_temp/poolster-installed",
+              "--ignore-scripts",
+              "--no-audit",
+              "--no-fund",
+              "poolster@0.5.0-alpha.3",
+              "@relevate/poolster@0.5.0-alpha.3",
+              "@relevate/poolster-plugin-typescript@0.5.0-alpha.3"
+            ],
+            "exit_code": 0
+          },
+          "npm_cli": {
+            "command": [
+              "/opt/hostedtoolcache/node/22.23.3/x64/bin/node",
+              "/home/runner/work/_temp/poolster-installed/node_modules/poolster/bin/poolster.cjs",
+              "generate",
+              "/home/runner/work/poolster/poolster/crates/cli/tests/fixtures/pets.yaml",
+              "--language",
+              "go,typescript,python",
+              "--output",
+              "/home/runner/work/_temp/poolster-installed/cli-output"
+            ],
+            "exit_code": 0
+          },
+          "npm_sdk": {
+            "command": [
+              "/opt/hostedtoolcache/node/22.23.3/x64/bin/node",
+              "/home/runner/work/_temp/poolster-installed/sdk-probe.cjs",
+              "/home/runner/work/poolster/poolster/crates/cli/tests/fixtures/pets.yaml",
+              "/home/runner/work/_temp/poolster-installed/sdk-output"
+            ],
+            "exit_code": 0
+          },
+          "pypi_install": {
+            "command": [
+              "/opt/hostedtoolcache/Python/3.12.15/x64/bin/python",
+              "-m",
+              "pip",
+              "install",
+              "--disable-pip-version-check",
+              "--only-binary=:all:",
+              "--no-deps",
+              "--target",
+              "/home/runner/work/_temp/poolster-installed/python-package",
+              "poolster==0.5.0a3"
+            ],
+            "exit_code": 0
+          },
+          "pypi_cli": {
+            "command": [
+              "/opt/hostedtoolcache/Python/3.12.15/x64/bin/python",
+              "-c",
+              "from poolster import main; main()",
+              "generate",
+              "/home/runner/work/poolster/poolster/crates/cli/tests/fixtures/pets.yaml",
+              "--language",
+              "go,typescript,python",
+              "--output",
+              "/home/runner/work/_temp/poolster-installed/python-output"
+            ],
+            "exit_code": 0
+          },
+          "crates_consumer": {
+            "command": [
+              "cargo",
+              "run",
+              "--quiet",
+              "--manifest-path",
+              "/home/runner/work/_temp/poolster-installed/rust-consumer/Cargo.toml"
+            ],
+            "exit_code": 0
+          }
+        },
+        "installed_native_files": {
+          "node_modules/@relevate/poolster-node-linux-x64-gnu/poolster-openapi": "8f8b4e0d544eb34629f951e53f88d60956837aa338bbccb91678cc0e070e7df4",
+          "node_modules/@relevate/poolster-node-linux-x64-gnu/poolster_node.node": "0070e7d0a29c697a811685aed90cc4457d4672f40413f6323e4229b1c6def95d",
+          "node_modules/@relevate/poolster-cli-linux-x64-gnu/poolster": "8bb5fb71b6cebabc5a807523aaa1d2e7dec0ee4009baad4a5b6f16cda3a6ea0f",
+          "node_modules/@relevate/poolster-cli-linux-x64-gnu/poolster-openapi": "8f8b4e0d544eb34629f951e53f88d60956837aa338bbccb91678cc0e070e7df4",
+          "python-package/poolster/bin/poolster": "8bb5fb71b6cebabc5a807523aaa1d2e7dec0ee4009baad4a5b6f16cda3a6ea0f",
+          "python-package/poolster/bin/poolster-openapi": "8f8b4e0d544eb34629f951e53f88d60956837aa338bbccb91678cc0e070e7df4"
+        }
+      },
+      {
+        "artifact": "installed-win32-x64-msvc",
+        "platform": "Windows-2025Server-10.0.26100-SP0",
+        "machine": "AMD64",
+        "version": "0.5.0-alpha.3",
+        "status": "passed",
+        "checks": {
+          "npm_install": {
+            "command": [
+              "C:\\Windows\\system32\\cmd.exe",
+              "/d",
+              "/c",
+              "C:\\hostedtoolcache\\windows\\node\\22.23.4\\x64\\npm.cmd",
+              "install",
+              "--prefix",
+              "D:\\a\\_temp\\poolster-installed",
+              "--ignore-scripts",
+              "--no-audit",
+              "--no-fund",
+              "poolster@0.5.0-alpha.3",
+              "@relevate/poolster@0.5.0-alpha.3",
+              "@relevate/poolster-plugin-typescript@0.5.0-alpha.3"
+            ],
+            "exit_code": 0
+          },
+          "npm_cli": {
+            "command": [
+              "C:\\hostedtoolcache\\windows\\node\\22.23.4\\x64\\node.EXE",
+              "D:\\a\\_temp\\poolster-installed\\node_modules\\poolster\\bin\\poolster.cjs",
+              "generate",
+              "D:\\a\\poolster\\poolster\\crates\\cli\\tests\\fixtures\\pets.yaml",
+              "--language",
+              "go,typescript,python",
+              "--output",
+              "D:\\a\\_temp\\poolster-installed\\cli-output"
+            ],
+            "exit_code": 0
+          },
+          "npm_sdk": {
+            "command": [
+              "C:\\hostedtoolcache\\windows\\node\\22.23.4\\x64\\node.EXE",
+              "D:\\a\\_temp\\poolster-installed\\sdk-probe.cjs",
+              "D:\\a\\poolster\\poolster\\crates\\cli\\tests\\fixtures\\pets.yaml",
+              "D:\\a\\_temp\\poolster-installed\\sdk-output"
+            ],
+            "exit_code": 0
+          },
+          "pypi_install": {
+            "command": [
+              "C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\python.exe",
+              "-m",
+              "pip",
+              "install",
+              "--disable-pip-version-check",
+              "--only-binary=:all:",
+              "--no-deps",
+              "--target",
+              "D:\\a\\_temp\\poolster-installed\\python-package",
+              "poolster==0.5.0a3"
+            ],
+            "exit_code": 0
+          },
+          "pypi_cli": {
+            "command": [
+              "C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\python.exe",
+              "-c",
+              "from poolster import main; main()",
+              "generate",
+              "D:\\a\\poolster\\poolster\\crates\\cli\\tests\\fixtures\\pets.yaml",
+              "--language",
+              "go,typescript,python",
+              "--output",
+              "D:\\a\\_temp\\poolster-installed\\python-output"
+            ],
+            "exit_code": 0
+          },
+          "crates_consumer": {
+            "command": [
+              "cargo",
+              "run",
+              "--quiet",
+              "--manifest-path",
+              "D:\\a\\_temp\\poolster-installed\\rust-consumer\\Cargo.toml"
+            ],
+            "exit_code": 0
+          }
+        },
+        "installed_native_files": {
+          "node_modules/@relevate/poolster-cli-win32-x64-msvc/poolster-openapi.exe": "e8235d1df80ba0ed23d4cefb71ddbab9ba2a6a1c6024178b08d03ba147adcfe1",
+          "node_modules/@relevate/poolster-cli-win32-x64-msvc/poolster.exe": "6495adad3681d885c14e3c9e8fa90fd88e3c091b04fadc3ae28aea9340a2198d",
+          "node_modules/@relevate/poolster-node-win32-x64-msvc/poolster-openapi.exe": "e8235d1df80ba0ed23d4cefb71ddbab9ba2a6a1c6024178b08d03ba147adcfe1",
+          "node_modules/@relevate/poolster-node-win32-x64-msvc/poolster_node.node": "397b7b101e51969f6421bb000aad984d0b4d22da148dc4eb23f7440b8f0903cb",
+          "python-package/poolster/bin/poolster-openapi.exe": "e8235d1df80ba0ed23d4cefb71ddbab9ba2a6a1c6024178b08d03ba147adcfe1",
+          "python-package/poolster/bin/poolster.exe": "6495adad3681d885c14e3c9e8fa90fd88e3c091b04fadc3ae28aea9340a2198d"
+        }
+      }
+    ]
+  },
+  "candidate_ci": {
+    "workflow_url": "https://github.com/rlvtapp/poolster/actions/runs/39958522766",
+    "passed_jobs": 37,
+    "status": "passed"
+  },
+  "crates_recovery_events": [
+    "Skip published poolster-core@0.5.0-alpha.3",
+    "   Published poolster-input-openapi v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster-input-asyncapi v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster-plugin-csharp v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster-input-graphql v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster-plugin-elixir v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster-input-protobuf v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster-plugin-go v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster-plugin-java v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster-plugin-php v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster-plugin-postman v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster-plugin-python v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster-plugin-ruby v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster-plugin-rust v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster-plugin-rust-cli v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster-plugin-swift v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster-plugin-symfony v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster-plugin-terraform v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster-input-arazzo v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster-plugin-typescript v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster-plugin-typescript-cli v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster-input-capnproto v0.5.0-alpha.3 at registry `crates-io`",
+    "   Published poolster-inputs v0.5.0-alpha.3 at registry `crates-io`"
+  ],
+  "trusted_publishing_note": "The user added the missing poolster-input-openapi trusted publisher after the first attempt. Local recovery used existing Cargo credentials; the CI reconciliation rerun passed by checking and skipping all existing versions. It does not independently prove fresh-upload authorization for every crate."
+}
