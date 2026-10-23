@@ -4,6 +4,7 @@ This checks generation, regeneration and final source layout. It deliberately
 does not claim compilation, runtime behavior or formatter conformance.
 """
 import argparse
+import difflib
 import hashlib
 import json
 from pathlib import Path
@@ -64,6 +65,13 @@ def run_case(binary, root, language, protocol, style, source, operations, budget
     config = {'output': {'path': str(output)}, 'packages': [package(language, protocol, style)]}
     if formatter_profile is not None:
         config['packages'][0]['source_quality'] = formatter_profile
+    if language == 'symfony' and protocol == 'http':
+        config['packages'][0]['plugins'][0]['sdk_package'] = 'poolster/quality-probe-sdk'
+        portable = package('php', 'http', style)
+        portable.update(path='portable', name='poolster/quality-probe-sdk')
+        if formatter_profile is not None:
+            portable['source_quality'] = formatter_profile
+        config['packages'].append(portable)
     if protocol == 'http':
         config['openapi'] = {'input': str(source), 'name': 'Quality Probe', 'version': '1.0.0'}
     else:
@@ -110,7 +118,9 @@ def run_case(binary, root, language, protocol, style, source, operations, budget
             if completed.returncode or path.read_bytes() != before:
                 result['status'] = 'failed'
                 result['formatter_idempotence_error'] = entry['path']
-                (case / 'formatter-idempotence.log').write_text(completed.stdout + completed.stderr)
+                diff = ''.join(difflib.unified_diff(before.decode().splitlines(True), path.read_text().splitlines(True),
+                                                   fromfile='first pass', tofile='second pass'))
+                (case / 'formatter-idempotence.log').write_text(completed.stdout + completed.stderr + diff)
                 break
     if result['status'] == 'pass' and native_check:
         command = [sys.executable, str(Path(__file__).with_name('check-formatted-package.py')),
@@ -159,7 +169,7 @@ def main():
                     'version': 1, 'binary_sha256': hashlib.sha256(args.binary.read_bytes()).hexdigest(),
                     'formatter_profile': profile, 'cases': results}, indent=2) + '\n')
                 print(f"{protocol} {language} {style}: {result['status']}", flush=True)
-    report = {'version': 1, 'scope': 'default output structure and regeneration only',
+    report = {'version': 1, 'scope': 'formatted source and regeneration' if profile else 'default output structure and regeneration only',
               'formatter_conformance': 'executed' if profile else 'not assessed',
               'compilation_runtime': 'executed native checks' if args.native_check else 'separate native tests',
               'binary_sha256': hashlib.sha256(args.binary.read_bytes()).hexdigest(),

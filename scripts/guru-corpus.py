@@ -176,7 +176,12 @@ def run_case(contract, language, manifest, root, environment, timeout, keep_gene
                     report['regeneration']['status'] = 'failed'
             report['native'] = run_logged(['bash', str(PROJECT / 'scripts/test-public-contracts.sh'),
                                           'check', language], env, logs / 'native.log', timeout)
-            if report['native']['exit_code'] == 0 and report.get('regeneration', {}).get('status', 'passed') == 'passed':
+            native_log = logs / 'native.log'
+            deprecations = (re.findall(r'(?m)^(?:PHP )?Deprecated:.*$', native_log.read_text(errors='replace'))
+                            if language == 'php' and native_log.is_file() else [])
+            if deprecations:
+                report['native']['deprecations'] = deprecations
+            if report['native']['exit_code'] == 0 and not deprecations and report.get('regeneration', {}).get('status', 'passed') == 'passed':
                 report['status'] = 'passed'
         for metadata in (sdk_root / '.poolster', sdk_root / language / '.poolster'):
             if metadata.is_dir():

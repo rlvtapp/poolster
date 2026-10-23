@@ -58,6 +58,7 @@ def main():
         configs = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(tools.glob('*'))
                    if p.is_file() and p.suffix in ('.json', '.toml', '.yml', '.exs', '.editorconfig', '.phar', '.jar')}
         identity = json.dumps({'version': version, 'configuration': configs,
+                               'adapter_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                                'executable_sha256': hashlib.sha256(Path(resolved).read_bytes()).hexdigest()}, sort_keys=True)
         if args.version:
             print(identity)
@@ -76,7 +77,17 @@ def main():
     source = Path(args.file).resolve(strict=True)
     if args.language == 'csharp':
         (source.parent / '.editorconfig').write_text((tools / 'csharp.editorconfig').read_text())
-        invoke(['dotnet', 'format', 'whitespace', str(source.parent), '--folder', '--include', str(source), '--no-restore', '--verbosity', 'quiet'])
+        invoke(['dotnet', 'format', 'whitespace', str(source.parent), '--folder', '--include', str(source), '--include-generated', '--verbosity', 'quiet'])
+    elif args.language == 'java':
+        # google-java-format can require a second pass for generated resource
+        # declarations. Require convergence, rather than accepting drifting bytes.
+        for _ in range(4):
+            before = source.read_bytes()
+            invoke(command + flags + [str(source)])
+            if source.read_bytes() == before:
+                break
+        else:
+            raise RuntimeError('google-java-format did not reach a fixed point in four passes')
     else:
         invoke(command + flags + [str(source)])
 

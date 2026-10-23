@@ -100,6 +100,8 @@ jobs:
           tools: none
       - name: Run full workspace suite
         run: cargo test --workspace --locked
+      - name: Verify PHP constructor omission and wire semantics
+        run: cargo test --locked -p poolster-plugin-php native_constructor_order_has_no_deprecations_and_preserves_wire_keys -- --ignored
   cli-integration:
     name: CLI schema, references and migration
     runs-on: ubuntu-latest
