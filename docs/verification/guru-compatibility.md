@@ -1,5 +1,12 @@
 # Public-contract compatibility results
 
+**23 October 2026:** the migrated-generator sweep passes **2,050/2,050**
+cases, including native checks and deterministic regeneration. The
+[current ledger](../verification-results/guru-current-2026-10-23.json) preserves
+base attempts and full corrected-target reruns. See
+[scope, fixes and companion audits](verification.md#completed-release-verification-23-october-2026).
+The results below remain historical.
+
 **Alpha.2 update (9 October 2026):** the new frozen-build 205×10 sweep is complete:
 2,050 effective passes including regeneration, after audited infrastructure retries.
 The frozen binaries predate the latest output migration. The record below is the

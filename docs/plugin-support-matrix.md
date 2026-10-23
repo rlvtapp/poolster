@@ -337,8 +337,9 @@ is complete: **2,050 effective passes**, including deterministic regeneration,
 after audited infrastructure retries. PHP used native syntax lint and emitted
 deprecation warnings in 140 contracts. These results do not establish endpoint
 runtime behavior or corpus coverage of the later output migration. The migrated
-workspace passed separately; final migrated-binary corpus coverage and clean
-installation checks of release artifacts remain open. Original infrastructure
+workspace passed separately. The 23 October migrated-generator corpus now passes
+2,050/2,050 cases, and published-package installation passes on all four platforms.
+See the [completed verification](verification/verification.md#completed-release-verification-23-october-2026). Original infrastructure
 failures and successful retries remain in the audit trail. See
 [current verification](verification/verification.md#earlier-alpha2-verification-9-october-2026).
 
@@ -352,7 +353,7 @@ failures and successful retries remain in the audit trail. See
 - [x] All six inputs expose whole contracts and optional standard block collections.
 - [x] Revision/provenance checks, completeness checks, typed hooks and opt-in deterministic symbol planning.
 - [x] Complete the frozen pre-output-migration OpenAPI corpus: 2,050 effective passes.
-- [ ] Run the corpus against final migrated binaries.
+- [x] Run the corpus against migrated binaries: 2,050 verified cases with full corrected-target reruns.
 - [x] GraphQL generation through all ten existing npm SDK language plugin packages.
 - [ ] Broaden native protocol features and expose other pipelines/general typed hooks through npm.
 - [ ] Cap’n Proto → Rust messages/capability RPC using the official toolchain.

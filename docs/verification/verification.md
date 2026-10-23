@@ -9,7 +9,7 @@ regression fix. Registry recovery completed: **33 npm packages** (original
 archive checksums verified), **24 Rust crates**, and PyPI **0.5.0a2**.
 [Successful recovery](https://github.com/rlvtapp/poolster/actions/runs/38390921930) ·
 [Release](https://github.com/rlvtapp/poolster/releases/tag/v0.5.0-alpha.2).
-This does not imply a new 205-contract corpus run or full protocol conformance.
+The separate 23 October verification below completes the current 205-contract corpus; full protocol conformance remains outside its scope.
 
 Generation, compilation and API behavior are separate checks. Run all three
 for the package you ship.
@@ -116,7 +116,7 @@ compilation or PHP/Ruby syntax checks, and deterministic regeneration after
 audited infrastructure retries. Original failures and retry evidence remain
 preserved. PHP emitted deprecation warnings in 140 contracts; syntax checks do
 not establish endpoint runtime behavior. These binaries predate the output
-contract migration, so the final migrated build still needs its own corpus run.
+contract migration. The separate 23 October run below verifies the migrated generators.
 The earlier [2,050-pass ledger](guru-compatibility.md) is a separate historical
 result. The reference-directory harness now verifies and reuses pinned trees;
 all 25 offline harness tests pass. [Harness evidence](../verification-results/reference-harness-2026-10-09.json)
@@ -668,10 +668,45 @@ regeneration and size warnings, while reports identify executable checksums,
 source/manifest identity and incomplete selections. A clean consumer installed local SDK/bundle/query-plugin tarballs, generated all
 three query helpers and regenerated without changes; strict TypeScript declaration
 checks passed. Its platform addon was supplied explicitly, so this does not certify
-registry installation. Full current-binary corpus,
-cross-platform released-package installation and formatter adoption remain open.
+registry installation. These focused checks are superseded for corpus, registry installation and bounded formatter coverage by the completed verification below.
 
 The [scoped evidence record](../verification-results/release-confidence-query-controls-2026-10-23.json)
 retains per-target reports and initial infrastructure failures separately from
 successful retries. Framework-version expansion and broader paginated lifecycle
 coverage remain in the generator backlog.
+
+
+## Completed release verification (23 October 2026)
+
+The [current corpus ledger](../verification-results/guru-current-2026-10-23.json)
+verifies **2,050/2,050 cases**: 205 pinned OpenAPI contracts in ten HTTP SDK
+languages, with native compilation or syntax checks and deterministic regeneration.
+There are no missing cases. The base matrix and full 205-contract PHP, Rust and
+Swift reruns are reconciled chronologically, preserving the original Rust failure.
+Each final language uses one frozen generator/compiler pair; this is not a single
+all-language build revision. Duplicate Swift jobs in the base run were cancelled
+after all other shards completed and the separate full Swift run passed.
+
+The sweep found and fixed PHP optional-before-required constructor deprecations
+and a Rust schema named `Method` colliding with the HTTP method import. PHP
+constructors now order required parameters first; positional callers should review
+the new order or use named arguments. The formatter audit also found and fixed
+Ruby GraphQL RBS union parentheses. Focused native regressions cover all three.
+
+The [published-package install audit](../verification-results/registry-installs-2026-10-23.json)
+passes **4/4 platforms**: Linux x64, Windows x64, macOS Intel and macOS ARM64,
+covering npm, PyPI and the Rust facade. These installs verify published alpha.2
+artifacts; the generator fixes above are source changes awaiting release.
+
+The [formatter audit](../verification-results/formatter-audit-2026-10-23.json)
+passes **55/55 cases**, covering ten SDK languages plus Symfony across HTTP and
+GraphQL styles, pinned formatters, fixed points, regeneration and native consumers.
+Its 1,008 source-file instances have a largest file of 54,964 bytes. This bounded
+audit does not certify formatting of every large contract or other protocols.
+The large-contract corpus retains soft 128 KiB file-size warnings; passing native
+checks do not establish endpoint runtime behavior.
+
+Local validation also passed: PHP 40 tests, Rust 35, Ruby 29, fresh Node addon
+100 tests (two gated skips), 26 corpus/provenance tests, three reconciliation tests
+and six output-audit tests. Warning-denied Clippy and Rust formatting passed for
+the changed language crates. Ignored native regressions were run separately.

@@ -3,8 +3,8 @@
 Updated on **2026-10-23**. Native protocol work has its own
 [implemented pipeline matrix and remaining checklist](../reference/inputs/native-pipelines.md#remaining-work).
 The alpha.2 additions are merged into `main` and published as `0.5.0-alpha.2`. The frozen-build
-HTTP corpus is complete (2,050 effective passes); corpus coverage of the final
-migrated binaries remains open. Checked items are delivered; unchecked items retain
+HTTP corpus is complete (2,050 effective passes); the migrated-generator corpus
+also passes 2,050/2,050 cases in the [23 October verification](../verification/verification.md#completed-release-verification-23-october-2026). Checked items are delivered; unchecked items retain
 remaining work. This backlog covers SDKs, framework helpers and generated artifacts. The
 [compatibility results](../verification/guru-compatibility.md) remain the source of truth for
 native compilation; the [feature catalog](../about/features.md) describes current support.
