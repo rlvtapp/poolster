@@ -9,6 +9,7 @@ on:
       - scripts/check-formatted-package.py
       - scripts/language-output-audit.py
       - scripts/fixtures/formatters/**
+      - crates/plugins/**
 permissions:
   contents: read
   actions: read

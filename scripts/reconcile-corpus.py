@@ -35,7 +35,7 @@ def reconcile(manifest, reports):
             continue
         latest = history[-1]
         case = latest['case']
-        valid = (case.get('status') == 'passed' and (case.get('generation') or {}).get('exit_code') == 0
+        valid = (case.get('source_sha256') == contracts[key[0]] and case.get('status') == 'passed' and (case.get('generation') or {}).get('exit_code') == 0
                  and (case.get('native') or {}).get('exit_code') == 0
                  and not (case.get('native') or {}).get('deprecations')
                  and (case.get('regeneration') or {}).get('status') == 'passed'
