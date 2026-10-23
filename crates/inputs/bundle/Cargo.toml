@@ -19,14 +19,14 @@ capnproto = ["dep:poolster-input-capnproto"]
 openapi = ["dep:poolster-input-openapi"]
 
 [dependencies]
-poolster-input-openapi = { version = "0.5.0-alpha.2", path = "../openapi", optional = true }
-poolster-core = { version = "0.5.0-alpha.2", path = "../../core" }
+poolster-input-openapi = { version = "0.5.0-alpha.3", path = "../openapi", optional = true }
+poolster-core = { version = "0.5.0-alpha.3", path = "../../core" }
 anyhow = "1.0.102"
-poolster-input-graphql = { version = "0.5.0-alpha.2", path = "../graphql", optional = true }
-poolster-input-asyncapi = { version = "0.5.0-alpha.2", path = "../asyncapi", optional = true }
-poolster-input-arazzo = { version = "0.5.0-alpha.2", path = "../arazzo", optional = true }
-poolster-input-protobuf = { version = "0.5.0-alpha.2", path = "../protobuf", optional = true }
-poolster-input-capnproto = { version = "0.5.0-alpha.2", path = "../capnproto", optional = true }
+poolster-input-graphql = { version = "0.5.0-alpha.3", path = "../graphql", optional = true }
+poolster-input-asyncapi = { version = "0.5.0-alpha.3", path = "../asyncapi", optional = true }
+poolster-input-arazzo = { version = "0.5.0-alpha.3", path = "../arazzo", optional = true }
+poolster-input-protobuf = { version = "0.5.0-alpha.3", path = "../protobuf", optional = true }
+poolster-input-capnproto = { version = "0.5.0-alpha.3", path = "../capnproto", optional = true }
 
 [dev-dependencies]
 tempfile = "3.27.0"
