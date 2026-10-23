@@ -1,6 +1,6 @@
 # Generator completion backlog
 
-Updated on **2026-10-09**. Native protocol work has its own
+Updated on **2026-10-23**. Native protocol work has its own
 [implemented pipeline matrix and remaining checklist](../reference/inputs/native-pipelines.md#remaining-work).
 The alpha.2 additions are merged into `main` and published as `0.5.0-alpha.2`. The frozen-build
 HTTP corpus is complete (2,050 effective passes); corpus coverage of the final
@@ -111,8 +111,11 @@ and warning budgets are delivered; peak memory and full auxiliary audit remain S
 ## 3. Complete framework consumers
 
 React/Vue output now includes native typed hooks, reusable option/key factories,
-cache scopes, cancellation and bounded modules. Infinite/suspense variants and
-operation selection remain open; these are independent from file layout.
+cache scopes, cancellation and bounded modules. HTTP infinite-query helpers,
+React suspense hooks, prefetch helpers and operation selection are implemented.
+The 23 October focused runtime probe verifies traversal, termination and SSR
+hydration; this does not establish GraphQL pagination support or a complete
+framework-version matrix. See the [helper guide](../guides/typescript-helpers.md).
 
 - [x] **QUERY-1:** Generate reusable queryOptions/mutationOptions and stable key
   factories for React/Vue, with native typed options, callbacks and overrides.
@@ -120,18 +123,22 @@ operation selection remain open; these are independent from file layout.
   HTTP driver. Build keys from operation inputs and explicit cache scope rather
   than whole client/config objects; test tenant separation and credential-header
   exclusion. Operation inputs remain visible in keys, as documented.
-- [ ] **QUERY-3:** Add infinite-query helpers using resolved pagination metadata,
-  suspense variants where supported, prefetch/SSR examples and framework-specific
-  signatures. Define page parameters, termination and cancellation explicitly.
-- [ ] **QUERY-4:** Support operation selection, query/mutation classification
-  overrides, names and grouped output. Preserve custom operation providers and
-  relocated imports; compile against supported React/Vue versions.
+- [x] **QUERY-3:** HTTP infinite-query helpers consume resolved pagination metadata;
+  React suspense variants, React/Vue prefetch helpers and an SSR example are
+  available. Native observer execution covers cursor/page/offset/URL traversal,
+  termination, origin checks and hydration; ordinary query probes cover cancellation.
+- [ ] **QUERY-4:** Operation selection, query/mutation classification overrides,
+  helper names and layout controls are implemented in Rust/CLI. npm now exposes
+  selection, classification, names and chunk counts through `queryOptions`, with
+  HTTP/GraphQL boundary tests. Broaden the supported framework-version matrix
+  and grouped-output/custom-provider acceptance scenarios.
 - [ ] **QUERY-5:** Delivered cache reuse/invalidation, callback contexts, errors
-  and framework/caller abort runtime tests. Page traversal remains open and
-  depends on infinite-query helpers. Compile tests alone do not establish behavior.
-- [ ] **SWR-1:** Delivered explicit cache scopes, native configuration overrides
-  and cancellation forwarding. Still add
-  pagination/mutation helpers where appropriate to SWR's API; document differences.
+  and framework/caller abort runtime tests. Native page traversal and hydration
+  probes now pass. Expand lifecycle/error permutations for paginated observers;
+  compile tests alone do not establish behavior.
+- [x] **SWR-1:** Explicit cache scopes, native configuration overrides,
+  cancellation forwarding, sequential infinite loading and mutation helpers.
+  Native execution exercises cursor traversal/termination and the mutation fetcher.
 
 ## 4. Harden all other generated systems
 

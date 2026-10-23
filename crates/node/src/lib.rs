@@ -111,6 +111,9 @@ fn profiles(packages: Vec<SdkPackage>) -> AnyResult<ProfileSet> {
                                 "vue-query" => ts::composition::vue_query(),
                                 _ => ts::composition::swr(),
                             };
+                            if let Some(options) = &plugin.query_options {
+                                query = options.apply(query)?;
+                            }
                             if let Some(output) = plugin.output {
                                 query = query.output(output);
                             }

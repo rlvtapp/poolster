@@ -96,7 +96,8 @@ With the matching native toolchain installed, reproduce a target with:
 (cd openapi && go build -o ../target/debug/poolster-openapi .)
 cargo build --locked -p poolster-cli
 POOLSTER_BINARY="$PWD/target/debug/poolster" python3 scripts/guru-corpus.py \
-  --language typescript --output /tmp/poolster-guru-typescript-new
+  --language typescript --verify-regeneration --file-warning-bytes 131072 \
+  --output /tmp/poolster-guru-typescript-new
 ```
 
 Use a fresh output directory. `--contracts stripe,azure-compute` selects focused
@@ -104,3 +105,12 @@ cases; `--keep-generated` preserves sources for diagnosis. Reports separate sour
 and metadata bytes, list the largest source files and emit configurable size
 warnings. The manual `APIs.guru large contract corpus` workflow provisions
 supported toolchains and uploads reports and diagnostics for one language or all ten.
+
+Reports now identify the source revision, dirty-worktree state, manifest checksum
+and configured generator/compiler executable checksums. Set both `POOLSTER_BINARY`
+and `POOLSTER_OPENAPI_BIN` to the binaries being verified. Missing executables are
+explicitly marked rather than given an inferred identity. `expected_cases`,
+`completed_cases` and `complete` distinguish an interrupted run from a completed
+selection; a complete selection may still contain failures. The report is written
+before fetching so fetch failures retain that context. CI enables regeneration
+checks and 128 KiB file warnings; the warning is a reporting budget, not a compiler limit.

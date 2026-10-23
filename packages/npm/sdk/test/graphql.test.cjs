@@ -13,6 +13,27 @@ async function fixture(t) {
   await fs.writeFile(path.join(dir, 'query.graphql'), 'query Joined { joinedAt }');
   return { dir, input: { path: path.join(dir, 'schema.graphql'), plugin: bundle.inputGraphql(), operations: [path.join(dir, 'query.graphql')], scalars: { DateTime: { input: 'string', output: 'string' } } } };
 }
+test('GraphQL query options retain document kinds and support selection and names', async (t) => {
+  const { dir, input } = await fixture(t);
+  for (const factory of [bundle.pluginReactQuery, bundle.pluginVueQuery, bundle.pluginSwr]) {
+    const result = await generate({ input, output: path.join(dir, 'out'), plugins: [
+      bundle.pluginTypeScript(), factory({ queryOptions: {
+        includeOperations: ['Joined'], operationNames: { Joined: 'membership' },
+      } }),
+    ] }, { write: false });
+    assert.ok(result.files.some(file => /membershipQueryOptions/.test(file.contents)));
+  }
+  for (const queryOptions of [
+    { includeOperations: ['missing'] },
+    { operationKinds: { Joined: 'mutation' } },
+    { maxOperationsPerFile: 1 },
+  ]) {
+    await assert.rejects(generate({ input, output: path.join(dir, 'invalid'), plugins: [
+      bundle.pluginTypeScript(), bundle.pluginReactQuery({ queryOptions }),
+    ] }));
+    await assert.rejects(fs.stat(path.join(dir, 'invalid')), { code: 'ENOENT' });
+  }
+});
 test('native GraphQL generates through the existing TypeScript package and regenerates', async (t) => {
   const {dir,input} = await fixture(t);
   const configuration = { input, output: path.join(dir,'out'), plugins: [bundle.pluginTypeScript()] };

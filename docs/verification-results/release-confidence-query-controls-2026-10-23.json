@@ -1,0 +1,533 @@
+{
+  "date": "2026-10-23",
+  "scope": "Focused release-confidence and npm query controls; not a full corpus or platform certification",
+  "checks": {
+    "corpus_runner": {
+      "passed": 24
+    },
+    "npm_sdk": {
+      "passed": 100,
+      "failed": 0,
+      "skipped": 2,
+      "skip_reasons": [
+        "Kafka broker integration not configured",
+        "GraphQL server/dependency integration not configured"
+      ]
+    },
+    "framework_runtime": {
+      "passed": 1,
+      "test": "query_factories_cache_callbacks_and_abort_execute_natively",
+      "coverage": [
+        "cursor/page/offset/URL traversal",
+        "continuation termination",
+        "URL origin rejection",
+        "SSR dehydration/hydration",
+        "cache scopes",
+        "query cancellation",
+        "native callback types",
+        "React suspense types",
+        "SWR mutation fetcher"
+      ]
+    },
+    "clippy": {
+      "command": "cargo clippy --locked -p poolster-node --all-targets -- -D warnings",
+      "status": "passed"
+    },
+    "clean_tarball_consumer": {
+      "status": "passed",
+      "scope": "Local SDK, bundle and three query-plugin tarballs; platform addon supplied explicitly, not installed from registry",
+      "coverage": [
+        "ESM package resolution",
+        "all three query factories",
+        "identical regeneration",
+        "strict TypeScript declarations including rejected options"
+      ],
+      "artifacts": {
+        "relevate-poolster-0.5.0-alpha.2.tgz": "11551d6aa64e85b855a479f582a4fbead402d4bf025092917b0c02c74f50c2e0",
+        "relevate-poolster-plugin-react-query-0.5.0-alpha.2.tgz": "c2b5e59ec29ffeace5d57ecbb8041f5367cca71860208d48f754b1e33298abe2",
+        "relevate-poolster-plugin-swr-0.5.0-alpha.2.tgz": "152757f4dca7b7fe4d3afa3aaed8d46c193fad4121e46c02fb40a54098701cfa",
+        "relevate-poolster-plugin-vue-query-0.5.0-alpha.2.tgz": "878eba546e312937d64b1c2b105af52c527d2b2d1c29966adb310ff9be7eb257",
+        "relevate-poolster-plugins-0.5.0-alpha.2.tgz": "4a0b3f19a9684ae838412445a405eca30f80df794c2dfa61bedd2e995b49221a"
+      },
+      "addon_sha256": "5d6725221f37b229726cffc188b693fe0e6b7b69f51719e39861c275ec3f1141"
+    }
+  },
+  "corpus_reports": {
+    "python": {
+      "schema_version": 1,
+      "manifest": "/Users/kaan/Documents/Development/relevate/kaji/scripts/fixtures/guru-contracts.json",
+      "passed": 1,
+      "failed": 0,
+      "cases": [
+        {
+          "contract": "stripe",
+          "language": "python",
+          "source_url": "https://raw.githubusercontent.com/APIs-guru/openapi-directory/f04b8d0bcd39c52e1cf3ad7a5fe744709832ae49/APIs/stripe.com/2022-11-15/openapi.yaml",
+          "source_sha256": "fba83fd7ff9ce87eafa0fbbc15c382b176dac204ca21b72df1a8c361441d9ecf",
+          "input_bytes": 3726556,
+          "status": "passed",
+          "generation": {
+            "command": [
+              "bash",
+              "/Users/kaan/Documents/Development/relevate/kaji/scripts/test-public-contracts.sh",
+              "generate"
+            ],
+            "exit_code": 0,
+            "seconds": 4.682,
+            "log": "/private/tmp/poolster-confidence-python-final-20261023/logs/stripe/python/generate.log",
+            "timed_out": false,
+            "peak_memory": {
+              "status": "unavailable",
+              "peak_bytes": null,
+              "method": null,
+              "scope": "host_command_and_children_maximum_rss",
+              "reason": "measurement_unavailable_on_host"
+            }
+          },
+          "native": {
+            "command": [
+              "bash",
+              "/Users/kaan/Documents/Development/relevate/kaji/scripts/test-public-contracts.sh",
+              "check",
+              "python"
+            ],
+            "exit_code": 0,
+            "seconds": 0.832,
+            "log": "/private/tmp/poolster-confidence-python-final-20261023/logs/stripe/python/native.log",
+            "timed_out": false,
+            "peak_memory": {
+              "status": "unavailable",
+              "peak_bytes": null,
+              "method": null,
+              "scope": "host_command_and_children_maximum_rss",
+              "reason": "measurement_unavailable_on_host"
+            }
+          },
+          "generated_files": 946,
+          "generated_bytes": 2760049,
+          "source_files": 941,
+          "source_bytes": 2599241,
+          "metadata_bytes": 0,
+          "largest_source_bytes": 95841,
+          "largest_source_files": [
+            {
+              "path": "src/public_contract_sdk/operations_001.py",
+              "bytes": 95841
+            },
+            {
+              "path": "src/public_contract_sdk/operations_000.py",
+              "bytes": 86939
+            },
+            {
+              "path": "src/public_contract_sdk/operations_002.py",
+              "bytes": 84532
+            },
+            {
+              "path": "src/public_contract_sdk/operations_003.py",
+              "bytes": 83533
+            },
+            {
+              "path": "src/public_contract_sdk/response_shapes/refs_0000.py",
+              "bytes": 64761
+            },
+            {
+              "path": "src/public_contract_sdk/response_shapes/refs_0006.py",
+              "bytes": 61664
+            },
+            {
+              "path": "src/public_contract_sdk/response_shapes/refs_0001.py",
+              "bytes": 58835
+            },
+            {
+              "path": "src/public_contract_sdk/response_shapes/refs_0005.py",
+              "bytes": 58538
+            },
+            {
+              "path": "src/public_contract_sdk/response_shapes/refs_0003.py",
+              "bytes": 52695
+            },
+            {
+              "path": "src/public_contract_sdk/response_shapes/refs_0002.py",
+              "bytes": 51770
+            }
+          ],
+          "file_warning_bytes": 131072,
+          "oversized_files": [
+            {
+              "path": "api.md",
+              "bytes": 154205
+            }
+          ],
+          "output_sha256": "d93a1370ee8d1d6a02d11c8a4c4a89028b19800057d374bbff0e5fa2dded7b0e",
+          "regeneration": {
+            "status": "passed",
+            "sha256_before": "d93a1370ee8d1d6a02d11c8a4c4a89028b19800057d374bbff0e5fa2dded7b0e",
+            "sha256_after": "d93a1370ee8d1d6a02d11c8a4c4a89028b19800057d374bbff0e5fa2dded7b0e",
+            "changed_paths": [],
+            "generation": {
+              "command": [
+                "bash",
+                "/Users/kaan/Documents/Development/relevate/kaji/scripts/test-public-contracts.sh",
+                "generate"
+              ],
+              "exit_code": 0,
+              "seconds": 5.172,
+              "log": "/private/tmp/poolster-confidence-python-final-20261023/logs/stripe/python/regenerate.log",
+              "timed_out": false,
+              "peak_memory": {
+                "status": "unavailable",
+                "peak_bytes": null,
+                "method": null,
+                "scope": "host_command_and_children_maximum_rss",
+                "reason": "measurement_unavailable_on_host"
+              }
+            }
+          }
+        }
+      ],
+      "provenance": {
+        "revision": "a36cee66b0dc17ae13c38f04b77ee5fdad7232df",
+        "working_tree_dirty": true,
+        "manifest_sha256": "e56a8307309c35b6b217574a244204804ca1687590983803f3509a346649d60d",
+        "platform": "macOS-27.0-arm64-arm-64bit",
+        "python": "3.9.6",
+        "binaries": {
+          "generator": {
+            "path": "/private/tmp/poolster-ci-rust-cli-target/debug/poolster",
+            "sha256": "91ae701970777f9bfcf67b79d53b648ee695f5b8927110591d07eda3de1c5370",
+            "status": "identified"
+          },
+          "openapi_compiler": {
+            "path": "/private/tmp/poolster-ci-rust-cli-target/debug/poolster-openapi",
+            "sha256": "226d0f349b28eb6d3bbecbd15f77ff7236efcae74443b1aba2fa934a6bef06c6",
+            "status": "identified"
+          }
+        }
+      },
+      "expected_cases": 1,
+      "completed_cases": 1,
+      "complete": true
+    },
+    "go": {
+      "schema_version": 1,
+      "manifest": "/Users/kaan/Documents/Development/relevate/kaji/scripts/fixtures/guru-contracts.json",
+      "passed": 1,
+      "failed": 0,
+      "cases": [
+        {
+          "contract": "stripe",
+          "language": "go",
+          "source_url": "https://raw.githubusercontent.com/APIs-guru/openapi-directory/f04b8d0bcd39c52e1cf3ad7a5fe744709832ae49/APIs/stripe.com/2022-11-15/openapi.yaml",
+          "source_sha256": "fba83fd7ff9ce87eafa0fbbc15c382b176dac204ca21b72df1a8c361441d9ecf",
+          "input_bytes": 3726556,
+          "status": "passed",
+          "generation": {
+            "command": [
+              "bash",
+              "/Users/kaan/Documents/Development/relevate/kaji/scripts/test-public-contracts.sh",
+              "generate"
+            ],
+            "exit_code": 0,
+            "seconds": 5.413,
+            "log": "/private/tmp/poolster-confidence-go-final-20261023/logs/stripe/go/generate.log",
+            "timed_out": false,
+            "peak_memory": {
+              "status": "unavailable",
+              "peak_bytes": null,
+              "method": null,
+              "scope": "host_command_and_children_maximum_rss",
+              "reason": "measurement_unavailable_on_host"
+            }
+          },
+          "native": {
+            "command": [
+              "bash",
+              "/Users/kaan/Documents/Development/relevate/kaji/scripts/test-public-contracts.sh",
+              "check",
+              "go"
+            ],
+            "exit_code": 0,
+            "seconds": 4.766,
+            "log": "/private/tmp/poolster-confidence-go-final-20261023/logs/stripe/go/native.log",
+            "timed_out": false,
+            "peak_memory": {
+              "status": "unavailable",
+              "peak_bytes": null,
+              "method": null,
+              "scope": "host_command_and_children_maximum_rss",
+              "reason": "measurement_unavailable_on_host"
+            }
+          },
+          "generated_files": 1301,
+          "generated_bytes": 3422760,
+          "source_files": 1297,
+          "source_bytes": 3416565,
+          "metadata_bytes": 0,
+          "largest_source_bytes": 72806,
+          "largest_source_files": [
+            {
+              "path": "response_shapes_0000.go",
+              "bytes": 72806
+            },
+            {
+              "path": "response_shapes_0006.go",
+              "bytes": 70129
+            },
+            {
+              "path": "response_shapes_0001.go",
+              "bytes": 63076
+            },
+            {
+              "path": "response_shapes_0005.go",
+              "bytes": 60768
+            },
+            {
+              "path": "response_shapes_0003.go",
+              "bytes": 55312
+            },
+            {
+              "path": "response_shapes_0002.go",
+              "bytes": 54701
+            },
+            {
+              "path": "response_shapes_0007.go",
+              "bytes": 52914
+            },
+            {
+              "path": "client.go",
+              "bytes": 43202
+            },
+            {
+              "path": "response_shapes_0004.go",
+              "bytes": 33927
+            },
+            {
+              "path": "model_invoice_2358484a94534cf0.go",
+              "bytes": 19689
+            }
+          ],
+          "file_warning_bytes": 131072,
+          "oversized_files": [],
+          "output_sha256": "c3a6f04135b7ddd0932d7fa153d636f951eeab169311fb92e7140e80093f2bed",
+          "regeneration": {
+            "status": "passed",
+            "sha256_before": "c3a6f04135b7ddd0932d7fa153d636f951eeab169311fb92e7140e80093f2bed",
+            "sha256_after": "c3a6f04135b7ddd0932d7fa153d636f951eeab169311fb92e7140e80093f2bed",
+            "changed_paths": [],
+            "generation": {
+              "command": [
+                "bash",
+                "/Users/kaan/Documents/Development/relevate/kaji/scripts/test-public-contracts.sh",
+                "generate"
+              ],
+              "exit_code": 0,
+              "seconds": 5.785,
+              "log": "/private/tmp/poolster-confidence-go-final-20261023/logs/stripe/go/regenerate.log",
+              "timed_out": false,
+              "peak_memory": {
+                "status": "unavailable",
+                "peak_bytes": null,
+                "method": null,
+                "scope": "host_command_and_children_maximum_rss",
+                "reason": "measurement_unavailable_on_host"
+              }
+            }
+          }
+        }
+      ],
+      "provenance": {
+        "revision": "a36cee66b0dc17ae13c38f04b77ee5fdad7232df",
+        "working_tree_dirty": true,
+        "manifest_sha256": "e56a8307309c35b6b217574a244204804ca1687590983803f3509a346649d60d",
+        "platform": "macOS-27.0-arm64-arm-64bit",
+        "python": "3.9.6",
+        "binaries": {
+          "generator": {
+            "path": "/private/tmp/poolster-ci-rust-cli-target/debug/poolster",
+            "sha256": "91ae701970777f9bfcf67b79d53b648ee695f5b8927110591d07eda3de1c5370",
+            "status": "identified"
+          },
+          "openapi_compiler": {
+            "path": "/private/tmp/poolster-ci-rust-cli-target/debug/poolster-openapi",
+            "sha256": "226d0f349b28eb6d3bbecbd15f77ff7236efcae74443b1aba2fa934a6bef06c6",
+            "status": "identified"
+          }
+        }
+      },
+      "expected_cases": 1,
+      "completed_cases": 1,
+      "complete": true
+    },
+    "typescript": {
+      "schema_version": 1,
+      "manifest": "/Users/kaan/Documents/Development/relevate/kaji/scripts/fixtures/guru-contracts.json",
+      "passed": 1,
+      "failed": 0,
+      "cases": [
+        {
+          "contract": "stripe",
+          "language": "typescript",
+          "source_url": "https://raw.githubusercontent.com/APIs-guru/openapi-directory/f04b8d0bcd39c52e1cf3ad7a5fe744709832ae49/APIs/stripe.com/2022-11-15/openapi.yaml",
+          "source_sha256": "fba83fd7ff9ce87eafa0fbbc15c382b176dac204ca21b72df1a8c361441d9ecf",
+          "input_bytes": 3726556,
+          "status": "passed",
+          "generation": {
+            "command": [
+              "bash",
+              "/Users/kaan/Documents/Development/relevate/kaji/scripts/test-public-contracts.sh",
+              "generate"
+            ],
+            "exit_code": 0,
+            "seconds": 4.818,
+            "log": "/private/tmp/poolster-confidence-typescript-final-20261023/logs/stripe/typescript/generate.log",
+            "timed_out": false,
+            "peak_memory": {
+              "status": "unavailable",
+              "peak_bytes": null,
+              "method": null,
+              "scope": "host_command_and_children_maximum_rss",
+              "reason": "measurement_unavailable_on_host"
+            }
+          },
+          "native": {
+            "command": [
+              "bash",
+              "/Users/kaan/Documents/Development/relevate/kaji/scripts/test-public-contracts.sh",
+              "check",
+              "typescript"
+            ],
+            "exit_code": 0,
+            "seconds": 5.369,
+            "log": "/private/tmp/poolster-confidence-typescript-final-20261023/logs/stripe/typescript/native.log",
+            "timed_out": false,
+            "peak_memory": {
+              "status": "unavailable",
+              "peak_bytes": null,
+              "method": null,
+              "scope": "host_command_and_children_maximum_rss",
+              "reason": "measurement_unavailable_on_host"
+            }
+          },
+          "generated_files": 2062,
+          "generated_bytes": 3595604,
+          "source_files": 2057,
+          "source_bytes": 3541860,
+          "metadata_bytes": 50188,
+          "largest_source_bytes": 129954,
+          "largest_source_files": [
+            {
+              "path": "clients/_poolster_json_refs_0002.ts",
+              "bytes": 129954
+            },
+            {
+              "path": "clients/_poolster_json_refs_0001.ts",
+              "bytes": 129494
+            },
+            {
+              "path": "clients/_poolster_json_refs_0003.ts",
+              "bytes": 128157
+            },
+            {
+              "path": "clients/_poolster_json_refs_0004.ts",
+              "bytes": 79366
+            },
+            {
+              "path": "clients/issuing/postIssuingCardholdersCardholder.ts",
+              "bytes": 30333
+            },
+            {
+              "path": "clients/issuing/postIssuingCardholders.ts",
+              "bytes": 30313
+            },
+            {
+              "path": "clients/issuing/postIssuingCards.ts",
+              "bytes": 29534
+            },
+            {
+              "path": "models/issuing/PostIssuingCardholdersCardholder.ts",
+              "bytes": 29236
+            },
+            {
+              "path": "models/issuing/PostIssuingCardholders.ts",
+              "bytes": 29067
+            },
+            {
+              "path": "models/issuing/PostIssuingCards.ts",
+              "bytes": 28762
+            }
+          ],
+          "file_warning_bytes": 131072,
+          "oversized_files": [],
+          "output_sha256": "e8ffac94870caca17073c3a5495353da2087508c68f4c459f2914b4046635c7a",
+          "regeneration": {
+            "status": "passed",
+            "sha256_before": "e8ffac94870caca17073c3a5495353da2087508c68f4c459f2914b4046635c7a",
+            "sha256_after": "e8ffac94870caca17073c3a5495353da2087508c68f4c459f2914b4046635c7a",
+            "changed_paths": [],
+            "generation": {
+              "command": [
+                "bash",
+                "/Users/kaan/Documents/Development/relevate/kaji/scripts/test-public-contracts.sh",
+                "generate"
+              ],
+              "exit_code": 0,
+              "seconds": 5.409,
+              "log": "/private/tmp/poolster-confidence-typescript-final-20261023/logs/stripe/typescript/regenerate.log",
+              "timed_out": false,
+              "peak_memory": {
+                "status": "unavailable",
+                "peak_bytes": null,
+                "method": null,
+                "scope": "host_command_and_children_maximum_rss",
+                "reason": "measurement_unavailable_on_host"
+              }
+            }
+          }
+        }
+      ],
+      "provenance": {
+        "revision": "a36cee66b0dc17ae13c38f04b77ee5fdad7232df",
+        "working_tree_dirty": true,
+        "manifest_sha256": "e56a8307309c35b6b217574a244204804ca1687590983803f3509a346649d60d",
+        "platform": "macOS-27.0-arm64-arm-64bit",
+        "python": "3.9.6",
+        "binaries": {
+          "generator": {
+            "path": "/private/tmp/poolster-ci-rust-cli-target/debug/poolster",
+            "sha256": "91ae701970777f9bfcf67b79d53b648ee695f5b8927110591d07eda3de1c5370",
+            "status": "identified"
+          },
+          "openapi_compiler": {
+            "path": "/private/tmp/poolster-ci-rust-cli-target/debug/poolster-openapi",
+            "sha256": "226d0f349b28eb6d3bbecbd15f77ff7236efcae74443b1aba2fa934a6bef06c6",
+            "status": "identified"
+          }
+        }
+      },
+      "expected_cases": 1,
+      "completed_cases": 1,
+      "complete": true
+    }
+  },
+  "earlier_attempts": [
+    {
+      "report": "/tmp/poolster-confidence-python-20261023",
+      "result": "fetch failed: sandbox DNS unavailable"
+    },
+    {
+      "report": "/tmp/poolster-confidence-python-network-20261023",
+      "result": "generation failed: compiler build had not completed"
+    },
+    {
+      "report": "/tmp/poolster-confidence-python-current-20261023",
+      "result": "generation and regeneration passed; native bytecode check denied the macOS user-cache location; rerun used a disposable PYTHONPYCACHEPREFIX"
+    }
+  ],
+  "remaining": [
+    "Full current-binary 205-contract x ten-language corpus",
+    "Clean published-artifact install verification across platforms",
+    "Pinned formatter and final-file-budget audit across emitters",
+    "Broader framework-version and paginated lifecycle/error matrix",
+    "Broader artifact acceptance and protocol conformance work"
+  ]
+}

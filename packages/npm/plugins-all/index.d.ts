@@ -1,4 +1,4 @@
-import type { NativePlugin, NativeAddon, NativeInputPlugin, SdkPackageOptions, FixtureOptions, CypressOptions } from '@relevate/poolster';
+import type { NativePlugin, NativeAddon, NativeInputPlugin, SdkPackageOptions, FixtureOptions, CypressOptions, QueryOptions } from '@relevate/poolster';
 
 export type TypeScriptPluginOptions = Omit<SdkPackageOptions, 'language' | 'jobs'>;
 export function pluginTypeScript(options?: TypeScriptPluginOptions): NativePlugin;
@@ -42,13 +42,13 @@ export function pluginMsw(options?: MswPluginOptions): NativeAddon;
 export interface CypressPluginOptions { target?: string; output?: string; fixtureOptions?: FixtureOptions; cypressOptions?: CypressOptions }
 export function pluginCypress(options?: CypressPluginOptions): NativeAddon;
 
-export interface ReactQueryPluginOptions { target?: string; output?: string }
+export interface ReactQueryPluginOptions { target?: string; output?: string; queryOptions?: QueryOptions }
 export function pluginReactQuery(options?: ReactQueryPluginOptions): NativeAddon;
 
-export interface VueQueryPluginOptions { target?: string; output?: string }
+export interface VueQueryPluginOptions { target?: string; output?: string; queryOptions?: QueryOptions }
 export function pluginVueQuery(options?: VueQueryPluginOptions): NativeAddon;
 
-export interface SwrPluginOptions { target?: string; output?: string }
+export interface SwrPluginOptions { target?: string; output?: string; queryOptions?: QueryOptions }
 export function pluginSwr(options?: SwrPluginOptions): NativeAddon;
 
 export function inputGraphql(): NativeInputPlugin;

@@ -646,3 +646,32 @@ Final workspace all-target Clippy with warnings denied, formatting, diff checks 
 source-size audit passed: **729 authored files, 0 size violations**. Changes are unreleased.
 The next event implementation step is consumption of `GeneratedModels<Language>` by
 broker generators, rather than an independent message-model emission path.
+## Focused release-confidence and query controls (23 October 2026)
+
+The npm query factories now expose operation selection, helper names, HTTP
+query/mutation classification and chunk counts through `queryOptions`. HTTP
+integration checks cover all three individual/bundled factories and rejection
+before writes. GraphQL checks cover selection/names and rejection of document-kind
+overrides or unsupported partition sizes.
+
+The full npm SDK suite passes **100 tests, 0 failures, 2 gated skips** (Kafka broker
+and GraphQL server/dependency integration). The explicitly enabled generated
+framework probe passes native compilation and execution for pagination, cache
+isolation, callbacks, cancellation and SSR hydration; React suspense is type-checked.
+Corpus-runner regressions pass **24 tests**. Warning-denied Node-crate Clippy,
+formatting, factory regeneration and authored-source-size checks pass.
+
+The current CLI/compiler binaries pass the pinned Stripe contract for Python,
+Go and TypeScript, including identical regeneration and native checks. These
+**three cases are not the full 2,050-case corpus**. The corpus workflow now enables
+regeneration and size warnings, while reports identify executable checksums,
+source/manifest identity and incomplete selections. A clean consumer installed local SDK/bundle/query-plugin tarballs, generated all
+three query helpers and regenerated without changes; strict TypeScript declaration
+checks passed. Its platform addon was supplied explicitly, so this does not certify
+registry installation. Full current-binary corpus,
+cross-platform released-package installation and formatter adoption remain open.
+
+The [scoped evidence record](../verification-results/release-confidence-query-controls-2026-10-23.json)
+retains per-target reports and initial infrastructure failures separately from
+successful retries. Framework-version expansion and broader paginated lifecycle
+coverage remain in the generator backlog.

@@ -359,7 +359,8 @@ failures and successful retries remain in the audit trail. See
 - [ ] Schema-level JSONPath overlays.
 - [ ] Audited Forge migration and a tested compatibility matrix.
 - [ ] Confirm Cap’n Web scope, then implement and test output.
-- [ ] Alpha.2 versioning, final packaging, publication and install verification.
+- [x] Alpha.2 versioning, final packaging and publication; see the native pipeline release record.
+- [ ] Complete clean-install verification of release artifacts across supported platforms.
 
 See [native pipelines](reference/inputs/native-pipelines.md) for exact feature limits and concrete
 implementation/verification requirements for each follow-up.
