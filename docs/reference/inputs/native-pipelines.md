@@ -390,10 +390,12 @@ These are the remaining implementation and release gaps:
   naming, proving stable output across plugin registration order and regeneration.
 - [x] **VERIFY-1:** Complete the frozen pre-output-migration 205×10 HTTP corpus
   sweep, classify infrastructure failures separately and confirm regeneration.
-- [ ] **VERIFY-2:** Run the same corpus against the final migrated binaries;
-  keep this distinct from the completed frozen-build run.
-- [ ] **HTTP-1:** Address PHP optional-before-required deprecation warnings and
-  strengthen generated HTTP runtime checks beyond compilation/syntax lint.
+- [x] **VERIFY-2:** Run the same corpus against migrated generators: 2,050/2,050
+  verified cases. The [23 October record](../../verification/verification.md#completed-release-verification-23-october-2026)
+  distinguishes the base matrix and full corrected-target reruns from the historical run.
+- [ ] **HTTP-1:** PHP optional-before-required deprecations are fixed, with native
+  omission/reflection/wire regressions and a fresh 205-contract PHP sweep.
+  Broader HTTP runtime checks beyond compilation/syntax lint remain open.
 - [x] **RELEASE-1:** Alpha.2 versions, platform builds and release checks passed;
   all 33 npm packages, 24 Rust crates and the PyPI package are published. npm
   recovery verified the original artifact checksums; [release](https://github.com/rlvtapp/poolster/releases/tag/v0.5.0-alpha.2).

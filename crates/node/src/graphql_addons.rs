@@ -39,6 +39,9 @@ pub(super) fn attach(
                     _ => ts::composition::swr(),
                 }
                 .using_graphql(Some(client));
+                if let Some(options) = &plugin.query_options {
+                    query = options.apply(query)?;
+                }
                 if let Some(output) = plugin.output {
                     query = query.output(output);
                 }
@@ -51,6 +54,11 @@ pub(super) fn attach(
 }
 
 pub(super) fn validate_options(plugin: &NativePlugin) -> AnyResult<()> {
+    if plugin.query_options.is_some()
+        && !["react-query", "vue-query", "swr"].contains(&plugin.name.as_str())
+    {
+        bail!("queryOptions is unsupported for {}", plugin.name);
+    }
     if plugin.fixture_options.is_some()
         && !["faker", "msw", "cypress"].contains(&plugin.name.as_str())
     {

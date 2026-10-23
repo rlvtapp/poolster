@@ -20,6 +20,40 @@ test('JS config can select compiled Rust plugins within a native SDK package', a
   const compiled = await artifacts(t);
   const dir = await temporary(t);
 
+  await t.test('query controls select and rename operations through every factory', async () => {
+    for (const [name, individual, bundled] of [
+      ['react-query', pluginReactQuery, bundle.pluginReactQuery],
+      ['vue-query', require('../../plugins/vue-query/index.cjs').pluginVueQuery, bundle.pluginVueQuery],
+      ['swr', require('../../plugins/swr/index.cjs').pluginSwr, bundle.pluginSwr],
+    ]) {
+      const options = { target: 'web', output: 'queries', queryOptions: {
+        includeOperations: ['listWidgets'], operationNames: { listWidgets: 'catalog' },
+        operationKinds: { listWidgets: 'mutation' }, maxOperationsPerFile: 1,
+      } };
+      assert.deepEqual(individual(options), bundled(options));
+      const result = await generate(config({ artifacts: compiled }, path.join(dir, name), [
+        pluginTypeScript({ path: 'web' }), individual(options),
+      ]), { write: false });
+      const helpers = result.files.filter((file) => file.path.startsWith('web/queries')).map((file) => file.contents).join('\n');
+      assert.match(helpers, /catalogMutationOptions/);
+      assert.doesNotMatch(helpers, /useGetWidget|useCreateWidget|catalogQueryOptions/);
+    }
+  });
+
+  await t.test('invalid query controls fail before any files are written', async () => {
+    const output = path.join(dir, 'invalid-query');
+    for (const queryOptions of [
+      { includeOperations: ['missing'] }, { operationKinds: { listWidgets: 'invalid' } },
+      { maxOperationsPerFile: 0 }, { typo: true }, null,
+    ]) {
+      await assert.rejects(generate(config({ artifacts: compiled }, output, [
+        pluginTypeScript({ path: 'web' }), pluginReactQuery({ target: 'web', queryOptions }),
+      ])));
+      await assert.rejects(fs.stat(output), { code: 'ENOENT' });
+    }
+    assert.throws(() => pluginZod({ queryOptions: {} }), /unknown.*option queryOptions/);
+  });
+
   await t.test('individual and bundled factories select the same Rust plugins', async () => {
     assert.deepEqual(pluginZod({ target: 'web', output: 'validation' }), bundle.pluginZod({ target: 'web', output: 'validation' }));
     assert.deepEqual(pluginReactQuery({ target: 'web', output: 'queries' }), bundle.pluginReactQuery({ target: 'web', output: 'queries' }));

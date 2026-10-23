@@ -144,3 +144,72 @@ fn oversized_atomic_model_keeps_native_fields_and_reports_exact_source() {
     assert_eq!(entries[0]["bytes"], model.contents.len());
     assert_eq!(entries[0]["path"], model.path.to_string_lossy().as_ref());
 }
+
+fn method_model_fixture() -> poolster_core::Api {
+    let mut api = poolster_core::Api {
+        name: "Method schema".into(),
+        version: "1.0.0".into(),
+        ..Default::default()
+    };
+    api.schemas.push(poolster_core::Schema::new(
+        "Method",
+        poolster_core::SchemaValue::new(poolster_core::SchemaKind::String),
+    ));
+    for (name, method) in [
+        ("getMethod", poolster_core::HttpMethod::Get),
+        ("queryMethod", poolster_core::HttpMethod::Query),
+    ] {
+        api.operations.push(poolster_core::Operation {
+            id: name.into(),
+            method,
+            path: "/method".into(),
+            responses: vec![poolster_core::OperationResponse::json(
+                "200",
+                poolster_core::SchemaValue::reference("#/components/schemas/Method"),
+            )],
+            ..Default::default()
+        });
+    }
+    api
+}
+
+#[test]
+fn http_method_does_not_shadow_a_schema_named_method() {
+    let tree = crate::render::generate_sdk(
+        &method_model_fixture(),
+        &crate::render::RenderOptions::default(),
+    )
+    .unwrap();
+    let source = tree
+        .iter()
+        .map(|(_, contents)| contents)
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert!(source.contains("pub type Method = String;"));
+    assert!(source.contains("reqwest::Method::GET"));
+    assert!(source.contains("reqwest::Method::from_bytes"));
+    assert!(!source.contains("use reqwest::Method;"));
+}
+
+#[test]
+#[ignore = "requires native Cargo dependencies; models/runtime glob collision regression"]
+fn native_method_schema_and_http_methods_compile_together() {
+    let tree = crate::render::generate_sdk(
+        &method_model_fixture(),
+        &crate::render::RenderOptions::default(),
+    )
+    .unwrap();
+    let root = tempfile::tempdir().unwrap();
+    tree.write_to(root.path()).unwrap();
+    let output = crate::native_cargo()
+        .args(["check", "--quiet"])
+        .current_dir(root.path())
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+}

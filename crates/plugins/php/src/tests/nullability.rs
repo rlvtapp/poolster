@@ -219,3 +219,78 @@ fn open_models_preserve_unknown_properties_at_original_keys() {
             .contains("in_array('additionalProperties', $this->poolsterPresentFields ?? [], true)")
     );
 }
+
+fn reordered_constructor_model() -> String {
+    let fields = [
+        ("optionalFirst", false),
+        ("requiredMiddle", true),
+        ("optionalLast", false),
+    ]
+    .into_iter()
+    .map(|(name, required)| Field {
+        name: name.into(),
+        required,
+        value: SchemaValue::new(SchemaKind::String),
+        annotations: Default::default(),
+    })
+    .collect::<Vec<_>>();
+    render_object_model(
+        "Ordered",
+        &fields,
+        &AdditionalProperties::Forbidden,
+        "Probe",
+        &Default::default(),
+    )
+}
+
+#[test]
+fn model_constructor_keeps_optional_parameters_omittable() {
+    let source = reordered_constructor_model();
+    let constructor = source
+        .split("public function __construct(")
+        .nth(1)
+        .unwrap()
+        .split(") {")
+        .next()
+        .unwrap();
+    assert!(
+        constructor.find("$requiredMiddle").unwrap() < constructor.find("$optionalFirst").unwrap()
+    );
+    assert!(
+        constructor.find("$optionalFirst").unwrap() < constructor.find("$optionalLast").unwrap()
+    );
+    assert!(constructor.contains("?string $optionalFirst = null"));
+    assert!(source.contains("requiredMiddle:"));
+}
+
+#[test]
+#[ignore = "requires PHP 8.2+; constructor omission, reflection and named decoding"]
+fn native_constructor_order_has_no_deprecations_and_preserves_wire_keys() {
+    let root = tempfile::tempdir().unwrap();
+    std::fs::write(root.path().join("Model.php"), reordered_constructor_model()).unwrap();
+    std::fs::write(root.path().join("probe.php"), r#"<?php
+require __DIR__.'/Model.php';
+$model = new Probe\Models\Ordered(requiredMiddle: 'required');
+if ($model->optionalFirst !== null || $model->optionalLast !== null) throw new Exception('optional omission');
+$decoded = Probe\Models\Ordered::fromArray(['optionalFirst'=>'first','requiredMiddle'=>'required']);
+if ((array) $decoded->jsonSerialize() !== ['optionalFirst'=>'first','requiredMiddle'=>'required']) throw new Exception('wire order or presence');
+$constructor = (new ReflectionClass(Probe\Models\Ordered::class))->getConstructor();
+if ($constructor->getNumberOfRequiredParameters() !== 1) throw new Exception('required count');
+"#).unwrap();
+    let output = std::process::Command::new("php")
+        .args(["-d", "error_reporting=32767", "-d", "display_errors=stderr"])
+        .arg(root.path().join("probe.php"))
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        output.stderr.is_empty(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}

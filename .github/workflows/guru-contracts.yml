@@ -9,7 +9,7 @@ on:
       language:
         description: Native target to compile; all enables every language
         type: choice
-        default: go
+        default: all
         options: [go, all, rust, typescript, python, php, java, csharp, elixir, ruby, swift]
 permissions:
   contents: read
@@ -29,15 +29,40 @@ jobs:
           target = os.environ['TARGET']
           selected = languages if target == 'all' else [target]
           assert all(language in languages for language in selected)
-          print('value=' + json.dumps({'include': [{'language': language, 'runner': 'macos-14' if language == 'swift' else 'ubuntu-latest'} for language in selected]}))
+          print('value=' + json.dumps({'include': [{'language': language, 'shard': shard, 'runner': 'macos-14' if language == 'swift' else 'ubuntu-latest', 'host': 'macos' if language == 'swift' else 'linux'} for language in selected for shard in range(5)]}))
           PY
+  build:
+    strategy:
+      matrix:
+        include:
+          - { runner: ubuntu-latest, host: linux }
+          - { runner: macos-14, host: macos }
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: openapi/go.mod
+      - run: |
+          (cd openapi && go build -o ../target/debug/poolster-openapi .)
+          cargo build --locked -p poolster-cli
+      - uses: actions/upload-artifact@v7
+        with:
+          name: corpus-generator-${{ matrix.host }}
+          path: |
+            target/debug/poolster
+            target/debug/poolster-openapi
+          retention-days: 7
   native:
-    name: Corpus / ${{ matrix.language }}
-    needs: select
+    name: Corpus / ${{ matrix.language }} / ${{ matrix.shard }}
+    needs: [select, build]
     timeout-minutes: 120
     strategy:
       fail-fast: false
-      max-parallel: 3
+      max-parallel: 6
       matrix: ${{ fromJSON(needs.select.outputs.matrix) }}
     runs-on: ${{ matrix.runner }}
     steps:
@@ -85,10 +110,11 @@ jobs:
       - name: Initialize Hex
         if: matrix.language == 'elixir'
         run: mix local.hex --force && mix local.rebar --force
-      - name: Build generator and compiler
-        run: |
-          (cd openapi && go build -o ../target/debug/poolster-openapi .)
-          cargo build --locked -p poolster-cli
+      - uses: actions/download-artifact@v8
+        with:
+          name: corpus-generator-${{ matrix.host }}
+          path: target/debug
+      - run: chmod +x target/debug/poolster target/debug/poolster-openapi
       - name: Generate and compile every selected document
         env:
           POOLSTER_BINARY: ${{ github.workspace }}/target/debug/poolster
@@ -97,12 +123,12 @@ jobs:
           CLANG_MODULE_CACHE_PATH: ${{ runner.temp }}/swift-clang
           SWIFTPM_MODULECACHE_OVERRIDE: ${{ runner.temp }}/swift-modules
           CARGO_TARGET_DIR: ${{ runner.temp }}/guru-rust-target
-        run: python3 scripts/guru-corpus.py --language "${{ matrix.language }}" --contracts "$CORPUS_CONTRACTS" --output "$RUNNER_TEMP/guru-corpus"
+        run: python3 scripts/guru-corpus.py --language "${{ matrix.language }}" --contracts "$CORPUS_CONTRACTS" --shard-count 5 --shard-index "${{ matrix.shard }}" --verify-regeneration --file-warning-bytes 131072 --output "$RUNNER_TEMP/guru-corpus"
       - name: Keep per-contract results and diagnostics
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: guru-${{ matrix.language }}-results
+          name: guru-${{ matrix.language }}-${{ matrix.shard }}-results
           path: |
             ${{ runner.temp }}/guru-corpus/report.json
             ${{ runner.temp }}/guru-corpus/fetch-error.txt

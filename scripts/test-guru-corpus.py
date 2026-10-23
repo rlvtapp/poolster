@@ -163,6 +163,25 @@ class CorpusTests(unittest.TestCase):
         (root / 'specs').mkdir()
         return {'name': 'sample', 'url': 'https://example.invalid/pinned', 'sha256': 'a' * 64, 'bytes': 1000000}
 
+    def test_php_deprecation_is_not_a_native_pass(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            contract = self.fixture(root)
+            def run(command, env, log, timeout):
+                if command[-1] == 'generate':
+                    package = Path(env['POOLSTER_PUBLIC_CONTRACT_ROOT']) / 'sample/php'
+                    package.mkdir(parents=True, exist_ok=True)
+                    (package / 'Model.php').write_text('<?php\n')
+                else:
+                    log.parent.mkdir(parents=True, exist_ok=True)
+                    log.write_text('PHP Deprecated: Optional parameter declared before required parameter\n')
+                return {'exit_code': 0}
+            with patch.object(corpus, 'run_logged', side_effect=run):
+                result = corpus.run_case(contract, 'php', root / 'manifest', root, {}, 10, False)
+            self.assertEqual(result['status'], 'failed')
+            self.assertEqual(result['native']['exit_code'], 0)
+            self.assertEqual(len(result['native']['deprecations']), 1)
+
     def test_generation_failure_is_not_counted_as_native_coverage(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

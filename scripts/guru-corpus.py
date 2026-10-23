@@ -1,10 +1,12 @@
 """Compile a pinned APIs.guru corpus; never call the described production APIs."""
 import argparse
+from contextlib import contextmanager
 import hashlib
 import re
 import importlib.util
 import json
 import os
+import platform
 from pathlib import Path
 import shutil
 import signal
@@ -174,7 +176,12 @@ def run_case(contract, language, manifest, root, environment, timeout, keep_gene
                     report['regeneration']['status'] = 'failed'
             report['native'] = run_logged(['bash', str(PROJECT / 'scripts/test-public-contracts.sh'),
                                           'check', language], env, logs / 'native.log', timeout)
-            if report['native']['exit_code'] == 0 and report.get('regeneration', {}).get('status', 'passed') == 'passed':
+            native_log = logs / 'native.log'
+            deprecations = (re.findall(r'(?m)^(?:PHP )?Deprecated:.*$', native_log.read_text(errors='replace'))
+                            if language == 'php' and native_log.is_file() else [])
+            if deprecations:
+                report['native']['deprecations'] = deprecations
+            if report['native']['exit_code'] == 0 and not deprecations and report.get('regeneration', {}).get('status', 'passed') == 'passed':
                 report['status'] = 'passed'
         for metadata in (sdk_root / '.poolster', sdk_root / language / '.poolster'):
             if metadata.is_dir():
@@ -188,15 +195,58 @@ def run_case(contract, language, manifest, root, environment, timeout, keep_gene
     return report
 
 
-def save_report(root, manifest, cases):
+def run_provenance(manifest, environment):
+    """Identify the source and exact executable bytes used by this run."""
+    def git(*arguments):
+        result = subprocess.run(['git', '-C', str(PROJECT), *arguments],
+                                capture_output=True, text=True, check=False)
+        return result.stdout.strip() if result.returncode == 0 else None
+
+    binaries = {}
+    for name, variable, fallback in (
+        ('generator', 'POOLSTER_BINARY', PROJECT / 'target/debug/poolster'),
+        ('openapi_compiler', 'POOLSTER_OPENAPI_BIN', PROJECT / 'target/debug/poolster-openapi'),
+    ):
+        path = Path(environment.get(variable) or fallback).resolve()
+        binaries[name] = {'path': str(path), 'sha256': None, 'status': 'missing'}
+        if path.is_file():
+            binaries[name].update(sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
+                                  status='identified')
+    status = git('status', '--porcelain')
+    return {'revision': git('rev-parse', 'HEAD'),
+            'working_tree_dirty': None if status is None else bool(status),
+            'manifest_sha256': hashlib.sha256(manifest.read_bytes()).hexdigest(),
+            'platform': platform.platform(), 'python': platform.python_version(),
+            'binaries': binaries}
+
+
+def save_report(root, manifest, cases, provenance=None, expected_cases=None):
     result = {'schema_version': 1, 'manifest': str(manifest),
               'passed': sum(case['status'] == 'passed' for case in cases),
               'failed': sum(case['status'] != 'passed' for case in cases), 'cases': cases}
+    if provenance is not None:
+        result['provenance'] = provenance
+    if expected_cases is not None:
+        result.update(expected_cases=expected_cases, completed_cases=len(cases),
+                      complete=len(cases) == expected_cases)
     destination = root / 'report.json'
     staged = root / 'report.json.tmp'
     staged.write_text(json.dumps(result, indent=2) + '\n')
     staged.replace(destination)
     return result
+
+
+@contextmanager
+def contract_selection(names):
+    previous = os.environ.get('POOLSTER_PUBLIC_CONTRACTS')
+    os.environ['POOLSTER_PUBLIC_CONTRACTS'] = names
+    try:
+        yield
+    finally:
+        if previous is None:
+            os.environ.pop('POOLSTER_PUBLIC_CONTRACTS', None)
+        else:
+            os.environ['POOLSTER_PUBLIC_CONTRACTS'] = previous
 
 
 def main(arguments=None):
@@ -206,6 +256,8 @@ def main(arguments=None):
     parser.add_argument('--language', choices=LANGUAGES, required=True)
     parser.add_argument('--contracts', default='', help='comma-separated pinned names; default all')
     parser.add_argument('--spec-cache', type=Path)
+    parser.add_argument('--shard-count', type=int, default=1)
+    parser.add_argument('--shard-index', type=int, default=0)
     parser.add_argument('--timeout', type=int, default=600, help='seconds per generation/native phase')
     parser.add_argument('--keep-generated', action='store_true')
     parser.add_argument('--verify-regeneration', action='store_true',
@@ -217,18 +269,26 @@ def main(arguments=None):
         parser.error('--timeout must be between 1 and 3600 seconds')
     if args.file_warning_bytes < 0:
         parser.error('--file-warning-bytes cannot be negative')
+    if args.shard_count < 1 or not 0 <= args.shard_index < args.shard_count:
+        parser.error('shard count must be positive and index must be within the shard count')
     manifest = args.manifest.resolve()
-    if args.contracts:
-        os.environ['POOLSTER_PUBLIC_CONTRACTS'] = args.contracts
-    selected = public.contracts(manifest)
+    with contract_selection(args.contracts or os.environ.get('POOLSTER_PUBLIC_CONTRACTS', '')):
+        selected = public.contracts(manifest)
+    selected = selected[args.shard_index::args.shard_count]
     if not selected:
         parser.error('no contracts selected')
     root = args.output.resolve()
     root.mkdir(parents=True, exist_ok=False)
     (root / 'work').mkdir()
     (root / 'generated').mkdir()
+    provenance = run_provenance(manifest, dict(os.environ))
+    provenance['selection'] = {'language': args.language, 'shard_count': args.shard_count,
+                               'shard_index': args.shard_index,
+                               'contracts': [contract['name'] for contract in selected]}
+    save_report(root, manifest, [], provenance, len(selected))
     try:
-        public.fetch(manifest, root / 'specs', args.spec_cache)
+        with contract_selection(','.join(contract['name'] for contract in selected)):
+            public.fetch(manifest, root / 'specs', args.spec_cache)
     except (ValueError, OSError) as error:
         (root / 'fetch-error.txt').write_text(str(error) + '\n')
         raise
@@ -238,7 +298,7 @@ def main(arguments=None):
                         args.timeout, args.keep_generated, args.file_warning_bytes,
                         args.verify_regeneration)
         cases.append(case)
-        result = save_report(root, manifest, cases)
+        result = save_report(root, manifest, cases, provenance, len(selected))
         print(f"{contract['name']} / {args.language}: {case['status']}", flush=True)
     print(f"Passed {result['passed']}; failed {result['failed']}; report: {root / 'report.json'}")
     return 1 if result['failed'] else 0

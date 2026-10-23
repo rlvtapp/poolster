@@ -153,6 +153,12 @@ HTTP Composer package: Client, model/error/resource classes and runtime support.
 
 Sources are split at operation/model/runtime boundaries. GraphQL layout targets 128 KiB per source; indivisible declarations exceeding the budget produce `.poolster/source-layout-diagnostics.json` rather than incompatible silent splitting. Regeneration removes obsolete unchanged owned files and preserves unrelated user files. Customizations tied to previous monolithic paths need retargeting.
 
+HTTP model constructors place required fields before optional fields, preserving
+order within each group. This prevents PHP's optional-before-required deprecations
+and keeps optional arguments omittable. Use named constructor arguments when
+regenerating; positional calls created against older schema-order constructors
+need review. Wire field names, serialization order and named decoding are unchanged.
+
 HTTP and GraphQL use different transport APIs: PSR-18 for HTTP, a callable or native streams for portable GraphQL. A callable adapter is application-owned, while the Symfony output adds an actual integration bundle.
 
 ## Gaps and evidence

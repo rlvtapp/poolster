@@ -103,7 +103,11 @@ pub(super) fn render_object_model(
     let mut output = format!(
         "<?php\n\ndeclare(strict_types=1);\n\nnamespace {namespace}\\Models;\n\nuse JsonSerializable;\n\n{NOTICE}\nfinal class {name} implements JsonSerializable\n{{\n    private ?array ${presence_name} = null;\n\n    public function __construct(\n"
     );
-    for field in fields {
+    // Keep optional parameters omittable even when the schema lists a later
+    // required property. Decoding uses named arguments, so wire order is retained.
+    let mut constructor_fields = fields.iter().collect::<Vec<_>>();
+    constructor_fields.sort_by_key(|field| !field.required);
+    for field in constructor_fields {
         let field_name = php_field_identifier(fields, field);
         let type_name = nullable_type(
             &php_type(&field.value, named_types),

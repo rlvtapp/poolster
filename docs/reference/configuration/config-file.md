@@ -467,3 +467,51 @@ Omitting the setting preserves the language generator's default behavior.
 
 Rust composition uses `Common::source_quality(...)`; npm language plugin options
 use `sourceQuality` with the same tagged policy object.
+
+### Reproduce the formatter audit
+
+The `Generated SDK formatter audit` workflow checks HTTP flat/namespaced and
+GraphQL raw/flat/idiomatic packages for all ten SDK languages plus Symfony.
+Its checked-in configurations are in `scripts/fixtures/formatters/`.
+
+| Target | Audit tool pin |
+| --- | --- |
+| TypeScript | Prettier 3.6.2 |
+| Rust | rustfmt from Rust 1.90.0 |
+| Go | gofmt from Go 1.25.7 |
+| Python | Ruff 0.14.0 |
+| PHP / Symfony | PHP-CS-Fixer 3.89.0, PSR-12 rules, PHP 8.2 |
+| Java | google-java-format 1.28.0, JDK 17 |
+| C# | .NET SDK 8.0.416, `dotnet format whitespace`, generated files included |
+| Ruby | RuboCop 1.81.1 layout rules; RBS 3.9.5 validation |
+| Swift | Xcode 16.2's bundled swift-format, executable checksum recorded |
+| Elixir | Elixir 1.17.3 / OTP 27.0, `mix format` |
+
+`scripts/format-source.py` records the tool response, executable, adapter and
+configuration hashes in an exact-version `source_quality` profile. The Java
+adapter requires convergence within four passes because google-java-format can
+need a second pass on generated resource declarations. Ruby's line-length rule
+is disabled for indivisible literals; long lines remain visible in the report.
+
+With the selected tool installed and configurations copied to a disposable tool
+directory, create a profile, then run one language:
+
+```sh
+python scripts/format-source.py --language go --tools /tmp/formatter-tools \
+  --write-profile /tmp/go-format-profile.json
+python scripts/language-output-audit.py --binary target/debug/poolster \
+  --output /tmp/go-formatted-audit --languages go \
+  --openapi crates/cli/tests/fixtures/pets.yaml \
+  --graphql-schema scripts/fixtures/language-output/schema.graphql \
+  --graphql-operations scripts/fixtures/language-output/operations.graphql \
+  --formatter-profile /tmp/go-format-profile.json --native-check
+```
+
+Each case verifies deterministic regeneration, a formatter fixed point, LF/final
+newlines, final source bytes against the 128 KiB policy, and native build/import
+checks. Symfony HTTP uses a separate generated PHP SDK through a Composer path
+repository and resolves the SDK from a compiled container. Ruby GraphQL also
+validates its RBS signatures. These are bounded audit fixtures, not a claim that
+every public API contract was formatted or that all SDK specification requirements
+are certified. The large HTTP corpus separately records size warnings and native
+checks; its 128 KiB warnings do not change compiler success into a failure.

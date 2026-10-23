@@ -36,11 +36,13 @@ impl Models {
                 _ => "untyped",
             }
             .into(),
-            ModelKind::Enum(v) => v
-                .iter()
-                .map(|v| ruby_string(v))
-                .collect::<Vec<_>>()
-                .join(" | "),
+            ModelKind::Enum(v) => format!(
+                "({})",
+                v.iter()
+                    .map(|v| ruby_string(v))
+                    .collect::<Vec<_>>()
+                    .join(" | ")
+            ),
             ModelKind::Literal(v) => ruby_string(v),
             ModelKind::Named(n) => self
                 .inputs
@@ -56,7 +58,7 @@ impl Models {
                 for (i, ty) in members.iter().enumerate() {
                     types.push(self.ty(&format!("{name}Variant{i}"), ty, input)?);
                 }
-                types.join(" | ")
+                format!("({})", types.join(" | "))
             }
             ModelKind::Object(_) => {
                 self.model(name, ty, input)?;

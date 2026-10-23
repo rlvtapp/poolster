@@ -32,5 +32,34 @@ selected operation types; they do not inherit every HTTP plugin option.
 Only install the integrations your application needs. Build the emitted package
 with its declared dependencies and install framework peers in your application.
 
+## Select and customize query helpers
+
+React Query, Vue Query and SWR accept `queryOptions` in both individual packages
+and the plugin bundle:
+
+```js
+pluginReactQuery({
+  target: 'web',
+  queryOptions: {
+    includeOperations: ['listWidgets', 'searchWidgets'],
+    operationNames: { listWidgets: 'catalog' },
+    operationKinds: { searchWidgets: 'query' },
+    maxOperationsPerFile: 25,
+  },
+})
+```
+
+Keys refer to original operation IDs. Selection affects helper generation; the
+SDK retains its operations. HTTP methods default to GET queries and other-method
+mutations; `operationKinds` overrides that classification. Names change helper
+exports while preserving the selected SDK operation binding. Chunk counts must
+be positive. Unknown operations and options fail before output is written.
+
+For GraphQL, operation selection and helper names are supported. Query/mutation
+kinds come from validated documents and cannot be overridden; custom chunk counts
+are unsupported because GraphQL helpers currently emit one file.
+HTTP infinite queries, React suspense and SSR prefetch usage are described in the
+[TypeScript helper guide](../guides/typescript-helpers.md).
+
 **Next:** [Support matrix](../plugin-support-matrix.md) ·
 [Write a JavaScript plugin](../plugins/javascript/output.md)

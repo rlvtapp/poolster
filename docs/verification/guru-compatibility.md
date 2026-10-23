@@ -1,5 +1,12 @@
 # Public-contract compatibility results
 
+**23 October 2026:** the migrated-generator sweep passes **2,050/2,050**
+cases, including native checks and deterministic regeneration. The
+[current ledger](../verification-results/guru-current-2026-10-23.json) preserves
+base attempts and full corrected-target reruns. See
+[scope, fixes and companion audits](verification.md#completed-release-verification-23-october-2026).
+The results below remain historical.
+
 **Alpha.2 update (9 October 2026):** the new frozen-build 205×10 sweep is complete:
 2,050 effective passes including regeneration, after audited infrastructure retries.
 The frozen binaries predate the latest output migration. The record below is the
@@ -96,7 +103,8 @@ With the matching native toolchain installed, reproduce a target with:
 (cd openapi && go build -o ../target/debug/poolster-openapi .)
 cargo build --locked -p poolster-cli
 POOLSTER_BINARY="$PWD/target/debug/poolster" python3 scripts/guru-corpus.py \
-  --language typescript --output /tmp/poolster-guru-typescript-new
+  --language typescript --verify-regeneration --file-warning-bytes 131072 \
+  --output /tmp/poolster-guru-typescript-new
 ```
 
 Use a fresh output directory. `--contracts stripe,azure-compute` selects focused
@@ -104,3 +112,12 @@ cases; `--keep-generated` preserves sources for diagnosis. Reports separate sour
 and metadata bytes, list the largest source files and emit configurable size
 warnings. The manual `APIs.guru large contract corpus` workflow provisions
 supported toolchains and uploads reports and diagnostics for one language or all ten.
+
+Reports now identify the source revision, dirty-worktree state, manifest checksum
+and configured generator/compiler executable checksums. Set both `POOLSTER_BINARY`
+and `POOLSTER_OPENAPI_BIN` to the binaries being verified. Missing executables are
+explicitly marked rather than given an inferred identity. `expected_cases`,
+`completed_cases` and `complete` distinguish an interrupted run from a completed
+selection; a complete selection may still contain failures. The report is written
+before fetching so fetch failures retain that context. CI enables regeneration
+checks and 128 KiB file warnings; the warning is a reporting budget, not a compiler limit.

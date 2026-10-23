@@ -1,0 +1,141 @@
+name: Generated SDK formatter audit
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/release-verification-20261023]
+    paths:
+      - .github/workflows/formatter-audit.yml
+      - scripts/format-source.py
+      - scripts/check-formatted-package.py
+      - scripts/language-output-audit.py
+      - scripts/fixtures/formatters/**
+      - crates/plugins/**
+permissions:
+  contents: read
+  actions: read
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - {runner: ubuntu-latest, host: linux}
+          - {runner: macos-14, host: macos}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: openapi/go.mod
+      - run: |
+          (cd openapi && go build -o ../target/debug/poolster-openapi .)
+          cargo build --locked -p poolster-cli
+      - uses: actions/upload-artifact@v7
+        with:
+          name: formatter-generator-${{ matrix.host }}
+          path: |
+            target/debug/poolster
+            target/debug/poolster-openapi
+  audit:
+    name: Format / ${{ matrix.language }}
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {language: typescript, runner: ubuntu-latest, host: linux}
+          - {language: rust, runner: ubuntu-latest, host: linux}
+          - {language: go, runner: ubuntu-latest, host: linux}
+          - {language: python, runner: ubuntu-latest, host: linux}
+          - {language: php, runner: ubuntu-latest, host: linux}
+          - {language: java, runner: ubuntu-latest, host: linux}
+          - {language: csharp, runner: ubuntu-latest, host: linux}
+          - {language: ruby, runner: ubuntu-latest, host: linux}
+          - {language: swift, runner: macos-14, host: macos}
+          - {language: elixir, runner: ubuntu-latest, host: linux}
+          - {language: symfony, runner: ubuntu-latest, host: linux}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    env:
+      FORMAT_LANGUAGE: ${{ matrix.language }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Initialize isolated tool paths
+        shell: bash
+        run: |
+          echo "FORMAT_TOOLS=$RUNNER_TEMP/formatter-tools" >> "$GITHUB_ENV"
+          echo "POOLSTER_OPENAPI_BIN=$GITHUB_WORKSPACE/target/debug/poolster-openapi" >> "$GITHUB_ENV"
+          echo "DOTNET_INSTALL_DIR=$RUNNER_TEMP/audit-dotnet" >> "$GITHUB_ENV"
+      - uses: actions/download-artifact@v8
+        with:
+          name: formatter-generator-${{ matrix.host }}
+          path: target/debug
+      - run: chmod +x target/debug/poolster target/debug/poolster-openapi
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        if: matrix.language == 'typescript'
+        with:
+          node-version: 22
+      - uses: dtolnay/rust-toolchain@stable
+        if: matrix.language == 'rust'
+      - uses: actions/setup-go@v7
+        if: matrix.language == 'go'
+        with:
+          go-version-file: openapi/go.mod
+      - uses: shivammathur/setup-php@v2
+        if: matrix.language == 'php' || matrix.language == 'symfony'
+        with:
+          php-version: '8.2'
+          tools: composer:v2
+      - uses: actions/setup-java@v6
+        if: matrix.language == 'java'
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-dotnet@v6
+        if: matrix.language == 'csharp'
+        with:
+          dotnet-version: '8.0.416'
+      - uses: ruby/setup-ruby@v1
+        if: matrix.language == 'ruby'
+        with:
+          ruby-version: '3.3.0'
+      - uses: erlef/setup-beam@v1
+        if: matrix.language == 'elixir'
+        with:
+          otp-version: '27.0'
+          elixir-version: '1.17.3'
+      - name: Provision pinned formatter and configuration
+        shell: bash
+        run: |
+          mkdir -p "$FORMAT_TOOLS"
+          cp scripts/fixtures/formatters/* "$FORMAT_TOOLS/"
+          case "$FORMAT_LANGUAGE" in
+            typescript) npm install --prefix "$FORMAT_TOOLS" --ignore-scripts --no-audit --no-fund prettier@3.6.2 ;;
+            python) python -m pip install --disable-pip-version-check ruff==0.14.0 ;;
+            rust) rustup toolchain install 1.90.0 --profile minimal --component rustfmt ;;
+            php|symfony) curl --fail --location --retry 3 https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/releases/download/v3.89.0/php-cs-fixer.phar --output "$FORMAT_TOOLS/php-cs-fixer.phar" ;;
+            java) curl --fail --location --retry 3 https://github.com/google/google-java-format/releases/download/v1.28.0/google-java-format-1.28.0-all-deps.jar --output "$FORMAT_TOOLS/google-java-format.jar" ;;
+            ruby) gem install rubocop --version 1.81.1 --no-document && gem install rbs --version 3.9.5 --no-document ;;
+            elixir) mix local.hex --force && mix local.rebar --force ;;
+            swift) echo "DEVELOPER_DIR=/Applications/Xcode_16.2.app/Contents/Developer" >> "$GITHUB_ENV" ;;
+          esac
+      - name: Audit formatted bytes, deterministic regeneration and clean consumers
+        shell: bash
+        run: |
+          python scripts/format-source.py --language "$FORMAT_LANGUAGE" --tools "$FORMAT_TOOLS" --write-profile "$RUNNER_TEMP/formatter-profile.json"
+          python scripts/language-output-audit.py --binary target/debug/poolster --output "$RUNNER_TEMP/formatter-audit" --openapi crates/cli/tests/fixtures/pets.yaml --graphql-schema scripts/fixtures/language-output/schema.graphql --graphql-operations scripts/fixtures/language-output/operations.graphql --languages "$FORMAT_LANGUAGE" --formatter-profile "$RUNNER_TEMP/formatter-profile.json" --native-check
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: formatter-${{ matrix.language }}
+          path: |
+            ${{ runner.temp }}/formatter-profile.json
+            ${{ runner.temp }}/formatter-audit/report.json
+            ${{ runner.temp }}/formatter-audit/**/*.log
+            ${{ runner.temp }}/formatter-audit/**/poolster.json
+          retention-days: 14

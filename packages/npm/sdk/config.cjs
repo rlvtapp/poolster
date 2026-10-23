@@ -225,6 +225,8 @@ function nativeAddonOptions(addon) {
     return result;
   };
   const options = {};
+  if (addon.queryOptions !== undefined) options.queryOptions = rename(addon.queryOptions,
+    { includeOperations:'includeOperations', operationKinds:'operationKinds', operationNames:'operationNames', maxOperationsPerFile:'maxOperationsPerFile' }, 'queryOptions');
   if (addon.fixtureOptions !== undefined) options.fixtureOptions = rename(addon.fixtureOptions,
     { seed:'seed', maxDepth:'max_depth', maxAttempts:'max_attempts', overrides:'overrides' }, 'fixtureOptions');
   if (addon.cypressOptions !== undefined) {

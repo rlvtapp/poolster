@@ -38,7 +38,7 @@ const pet = PetSchema.parse(untrustedValue);
 ## Hooks
 
 TanStack hooks wrap generated operations. React/Vue Query include GET queries
-and non-GET mutations; SWR includes GET hooks. Query/mutation option factories
+and non-GET mutations; SWR includes GET hooks and mutation helpers. Query/mutation option factories
 can be reused for prefetching and native framework observers. Set up providers
 and application cache policy in your framework.
 
@@ -78,5 +78,41 @@ Native React/Vue/SWR consumers split after 50 operations per module by default,
 retaining the configured entrypoint as a barrel. Set
 `max_operations_per_file` on the query plugin in `poolster.json`, or use
 `.max_operations_per_file(...)` / `.single_file()` in the Rust composition API.
-Standalone artifact renderers retain their single-file layout. Infinite-query
-and suspense helpers are still tracked in the backlog.
+Standalone artifact renderers retain their single-file layout. JavaScript
+factories expose these controls through `queryOptions`; see
+[JavaScript plugins](../javascript/plugins.md#select-and-customize-query-helpers).
+
+## Pagination, suspense and server rendering
+
+HTTP operations with validated pagination metadata also export
+`<operation>InfiniteOptions`, `<operation>InfiniteKey` and `use<Operation>Infinite`.
+Cursor, page, offset/limit and URL pagination use the resolved SDK pagination plan.
+Repeated continuation values stop traversal; configured page limits bound it.
+URL pagination requires `pagination.baseUrl` and rejects continuations outside that
+origin. Pass `throwOnError: true` when SDK errors should reject a page fetch.
+
+React Query additionally exports `use<Operation>Suspense` and, for paginated
+queries, `use<Operation>SuspenseInfinite`. Vue Query uses its native query APIs;
+it does not receive React suspense hooks. SWR uses `swr/infinite` with sequential
+page loading and `swr/mutation` for mutations.
+
+For React/Vue server rendering, prefetch into a request-local `QueryClient`, then
+use the framework's native dehydration/hydration integration:
+
+```ts
+import { QueryClient, dehydrate } from '@tanstack/react-query';
+import { listPetsInfinitePrefetch } from './generated/react-query.js';
+
+const cache = new QueryClient();
+await listPetsInfinitePrefetch(
+  cache,
+  { client: api.transport, throwOnError: true },
+  'tenant_123',
+);
+const state = dehydrate(cache);
+```
+
+The operation must declare supported pagination metadata. Prefetch helpers also
+exist for ordinary queries as `<operation>Prefetch`. Keep authentication-specific
+state request-local and use the same cache scope during hydration. These HTTP
+helpers do not imply GraphQL infinite-pagination support.

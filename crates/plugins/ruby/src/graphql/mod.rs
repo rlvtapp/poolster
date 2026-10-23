@@ -242,6 +242,8 @@ mod render;
 use render::render_advanced;
 
 #[cfg(test)]
+mod rbs_tests;
+#[cfg(test)]
 mod tests;
 
 mod source_layout;

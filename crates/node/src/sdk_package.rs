@@ -48,11 +48,52 @@ pub(super) struct SdkPackage {
 pub(super) struct NativePlugin {
     pub(super) name: String,
     #[serde(default)]
+    pub(super) query_options: Option<QueryOptions>,
+    #[serde(default)]
     pub(super) fixture_options: Option<ts::FixtureOptions>,
     #[serde(default)]
     pub(super) cypress_options: Option<ts::CypressOptions>,
     #[serde(default)]
     pub(super) output: Option<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(super) struct QueryOptions {
+    pub(super) include_operations: Option<Vec<String>>,
+    #[serde(default)]
+    pub(super) operation_kinds: std::collections::BTreeMap<String, String>,
+    #[serde(default)]
+    pub(super) operation_names: std::collections::BTreeMap<String, String>,
+    pub(super) max_operations_per_file: Option<usize>,
+}
+
+impl QueryOptions {
+    pub(super) fn apply(
+        &self,
+        mut query: ts::composition::Query,
+    ) -> AnyResult<ts::composition::Query> {
+        if let Some(ids) = &self.include_operations {
+            query = query.include_operations(ids.clone());
+        }
+        if let Some(count) = self.max_operations_per_file {
+            query = query.max_operations_per_file(count);
+        }
+        for (operation, kind) in &self.operation_kinds {
+            query = query.operation_kind(
+                operation,
+                match kind.as_str() {
+                    "query" => ts::composition::QueryKind::Query,
+                    "mutation" => ts::composition::QueryKind::Mutation,
+                    _ => bail!("operation kind must be query or mutation"),
+                },
+            );
+        }
+        for (operation, name) in &self.operation_names {
+            query = query.operation_name(operation, name);
+        }
+        Ok(query)
+    }
 }
 
 pub(super) fn package_common(package: &SdkPackage) -> AnyResult<Common> {

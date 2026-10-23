@@ -33,6 +33,8 @@ jobs:
           node --test packages/integrations/github/test/*.test.cjs packages/integrations/gitlab/test/*.test.cjs
           python3 scripts/test-public-contracts.test.py
           python3 scripts/test-guru-corpus.py
+          python3 scripts/test-guru-provenance.py
+          python3 scripts/test-reconcile-corpus.py
           python3 scripts/test-kafka-conformance.py
           python3 scripts/test-publish-npm.py
       - name: Test editable SDK delivery and App broker sources
@@ -100,6 +102,10 @@ jobs:
           tools: none
       - name: Run full workspace suite
         run: cargo test --workspace --locked
+      - name: Verify PHP constructor omission and wire semantics
+        run: cargo test --locked -p poolster-plugin-php native_constructor_order_has_no_deprecations_and_preserves_wire_keys -- --ignored
+      - name: Verify Rust schema and HTTP method names coexist
+        run: cargo test --locked -p poolster-plugin-rust native_method_schema_and_http_methods_compile_together -- --ignored
   cli-integration:
     name: CLI schema, references and migration
     runs-on: ubuntu-latest

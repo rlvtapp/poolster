@@ -88,8 +88,8 @@ sdk/python/src/poolster_contract_api_sdk/runtime.py	24239	1b37f52bcea6dff1
 sdk/rust/Cargo.toml	342	1df9be8c5208dfe6
 sdk/rust/README.md	1818	bb4505da07228e76
 sdk/rust/STYLE_GUIDE.md	421	34a802e91766c655
-sdk/rust/src/client/mod.rs	22285	dac657094c5d397c
-sdk/rust/src/client/operations/chunk_0001.rs	3925	9f68b0fe783e2e66
+sdk/rust/src/client/mod.rs	22272	a0d092960bd3c48f
+sdk/rust/src/client/operations/chunk_0001.rs	3943	20c95bdf8a9f9162
 sdk/rust/src/client/operations/mod.rs	87	f4be07a16593649a
 sdk/rust/src/client/resources/contacts_1/chunk_0001.rs	619	cb590d969b31e313
 sdk/rust/src/client/resources/contacts_1/mod.rs	87	f4be07a16593649a

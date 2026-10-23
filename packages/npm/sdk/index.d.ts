@@ -211,6 +211,13 @@ export interface CypressOptions {
   operationOverrides?: Record<string, { enabled?: boolean; path?: string; query?: Record<string, unknown>; headers?: Record<string,string>; body?: unknown; expectedStatuses?: number[] }>;
 }
 
+export interface QueryOptions {
+  includeOperations?: string[];
+  operationKinds?: Record<string, 'query' | 'mutation'>;
+  operationNames?: Record<string, string>;
+  maxOperationsPerFile?: number;
+}
+
 export interface NativeAddon {
   kind: 'native-addon';
   name: string;
@@ -219,6 +226,7 @@ export interface NativeAddon {
   output?: string;
   fixtureOptions?: FixtureOptions;
   cypressOptions?: CypressOptions;
+  queryOptions?: QueryOptions;
 }
 
 export interface NativeInputPlugin {

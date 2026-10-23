@@ -128,16 +128,17 @@ into a subdirectory, adjust `clients_import`, for example to `"../clients"`. Hoo
 is derived from `Parameters<typeof generatedOperation>[0]`, including the configured
 client.
 
-The current hooks are basic wrappers. They do not expose a complete framework options
-API, infinite-query helpers, or automatic SSR/cache policy. Configure your framework
-provider separately.
+Configure your framework provider and application cache policy separately.
 
 React/Vue consumers provide typed query/mutation option factories, key
 factories, hook overrides and cancellation forwarding. SWR accepts native
 configuration. Keys omit client/config/headers and include an explicit cache
 scope plus operation inputs; choose distinct scopes for tenants/origins or
 response-affecting headers. Set `throwOnError: true` to reject SDK failures.
-Infinite/suspense helpers and automatic SSR policy remain follow-up work.
+HTTP pagination metadata enables infinite-query helpers; React also has suspense
+hooks. React/Vue prefetch helpers integrate with native SSR dehydration/hydration.
+SWR provides sequential infinite loading and mutation helpers. GraphQL companions
+retain their separately documented boundaries.
 
 The native composition plugins split after 50 operations while preserving the
 configured entrypoint. Set `max_operations_per_file` in recipes, or call
