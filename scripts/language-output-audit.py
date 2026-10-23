@@ -8,6 +8,7 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
+import sys
 
 LANGUAGES = ('typescript', 'rust', 'go', 'python', 'php', 'java', 'csharp',
              'ruby', 'swift', 'elixir', 'symfony')
@@ -55,11 +56,14 @@ def package(language, protocol, style):
     return result
 
 
-def run_case(binary, root, language, protocol, style, source, operations, budget):
+def run_case(binary, root, language, protocol, style, source, operations, budget,
+             formatter_profile=None, native_check=False):
     case = root / protocol / language / style
     case.mkdir(parents=True, exist_ok=False)
     output = case / 'generated'
     config = {'output': {'path': str(output)}, 'packages': [package(language, protocol, style)]}
+    if formatter_profile is not None:
+        config['packages'][0]['source_quality'] = formatter_profile
     if protocol == 'http':
         config['openapi'] = {'input': str(source), 'name': 'Quality Probe', 'version': '1.0.0'}
     else:
@@ -89,6 +93,33 @@ def run_case(binary, root, language, protocol, style, source, operations, budget
     result.update(statistics(output / 'sdk', budget))
     result['status'] = ('pass' if result['source_files'] and result['deterministic'] and
                         not result['violations'] else 'failed')
+    if result['status'] == 'pass' and formatter_profile is not None:
+        quality = output / 'sdk/.poolster/source-quality.json'
+        result['source_quality'] = json.loads(quality.read_text())
+        if result['source_quality']['status'] != 'formatted':
+            result['status'] = 'failed'
+        # Regeneration starts from raw templates. Also prove already formatted
+        # emitted source is a fixed point of the selected formatter.
+        formatter = formatter_profile['formatter']
+        for entry in result['source_quality']['files']:
+            path = output / 'sdk' / entry['path']
+            before = path.read_bytes()
+            command = [formatter['program'], *[argument.replace('{file}', str(path))
+                       for argument in formatter['arguments']]]
+            completed = subprocess.run(command, capture_output=True, text=True, timeout=120)
+            if completed.returncode or path.read_bytes() != before:
+                result['status'] = 'failed'
+                result['formatter_idempotence_error'] = entry['path']
+                (case / 'formatter-idempotence.log').write_text(completed.stdout + completed.stderr)
+                break
+    if result['status'] == 'pass' and native_check:
+        command = [sys.executable, str(Path(__file__).with_name('check-formatted-package.py')),
+                   language, str(output / 'sdk')]
+        completed = subprocess.run(command, capture_output=True, text=True, timeout=1200)
+        (case / 'native.log').write_text(completed.stdout + completed.stderr)
+        result['native'] = {'exit_code': completed.returncode}
+        if completed.returncode:
+            result['status'] = 'failed'
     return result
 
 
@@ -102,9 +133,15 @@ def main():
     parser.add_argument('--languages', nargs='+', choices=LANGUAGES, default=LANGUAGES)
     parser.add_argument('--protocols', nargs='+', choices=('http', 'graphql'), default=('http', 'graphql'))
     parser.add_argument('--max-file-bytes', type=int, default=128 * 1024)
+    parser.add_argument('--formatter-profile', type=Path,
+                        help='Pinned SourceQuality policy; use one language per run')
+    parser.add_argument('--native-check', action='store_true')
     args = parser.parse_args()
     if args.max_file_bytes <= 0:
         parser.error('--max-file-bytes must be positive')
+    if args.formatter_profile and len(args.languages) != 1:
+        parser.error('--formatter-profile requires exactly one language')
+    profile = json.loads(args.formatter_profile.read_text()) if args.formatter_profile else None
     args.output.mkdir(parents=True, exist_ok=False)
     results = []
     for protocol, styles in (('http', ('flat', 'namespaced')),
@@ -116,11 +153,17 @@ def main():
             for style in styles:
                 result = run_case(args.binary.resolve(strict=True), args.output.resolve(), language,
                                   protocol, style, source, args.graphql_operations.resolve(strict=True),
-                                  args.max_file_bytes)
+                                  args.max_file_bytes, profile, args.native_check)
                 results.append(result)
+                (args.output / 'report.json').write_text(json.dumps({
+                    'version': 1, 'binary_sha256': hashlib.sha256(args.binary.read_bytes()).hexdigest(),
+                    'formatter_profile': profile, 'cases': results}, indent=2) + '\n')
                 print(f"{protocol} {language} {style}: {result['status']}", flush=True)
     report = {'version': 1, 'scope': 'default output structure and regeneration only',
-              'formatter_conformance': 'not assessed', 'compilation_runtime': 'separate native tests',
+              'formatter_conformance': 'executed' if profile else 'not assessed',
+              'compilation_runtime': 'executed native checks' if args.native_check else 'separate native tests',
+              'binary_sha256': hashlib.sha256(args.binary.read_bytes()).hexdigest(),
+              'formatter_profile': profile,
               'cases': results}
     (args.output / 'report.json').write_text(json.dumps(report, indent=2) + '\n')
     return int(any(case['status'] != 'pass' for case in results))
