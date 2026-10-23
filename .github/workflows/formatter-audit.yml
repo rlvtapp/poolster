@@ -119,7 +119,7 @@ jobs:
             rust) rustup toolchain install 1.90.0 --profile minimal --component rustfmt ;;
             php|symfony) curl --fail --location --retry 3 https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/releases/download/v3.89.0/php-cs-fixer.phar --output "$FORMAT_TOOLS/php-cs-fixer.phar" ;;
             java) curl --fail --location --retry 3 https://github.com/google/google-java-format/releases/download/v1.28.0/google-java-format-1.28.0-all-deps.jar --output "$FORMAT_TOOLS/google-java-format.jar" ;;
-            ruby) gem install rubocop --version 1.81.1 --no-document ;;
+            ruby) gem install rubocop --version 1.81.1 --no-document && gem install rbs --version 3.9.5 --no-document ;;
             elixir) mix local.hex --force && mix local.rebar --force ;;
             swift) echo "DEVELOPER_DIR=/Applications/Xcode_16.2.app/Contents/Developer" >> "$GITHUB_ENV" ;;
           esac

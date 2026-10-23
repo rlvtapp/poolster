@@ -90,13 +90,13 @@ pub(crate) fn render_operation(operation: &Operation, config: &RenderOptions) ->
     let retry_allowed = rust_retry_allowed(operation);
     let native_method = match &operation.method {
         poolster_core::HttpMethod::Query => {
-            "Method::from_bytes(b\"QUERY\").expect(\"static HTTP method\")".to_owned()
+            "reqwest::Method::from_bytes(b\"QUERY\").expect(\"static HTTP method\")".to_owned()
         }
         poolster_core::HttpMethod::Custom(_) => format!(
-            "Method::from_bytes({:?}.as_bytes()).expect(\"validated HTTP method\")",
+            "reqwest::Method::from_bytes({:?}.as_bytes()).expect(\"validated HTTP method\")",
             operation.method.as_str()
         ),
-        _ => format!("Method::{}", operation.method.as_str()),
+        _ => format!("reqwest::Method::{}", operation.method.as_str()),
     };
     if matches!(request_media_kind(operation), RequestMediaKind::Multipart) {
         let plan = poolster_core::openapi32::request_content(operation)

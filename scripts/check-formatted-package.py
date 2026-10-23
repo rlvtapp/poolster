@@ -43,14 +43,15 @@ if (!$container->get(Poolster\Quality\Probe\Sdk\Client::class) instanceof Poolst
             return [['composer', 'install', '--working-dir', str(consumer), '--no-interaction', '--no-progress']] + [
                 ['php', '-d', 'error_reporting=32767', '-l', str(path)] for path in paths] + [['php', str(probe)]]
         return [['composer', 'install', '--no-interaction', '--no-progress', '--optimize-autoloader']] + [['php', '-d', 'error_reporting=32767', '-d', 'display_errors=stderr', '-l', str(path)] for path in paths] + [
-            ['php', '-r', 'require "vendor/autoload.php"; $loader = require "vendor/autoload.php"; foreach ($loader->getClassMap() as $class => $file) { class_exists($class); }']]
+            ['php', '-r', 'require "vendor/autoload.php"; $loader = require "vendor/autoload.php"; foreach ($loader->getClassMap() as $class => $file) { if (str_starts_with((string) realpath($file), realpath(\"src\") . DIRECTORY_SEPARATOR)) class_exists($class); }']]
     if language == 'java':
         return [['mvn', '--batch-mode', '--no-transfer-progress', '-q', '-DskipTests', 'compile']]
     if language == 'csharp':
         return [['dotnet', 'build', '--configuration', 'Release', '--disable-build-servers', '-p:UseSharedCompilation=false']]
     if language == 'ruby':
         return [['ruby', '-c', str(path)] for path in sorted((root / 'lib').rglob('*.rb'))] + [
-            ['ruby', '-Ilib', '-e', 'require "quality_probe"']]
+            ['ruby', '-Ilib', '-e', 'require "quality_probe"']] + ([
+            ['rbs', '--version'], ['rbs', '-I', 'sig', 'validate']] if (root / 'sig').is_dir() else [])
     if language == 'swift':
         return [['swift', 'build', '--disable-sandbox']]
     if language == 'elixir':
