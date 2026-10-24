@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## [0.5.0-alpha.4](https://github.com/rlvtapp/poolster/compare/v0.5.0-alpha.3...v0.5.0-alpha.4) (2026-10-24)
+
+
 ### Bug Fixes
 
 - Alias TanStack framework and operation imports to prevent generated query hooks
@@ -13,14 +16,6 @@
 - Preserve configured Go module import paths.
 - Expose query and mock integrations through explicit package subpaths with
   optional peer dependencies, allowing core SDK imports without those libraries.
-
-
-## [0.5.0-alpha.4](https://github.com/rlvtapp/poolster/compare/v0.5.0-alpha.3...v0.5.0-alpha.4) (2026-10-24)
-
-
-### Bug Fixes
-
-* correct SDK generation and optional integration isolation ([e18d35f](https://github.com/rlvtapp/poolster/commit/e18d35f12af5613c172833b8854d64120aab6808))
 
 ## [0.5.0-alpha.3](https://github.com/rlvtapp/poolster/compare/v0.5.0-alpha.2...v0.5.0-alpha.3) (2026-10-23)
 
