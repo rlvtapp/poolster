@@ -45,3 +45,11 @@ emits a Swift 5.9+ Swift Package Manager library.
 Each accepts
 `base_url:`, `api_key:`, `bearer_token:`, and per-client `headers:`; the
 namespaced surface adds resource facades without removing direct methods.
+
+If a publication harness fails before registry upload, maintainers can fix the
+workflow on `main` and dispatch **Publish release packages** there with
+`release_tag` set to the existing `v...` tag. Every source checkout (including
+Kafka checks) uses that tag, all validation/build gates rerun, and version checks
+must match the selected tag before upload. This supports harness repair without
+moving a released source tag. The generated React Query example explicitly
+installs its optional framework peers before compilation.
