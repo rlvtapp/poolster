@@ -1,7 +1,13 @@
 name: Native Kafka conformance
 on:
   workflow_dispatch: null
-  workflow_call: null
+  workflow_call:
+    inputs:
+      source_ref:
+        description: Exact source ref supplied by the calling release workflow
+        type: string
+        required: false
+        default: ''
 permissions:
   contents: read
 jobs:
@@ -25,6 +31,8 @@ jobs:
           - ruby
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.source_ref || github.ref }}
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:

@@ -92,15 +92,15 @@ test('CLI native tests build the compiler first and publication requires Kafka v
   assert.doesNotMatch(release, /skip-github-release|POOLSTER_RELEASE_ENABLED/);
   assert.match(release, /on:\n  push:\n    branches: \[main\]/);
   const publish = read('.github/workflows/npm-publish.yml');
-  assert.match(publish, /publish:\n    name: Publish to npm\n    needs: \[verify, generated-sdk, native, launchers, kafka\]\n    if: startsWith\(github\.ref, 'refs\/tags\/v'\) && !inputs\.windows_only/);
-  assert.match(publish, /publish-python:\n    name: Publish to PyPI\n    needs: \[verify, generated-sdk, native, launchers, kafka\]\n    if: startsWith\(github\.ref, 'refs\/tags\/v'\) && !inputs\.windows_only/);
-  assert.match(publish, /publish-crates:\n    name: Publish Rust SDK to crates.io\n    needs: \[verify, generated-sdk, native, launchers, kafka\]\n    if: startsWith\(github\.ref, 'refs\/tags\/v'\) && !inputs\.windows_only/);
+  assert.match(publish, /publish:\n    name: Publish to npm\n    needs: \[verify, generated-sdk, native, launchers, kafka\]\n    if: \(startsWith\(github\.ref, 'refs\/tags\/v'\) \|\| startsWith\(inputs\.release_tag, 'v'\)\) && !inputs\.windows_only/);
+  assert.match(publish, /publish-python:\n    name: Publish to PyPI\n    needs: \[verify, generated-sdk, native, launchers, kafka\]\n    if: \(startsWith\(github\.ref, 'refs\/tags\/v'\) \|\| startsWith\(inputs\.release_tag, 'v'\)\) && !inputs\.windows_only/);
+  assert.match(publish, /publish-crates:\n    name: Publish Rust SDK to crates.io\n    needs: \[verify, generated-sdk, native, launchers, kafka\]\n    if: \(startsWith\(github\.ref, 'refs\/tags\/v'\) \|\| startsWith\(inputs\.release_tag, 'v'\)\) && !inputs\.windows_only/);
   const cratesJob = publish.slice(publish.indexOf("  publish-crates:"), publish.indexOf("  publish-python:"));
   assert.match(cratesJob, /permissions:\n      contents: read\n      id-token: write/);
   assert.match(cratesJob, /uses: rust-lang\/crates-io-auth-action@v1/);
   assert.match(cratesJob, /CARGO_REGISTRY_TOKEN: \$\{\{ steps\.crates-auth\.outputs\.token \}\}/);
   assert.doesNotMatch(cratesJob, /secrets\.CRATES_IO_TOKEN/);
-  assert.match(publish, /python scripts\/publish-crates.py --tag "\$GITHUB_REF_NAME"/);
+  assert.match(publish, /python scripts\/publish-crates.py --tag "\$RELEASE_TAG"/);
 });
 
 test('feature releases advance minor versions before 1.0', () => {
@@ -111,4 +111,18 @@ test('feature releases advance minor versions before 1.0', () => {
   const previous = Version.parse('0.4.0');
   const next = strategy.bump(previous, [{ type: 'feat', breaking: false, notes: [] }]);
   assert.equal(next.toString(), '0.5.0');
+});
+
+
+test('publication harness rebuilds immutable tag sources with all gates and optional fixture peers', () => {
+  const publish = read('.github/workflows/npm-publish.yml');
+  const kafka = read('.github/workflows/kafka-conformance.yml');
+  const pinned = "ref: ${{ inputs.release_tag && format('refs/tags/{0}', inputs.release_tag) || github.ref }}";
+  assert.equal(publish.match(/uses: actions\/checkout@v7/g).length, publish.split('\n          ' + pinned).length - 1);
+  assert.ok(publish.includes("source_ref: ${{ inputs.release_tag && format('refs/tags/{0}', inputs.release_tag) || github.ref }}"));
+  assert.ok(kafka.includes('ref: ${{ inputs.source_ref || github.ref }}'));
+  assert.ok(publish.includes('test "$REQUESTED_TAG" = "v$(cat version.txt)"'));
+  assert.ok(publish.includes('test -z "$RECOVERY_RUN"'));
+  assert.ok(publish.includes('--no-save @tanstack/react-query@5.104.1 react@19.3.0 @types/react@19.3.0'));
+  assert.ok(publish.includes('RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}'));
 });
