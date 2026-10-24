@@ -16,7 +16,7 @@ impl TypeScriptMsw {
             let _ = writeln!(
                 output,
                 "  http.all({}, async ({{ request, params }}) => {{",
-                js_string(&openapi_path_to_msw(&operation.path))
+                js_string(&format!("*{}", openapi_path_to_msw(&operation.path)))
             );
             let _ = writeln!(
                 output,

@@ -642,3 +642,138 @@ fn namespaced_and_auxiliary_consumers_compile_and_validate_selected_models() {
         String::from_utf8_lossy(&result.stderr)
     );
 }
+
+#[test]
+fn query_names_and_optional_integrations_stay_isolated() {
+    let mut spec = api();
+    spec.operations[0].id = "query".into();
+    spec.operations[0]
+        .annotations
+        .insert("tags".into(), serde_json::json!(["CRM"]));
+    let tree = Packages::new()
+        .package(
+            crate::package("ts")
+                .with(models())
+                .with(transport())
+                .with(operations())
+                .with(client())
+                .with(react_query().output("react-query"))
+                .with(vue_query().output("vue-query"))
+                .with(faker().output("fixtures"))
+                .with(msw().output("mocks")),
+        )
+        .generate(&spec, None)
+        .unwrap();
+    for framework in ["react-query", "vue-query"] {
+        let source = tree.get(format!("ts/{framework}.ts")).unwrap();
+        assert!(
+            source.contains("useQuery as __poolsterUseQuery"),
+            "{source}"
+        );
+        assert!(source.contains("function useQuery<"), "{source}");
+        assert!(
+            source.contains("import { query as __poolsterOperationQuery }"),
+            "{source}"
+        );
+        assert!(source.contains("return __poolsterUseQuery("), "{source}");
+    }
+    let root = tree.get("ts/index.ts").unwrap();
+    assert!(
+        !root.contains("react-query")
+            && !root.contains("vue-query")
+            && !root.contains("mocks")
+            && !root.contains("fixtures"),
+        "{root}"
+    );
+    assert!(
+        tree.get("ts/mocks.ts")
+            .unwrap()
+            .contains("http.all(\"*/contacts\"")
+    );
+    let manifest: serde_json::Value =
+        serde_json::from_str(tree.get("ts/package.json").unwrap()).unwrap();
+    for (module, dependency) in [
+        ("react-query", "@tanstack/react-query"),
+        ("vue-query", "@tanstack/vue-query"),
+        ("fixtures", "@faker-js/faker"),
+        ("mocks", "msw"),
+    ] {
+        assert_eq!(
+            manifest["peerDependenciesMeta"][dependency]["optional"],
+            true
+        );
+        assert_eq!(
+            manifest["exports"][format!("./{module}")]["import"],
+            format!("./dist/{module}.js")
+        );
+        assert!(manifest["dependencies"][dependency].is_null());
+    }
+}
+
+#[test]
+#[ignore = "requires POOLSTER_TSC_JS and POOLSTER_TS_NODE_MODULES with React/Vue Query"]
+fn framework_operation_name_collisions_compile_and_core_loads_without_peers() {
+    let directory = tempfile::tempdir().unwrap();
+    let mut source = api();
+    source.operations = [
+        ("query", HttpMethod::Get),
+        ("mutation", HttpMethod::Post),
+        ("infiniteQuery", HttpMethod::Get),
+    ]
+    .into_iter()
+    .map(|(id, method)| Operation {
+        id: id.into(),
+        method,
+        path: format!("/{id}"),
+        ..Default::default()
+    })
+    .collect();
+    Packages::new()
+        .package(
+            crate::package("ts")
+                .with(models())
+                .with(transport())
+                .with(operations())
+                .with(client())
+                .with(
+                    react_query()
+                        .output("react-query")
+                        .max_operations_per_file(1),
+                )
+                .with(vue_query().output("vue-query").max_operations_per_file(1)),
+        )
+        .generate(&source, None)
+        .unwrap()
+        .write_to(directory.path())
+        .unwrap();
+    let package = directory.path().join("ts");
+    #[cfg(unix)]
+    std::os::unix::fs::symlink(
+        std::env::var_os("POOLSTER_TS_NODE_MODULES").unwrap(),
+        package.join("node_modules"),
+    )
+    .unwrap();
+    let compile = std::process::Command::new("node")
+        .arg(std::env::var_os("POOLSTER_TSC_JS").unwrap())
+        .args(["-p", "tsconfig.json"])
+        .current_dir(&package)
+        .output()
+        .unwrap();
+    assert!(
+        compile.status.success(),
+        "{}{}",
+        String::from_utf8_lossy(&compile.stdout),
+        String::from_utf8_lossy(&compile.stderr)
+    );
+    // Exercise Node's real ESM loader with no optional dependencies available.
+    std::fs::remove_file(package.join("node_modules")).unwrap();
+    let load = std::process::Command::new("node")
+        .args(["--input-type=module", "-e", "import { Contacts } from './dist/index.js'; if (typeof Contacts !== 'function') throw Error('missing core client');"])
+        .current_dir(&package).output().unwrap();
+    assert!(
+        load.status.success(),
+        "{}{}",
+        String::from_utf8_lossy(&load.stdout),
+        String::from_utf8_lossy(&load.stderr)
+    );
+}

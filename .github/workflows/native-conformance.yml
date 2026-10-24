@@ -72,6 +72,7 @@ jobs:
           export POOLSTER_TS_NODE_MODULES="$RUNNER_TEMP/poolster-ts-framework/node_modules"
           export POOLSTER_TS_CLI_NODE_MODULES="$POOLSTER_TS_NODE_MODULES"
           cargo test -p poolster-plugin-typescript query_factories_cache_callbacks_and_abort_execute_natively -- --ignored
+          cargo test -p poolster-plugin-typescript framework_operation_name_collisions_compile_and_core_loads_without_peers -- --ignored
           cargo test -p poolster-plugin-typescript namespaced_and_auxiliary_consumers_compile_and_validate_selected_models -- --ignored
           cargo test -p poolster-plugin-typescript custom_transport_and_relocated_query_consumer_compile -- --ignored
           cargo test -p poolster-plugin-typescript-cli split_commands_compile_and_show_last_chunk_in_help -- --ignored

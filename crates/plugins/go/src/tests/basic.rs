@@ -261,3 +261,17 @@ func TestDistinctInputAndModelTypes(t *testing.T){
         String::from_utf8_lossy(&result.stderr)
     );
 }
+
+#[test]
+fn configured_module_import_path_is_preserved() {
+    let tree = render_test_sdk(
+        &contact_api(),
+        "go",
+        Some("github.com/rlvtapp/sdk/packages/go"),
+    )
+    .unwrap();
+    assert_eq!(
+        tree.get("go/go.mod"),
+        Some("module github.com/rlvtapp/sdk/packages/go\n\ngo 1.22\n")
+    );
+}

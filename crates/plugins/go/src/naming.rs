@@ -17,6 +17,19 @@ pub(super) fn go_package_name(value: &str) -> String {
 }
 
 pub(super) fn go_module_name(value: &str) -> String {
+    // Explicit import paths are module identities, not display names.
+    if value.contains('/')
+        && value.split('/').all(|part| {
+            !part.is_empty()
+                && part != "."
+                && part != ".."
+                && part
+                    .bytes()
+                    .all(|c| c.is_ascii_alphanumeric() || b".-_~".contains(&c))
+        })
+    {
+        return value.to_owned();
+    }
     let slug = identifier_words(value)
         .into_iter()
         .map(|word| word.to_ascii_lowercase())

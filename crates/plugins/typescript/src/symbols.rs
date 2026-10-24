@@ -28,8 +28,19 @@ pub(crate) fn identifier(value: &str) -> String {
 
 pub(crate) fn camel(value: &str) -> String {
     let name = identifier(value);
-    let mut chars = name.chars();
-    let result = chars.next().unwrap().to_lowercase().collect::<String>() + chars.as_str();
+    // Lower an initial acronym as a word, keeping the next PascalCase word intact.
+    let leading = name.bytes().take_while(u8::is_ascii_uppercase).count();
+    let boundary = if leading > 1
+        && name
+            .as_bytes()
+            .get(leading)
+            .is_some_and(u8::is_ascii_lowercase)
+    {
+        leading - 1
+    } else {
+        leading.max(1)
+    };
+    let result = name[..boundary].to_ascii_lowercase() + &name[boundary..];
     if matches!(
         result.as_str(),
         "break"
@@ -331,5 +342,20 @@ mod tests {
             String::from_utf8_lossy(&output.stderr)
         );
         std::fs::remove_dir_all(temporary).unwrap();
+    }
+}
+
+#[cfg(test)]
+mod acronym_tests {
+    #[test]
+    fn initial_acronyms_are_lower_camel_words() {
+        for (input, expected) in [
+            ("CRM", "crm"),
+            ("CRMContacts", "crmContacts"),
+            ("Email", "email"),
+            ("getURL", "getURL"),
+        ] {
+            assert_eq!(super::camel(input), expected);
+        }
     }
 }

@@ -189,10 +189,13 @@ impl Plugin<TypeScript> for Auxiliary {
         }
         if matches!(self.kind, AuxiliaryKind::Cypress) {
             cx.workspace.dev_dependency(dependency, version)?;
+        } else if matches!(self.kind, AuxiliaryKind::Faker | AuxiliaryKind::Msw) {
+            cx.workspace
+                .optional_integration(&self.output, dependency, version)?;
         } else {
             cx.workspace.dependency(dependency, version)?;
         }
-        if !matches!(self.kind, AuxiliaryKind::Cypress) {
+        if matches!(self.kind, AuxiliaryKind::Zod) {
             cx.workspace
                 .export_namespace(&self.output, &sdk::lower_camel_identifier(&self.output))?;
         }
