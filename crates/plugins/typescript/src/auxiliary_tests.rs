@@ -49,6 +49,8 @@ const schemas = {
  Negative:integer({maximum:'-100000',multipleOf:'7'}),
  Wide:integer({minimum:'9007199254740993',maximum:'9007199254741003',multipleOf:'3'},{'x-poolster-integer':'bigint'}),
  WideString:integer({minimum:'9007199254740993',maximum:'9007199254741003'},{'x-poolster-integer':'string'}),
+ Annotated:string({example:'hello',examples:['hello'],default:'hello',deprecated:false,readOnly:true,writeOnly:false,minLength:3}),
+ Unsupported:string({madeUpValidation:true}),
  Pattern:string({pattern:'^[A-Z]{4}$',minLength:4,maxLength:4}),
  Unique:{kind:{kind:'array',items:integer({minimum:'0',maximum:'10'})},constraints:{minItems:5,maxItems:5,uniqueItems:true}},
  Nullable:{kind:{kind:'any_of',variants:[string(),{kind:{kind:'null'}}]}},
@@ -58,6 +60,9 @@ const schemas = {
 };
 const runtime=createFixtureRuntime(schemas,{seed:42,max_depth:6,max_attempts:64,overrides:{}});
 const sequence=()=>Array.from({length:30},()=>[runtime.create('Negative'),String(runtime.create('Wide')),runtime.create('WideString'),runtime.create('Pattern')]);
+assert(runtime.create('Annotated').length>=3);
+assert.throws(()=>runtime.create('Unsupported'),/custom generator/);
+runtime.seed(42);
 const first=sequence();runtime.seed(42);assert.deepEqual(sequence(),first);
 for(let i=0;i<100;i++){
  const negative=runtime.create('Negative');assert(negative<=-100000);assert(negative%7===0);

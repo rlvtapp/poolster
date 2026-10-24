@@ -46,7 +46,7 @@ pub(super) fn generate(plugin: &Query, cx: &mut PluginContext<'_, TypeScript>) -
     match plugin.framework {
         QueryFramework::React | QueryFramework::Vue => writeln!(
             source,
-            "import {{ useQuery, useMutation, queryOptions, type QueryClient }} from {dependency:?};"
+            "import {{ useQuery as __poolsterUseQuery, useMutation as __poolsterUseMutation, queryOptions, type QueryClient }} from {dependency:?};"
         )?,
         QueryFramework::Swr => writeln!(
             source,
@@ -109,11 +109,11 @@ pub(super) fn generate(plugin: &Query, cx: &mut PluginContext<'_, TypeScript>) -
         };
         let query_hook = if matches!(plugin.framework, QueryFramework::Vue) {
             format!(
-                "export function {hook}(transport: GraphqlTransport, cacheScope: MaybeRefOrGetter<string>, variables: MaybeRefOrGetter<{vars}>, request: Omit<RequestOptions,'signal'> = {{}}, queryClient?: QueryClient): UseQueryReturnType<GraphqlResult<{result}>, Error> {{ return useQuery(computed(() => {options}(transport,toValue(cacheScope),toValue(variables),request)), queryClient); }}"
+                "export function {hook}(transport: GraphqlTransport, cacheScope: MaybeRefOrGetter<string>, variables: MaybeRefOrGetter<{vars}>, request: Omit<RequestOptions,'signal'> = {{}}, queryClient?: QueryClient): UseQueryReturnType<GraphqlResult<{result}>, Error> {{ return __poolsterUseQuery(computed(() => {options}(transport,toValue(cacheScope),toValue(variables),request)), queryClient); }}"
             )
         } else {
             format!(
-                "export function {hook}(transport: GraphqlTransport, cacheScope: string, variables: {vars}, request: Omit<RequestOptions,'signal'> = {{}}, queryClient?: QueryClient) {{ return useQuery({options}(transport,cacheScope,variables,request), queryClient); }}"
+                "export function {hook}(transport: GraphqlTransport, cacheScope: string, variables: {vars}, request: Omit<RequestOptions,'signal'> = {{}}, queryClient?: QueryClient) {{ return __poolsterUseQuery({options}(transport,cacheScope,variables,request), queryClient); }}"
             )
         };
         let query_argument = if matches!(plugin.framework, QueryFramework::Vue) {
@@ -137,7 +137,7 @@ pub(super) fn generate(plugin: &Query, cx: &mut PluginContext<'_, TypeScript>) -
             (GraphqlOperationKind::Mutation, QueryFramework::React | QueryFramework::Vue) => {
                 writeln!(
                     source,
-                    "export function {options}(transport: GraphqlTransport, cacheScope: string, request: RequestOptions = {{}}) {{\n return {{ mutationKey: graphqlKey(transport,cacheScope,{key}), retry: false as const, mutationFn: (variables: {vars}): Promise<GraphqlResult<{result}>> => {callable}(transport,variables,request) }};\n}}\nexport function {hook}(transport: GraphqlTransport, cacheScope: string, request: RequestOptions = {{}}, queryClient?: QueryClient){mutation_return} {{ return useMutation({options}(transport,cacheScope,request), queryClient); }}"
+                    "export function {options}(transport: GraphqlTransport, cacheScope: string, request: RequestOptions = {{}}) {{\n return {{ mutationKey: graphqlKey(transport,cacheScope,{key}), retry: false as const, mutationFn: (variables: {vars}): Promise<GraphqlResult<{result}>> => {callable}(transport,variables,request) }};\n}}\nexport function {hook}(transport: GraphqlTransport, cacheScope: string, request: RequestOptions = {{}}, queryClient?: QueryClient){mutation_return} {{ return __poolsterUseMutation({options}(transport,cacheScope,request), queryClient); }}"
                 )?;
             }
             (GraphqlOperationKind::Query, QueryFramework::Swr) => {
@@ -161,12 +161,11 @@ pub(super) fn generate(plugin: &Query, cx: &mut PluginContext<'_, TypeScript>) -
     }
     cx.files.emit(GeneratedFile::new(target, source)?)?;
     cx.workspace
-        .export_namespace(&plugin.output, &crate::symbols::camel(&plugin.output))?;
-    cx.workspace.peer_dependency(dependency, version)?;
+        .optional_integration(&plugin.output, dependency, version)?;
     if matches!(plugin.framework, QueryFramework::Vue) {
-        cx.workspace.peer_dependency("vue", "3.5.43")?;
+        cx.workspace.optional_peer_dependency("vue", "3.5.43")?;
     } else {
-        cx.workspace.peer_dependency("react", "19.3.0")?;
+        cx.workspace.optional_peer_dependency("react", "19.3.0")?;
         cx.workspace.dev_dependency("@types/react", "19.3.0")?;
     }
     Ok(())

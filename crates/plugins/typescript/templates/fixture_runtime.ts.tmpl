@@ -124,6 +124,8 @@ export function createFixtureRuntime(
   };
   const constraints = (value: unknown, schema: FixtureSchema): boolean => {
     for (const [keyword, bound] of Object.entries(schema.constraints ?? {})) {
+      // OpenAPI / JSON Schema annotations do not constrain the generated value.
+      if (["example", "examples", "default", "deprecated", "readOnly", "writeOnly", "title", "description", "$comment"].includes(keyword)) continue;
       if (!supported.has(keyword))
         throw new Error(`Fixture constraint requires a custom generator: ${keyword}`);
       let numeric: number | bigint | undefined;

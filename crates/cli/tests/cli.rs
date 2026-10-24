@@ -309,7 +309,9 @@ fn json_config_generates_sdks_and_all_selected_artifacts() {
         manifest["peerDependencies"]["@tanstack/react-query"],
         "^5.0.0"
     );
-    assert_eq!(manifest["dependencies"]["msw"], "^2.0.0");
+    assert_eq!(manifest["peerDependencies"]["msw"], "^2.0.0");
+    assert_eq!(manifest["peerDependenciesMeta"]["msw"]["optional"], true);
+    assert!(manifest["dependencies"]["msw"].is_null());
     assert_eq!(manifest["devDependencies"]["cypress"], "^15.0.0");
     let lock: serde_json::Value = serde_json::from_str(
         &fs::read_to_string(output.join(".poolster/generation.lock.json")).unwrap(),

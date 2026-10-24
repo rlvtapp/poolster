@@ -237,3 +237,20 @@ large schema or operation may exceed the budget. Recursive Zod schemas use
 explicit model types and lazy references across chunks. Recursive Faker factories
 limit optional branches, arrays and nullable recursion; a required cycle with no
 finite fixture throws a clear error rather than exhausting the call stack.
+
+## Optional TypeScript entry points
+
+Native query, Faker, and MSW plugins expose explicit package subpaths instead of
+re-exporting integrations from the core `index.ts`. Their libraries are optional
+peer dependencies: install the libraries for the integrations you use. For example,
+with CLI plugin outputs `react-query`, `fixtures`, and `mocks`, import from
+`@your/sdk/react-query/react-query`, `@your/sdk/fixtures/faker`, and
+`@your/sdk/mocks/msw`. The package manifest lists the exact generated entry points.
+This lets Node load the core client without framework or mock dependencies.
+Zod remains a runtime dependency when generated validation is included.
+
+MSW handlers match the declared API pathname on any origin in browser workers and
+Node `setupServer`. If an application mocks several services sharing a pathname,
+select the relevant handler set for that service. Faker treats schema annotations
+(such as `example` and `default`) as metadata; unsupported validation keywords still
+require a custom generator and fail explicitly.

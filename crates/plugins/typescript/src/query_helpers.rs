@@ -156,7 +156,7 @@ pub(crate) fn render(
     };
     let _ = writeln!(
         out,
-        "export function use{pascal}Infinite<TData = {data}>(options: Parameters<typeof {function}>[0], query: {pascal}InfiniteOverrides<TData> = {{}}, scope: PoolsterQueryScope = 'default', pagination: PoolsterPaginationOptions = {{}}){returns} {{ return useInfiniteQuery({name}InfiniteOptions(options, query, scope, pagination)); }}\nexport function {name}InfinitePrefetch(queryClient: QueryClient, options: Parameters<typeof {function}>[0], scope: PoolsterQueryScope = 'default', pagination: PoolsterPaginationOptions = {{}}) {{ return queryClient.prefetchInfiniteQuery({name}InfiniteOptions(options, {{}}, scope, pagination)); }}"
+        "export function use{pascal}Infinite<TData = {data}>(options: Parameters<typeof {function}>[0], query: {pascal}InfiniteOverrides<TData> = {{}}, scope: PoolsterQueryScope = 'default', pagination: PoolsterPaginationOptions = {{}}){returns} {{ return __poolsterUseInfiniteQuery({name}InfiniteOptions(options, query, scope, pagination)); }}\nexport function {name}InfinitePrefetch(queryClient: QueryClient, options: Parameters<typeof {function}>[0], scope: PoolsterQueryScope = 'default', pagination: PoolsterPaginationOptions = {{}}) {{ return queryClient.prefetchInfiniteQuery({name}InfiniteOptions(options, {{}}, scope, pagination)); }}"
     );
     if framework == "@tanstack/react-query" {
         let _ = writeln!(

@@ -40,7 +40,7 @@ test('Rust plugins selected from JS emit meaningful, connected SDK output', asyn
   assert.match(faker, /"Widget":/);
 
   const msw = file(result, 'web/extensions/msw.ts');
-  assert.match(msw, /http\.all\("\/widgets\/:widgetId"/);
+  assert.match(msw, /http\.all\("\*\/widgets\/:widgetId"/);
   assert.match(msw, /if \(request\.method !== "GET"\)/);
   assert.match(msw, /if \(request\.method !== "POST"\)/);
 
@@ -57,8 +57,10 @@ test('Rust plugins selected from JS emit meaningful, connected SDK output', asyn
   const manifest = JSON.parse(file(result, 'web/package.json'));
   assert.equal(manifest.name, '@example/widgets');
   assert.equal(manifest.dependencies.zod, '^4.0.0');
-  assert.equal(manifest.dependencies['@faker-js/faker'], '^9.0.0');
-  assert.equal(manifest.dependencies.msw, '^2.0.0');
+  assert.equal(manifest.peerDependencies['@faker-js/faker'], '^9.0.0');
+  assert.equal(manifest.peerDependencies.msw, '^2.0.0');
+  assert.equal(manifest.peerDependenciesMeta['@faker-js/faker'].optional, true);
+  assert.equal(manifest.peerDependenciesMeta.msw.optional, true);
   assert.equal(manifest.devDependencies.cypress, '^15.0.0');
   assert.equal(manifest.peerDependencies['@tanstack/react-query'], '^5.0.0');
   assert.equal(manifest.peerDependencies['@tanstack/vue-query'], '^5.0.0');

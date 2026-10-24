@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Bug Fixes
+
+- Alias TanStack framework and operation imports to prevent generated query hooks
+  from colliding with operations named `query`, `mutation`, or `infiniteQuery`.
+- Treat OpenAPI examples and other schema annotations as Faker metadata while
+  continuing to reject unsupported validation constraints.
+- Match MSW handlers across browser and Node request origins.
+- Normalize leading TypeScript acronyms consistently, restoring `sdk.crm`.
+- Preserve configured Go module import paths.
+- Expose query and mock integrations through explicit package subpaths with
+  optional peer dependencies, allowing core SDK imports without those libraries.
+
+
 ## [0.5.0-alpha.3](https://github.com/rlvtapp/poolster/compare/v0.5.0-alpha.2...v0.5.0-alpha.3) (2026-10-23)
 
 

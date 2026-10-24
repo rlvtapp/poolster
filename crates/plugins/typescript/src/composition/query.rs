@@ -261,6 +261,10 @@ impl Plugin<TypeScript> for Query {
                         .replace(&old, &serde_json::to_string(&symbol.import_from(&target)?)?);
                     if symbol.name != function {
                         contents = contents.replace(
+                            &format!("import {{ {function} as "),
+                            &format!("import {{ {} as ", symbol.name),
+                        );
+                        contents = contents.replace(
                             &format!("import {{ {function} }}"),
                             &format!("import {{ {} as {function} }}", symbol.name),
                         );
@@ -324,9 +328,8 @@ impl Plugin<TypeScript> for Query {
         if split {
             emit_barrel(cx, &self.output, &barrel)?;
         }
-        cx.workspace.peer_dependency(dependency, version)?;
         cx.workspace
-            .export_namespace(&self.output, &sdk::lower_camel_identifier(&self.output))
+            .optional_integration(&self.output, dependency, version)
     }
 }
 

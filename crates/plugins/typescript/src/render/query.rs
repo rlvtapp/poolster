@@ -89,7 +89,7 @@ fn render_hooks(api: &Api, options: &ArtifactOptions, framework: &str, swr: bool
         )
     } else {
         format!(
-            "{NOTICE}\nimport {{ useMutation, useQuery, type QueryObserverOptions, type MutationObserverOptions, type QueryFunctionContext, useInfiniteQuery, type InfiniteQueryObserverOptions, type InfiniteData, type QueryClient }} from '{framework}';\n"
+            "{NOTICE}\nimport {{ useMutation as __poolsterUseMutation, useQuery as __poolsterUseQuery, type QueryObserverOptions, type MutationObserverOptions, type QueryFunctionContext, useInfiniteQuery as __poolsterUseInfiniteQuery, type InfiniteQueryObserverOptions, type InfiniteData, type QueryClient }} from '{framework}';\n"
         )
     };
     if !swr && framework == "@tanstack/react-query" {
@@ -137,9 +137,34 @@ pub(crate) fn render_query_operation(
         "{}/{group}{function}",
         options.clients_import.trim_end_matches('/')
     );
+    // Operation imports must also avoid parameters in the generated helpers.
+    let imported = function;
+    let function = if matches!(
+        imported.as_str(),
+        "query"
+            | "mutation"
+            | "options"
+            | "scope"
+            | "config"
+            | "pagination"
+            | "context"
+            | "queryClient"
+    ) {
+        format!(
+            "__poolsterOperation{}",
+            crate::symbols::identifier(&imported)
+        )
+    } else {
+        imported.clone()
+    };
+    let binding = if function == imported {
+        imported
+    } else {
+        format!("{imported} as {function}")
+    };
     let _ = writeln!(
         output,
-        "import {{ {function} }} from {};",
+        "import {{ {binding} }} from {};",
         js_string(&import)
     );
     if read {
@@ -165,7 +190,7 @@ pub(crate) fn render_query_operation(
             };
             let _ = writeln!(
                 output,
-                "export type {pascal}QueryOverrides<TData = Awaited<ReturnType<typeof {function}>>> = Omit<{query_type}, 'queryKey' | 'queryFn'>;\nexport function {name}QueryOptions<TData = Awaited<ReturnType<typeof {function}>>>(options: Parameters<typeof {function}>[0], query: {pascal}QueryOverrides<TData> = {{}}, scope: PoolsterQueryScope = 'default'): {pascal}QueryOverrides<TData> & {{ queryKey: ReturnType<typeof {name}QueryKey>; queryFn: (context: QueryFunctionContext<ReturnType<typeof {name}QueryKey>>) => Promise<Awaited<ReturnType<typeof {function}>>> }} {{\n  return {{ ...query, queryKey: {name}QueryKey(options, scope), queryFn: (context: QueryFunctionContext<ReturnType<typeof {name}QueryKey>>) => __poolsterQueryCall(options, context.signal, {function}) }};\n}}\nexport function use{pascal}<TData = Awaited<ReturnType<typeof {function}>>>(options: Parameters<typeof {function}>[0], query: {pascal}QueryOverrides<TData> = {{}}, scope: PoolsterQueryScope = 'default') {{ return useQuery({name}QueryOptions(options, query, scope)); }}\n"
+                "export type {pascal}QueryOverrides<TData = Awaited<ReturnType<typeof {function}>>> = Omit<{query_type}, 'queryKey' | 'queryFn'>;\nexport function {name}QueryOptions<TData = Awaited<ReturnType<typeof {function}>>>(options: Parameters<typeof {function}>[0], query: {pascal}QueryOverrides<TData> = {{}}, scope: PoolsterQueryScope = 'default'): {pascal}QueryOverrides<TData> & {{ queryKey: ReturnType<typeof {name}QueryKey>; queryFn: (context: QueryFunctionContext<ReturnType<typeof {name}QueryKey>>) => Promise<Awaited<ReturnType<typeof {function}>>> }} {{\n  return {{ ...query, queryKey: {name}QueryKey(options, scope), queryFn: (context: QueryFunctionContext<ReturnType<typeof {name}QueryKey>>) => __poolsterQueryCall(options, context.signal, {function}) }};\n}}\nexport function use{pascal}<TData = Awaited<ReturnType<typeof {function}>>>(options: Parameters<typeof {function}>[0], query: {pascal}QueryOverrides<TData> = {{}}, scope: PoolsterQueryScope = 'default') {{ return __poolsterUseQuery({name}QueryOptions(options, query, scope)); }}\n"
             );
         }
     } else if swr {
@@ -182,7 +207,7 @@ pub(crate) fn render_query_operation(
         };
         let _ = writeln!(
             output,
-            "export const {name}MutationKey = () => [{}] as const;\nexport type {pascal}MutationOverrides<TContext = unknown> = Omit<MutationObserverOptions<Awaited<ReturnType<typeof {function}>>, Error, Parameters<typeof {function}>[0], TContext>, 'mutationFn'>;\nexport function {name}MutationOptions<TContext = unknown>(mutation: {pascal}MutationOverrides<TContext> = {{}}): {pascal}MutationOverrides<TContext> & {{ mutationKey: readonly unknown[]; mutationFn: (options: Parameters<typeof {function}>[0]) => ReturnType<typeof {function}> }} {{ return {{ ...mutation, mutationKey: mutation.mutationKey ?? {name}MutationKey(), mutationFn: (options: Parameters<typeof {function}>[0]) => {function}(options) }}; }}\nexport function use{pascal}<TContext = unknown>(mutation: {pascal}MutationOverrides<TContext> = {{}}){hook_return} {{ return useMutation({name}MutationOptions(mutation)); }}\n",
+            "export const {name}MutationKey = () => [{}] as const;\nexport type {pascal}MutationOverrides<TContext = unknown> = Omit<MutationObserverOptions<Awaited<ReturnType<typeof {function}>>, Error, Parameters<typeof {function}>[0], TContext>, 'mutationFn'>;\nexport function {name}MutationOptions<TContext = unknown>(mutation: {pascal}MutationOverrides<TContext> = {{}}): {pascal}MutationOverrides<TContext> & {{ mutationKey: readonly unknown[]; mutationFn: (options: Parameters<typeof {function}>[0]) => ReturnType<typeof {function}> }} {{ return {{ ...mutation, mutationKey: mutation.mutationKey ?? {name}MutationKey(), mutationFn: (options: Parameters<typeof {function}>[0]) => {function}(options) }}; }}\nexport function use{pascal}<TContext = unknown>(mutation: {pascal}MutationOverrides<TContext> = {{}}){hook_return} {{ return __poolsterUseMutation({name}MutationOptions(mutation)); }}\n",
             js_string(identity)
         );
     }

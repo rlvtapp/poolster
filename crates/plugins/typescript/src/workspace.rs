@@ -67,6 +67,8 @@ pub struct Workspace {
     namespace_exports: BTreeMap<String, String>,
     dev_dependencies: BTreeMap<String, String>,
     peer_dependencies: BTreeMap<String, String>,
+    optional_integrations: BTreeMap<String, String>,
+    optional_peers: std::collections::BTreeSet<String>,
 }
 impl Workspace {
     pub fn declare(&mut self, module: impl AsRef<Path>, name: &str, owner: &str) -> Result<Symbol> {
@@ -119,6 +121,26 @@ impl Workspace {
         range: impl Into<String>,
     ) -> Result<()> {
         register_dependency(&mut self.peer_dependencies, name.into(), range.into())
+    }
+
+    pub fn optional_peer_dependency(&mut self, dependency: &str, range: &str) -> Result<()> {
+        self.peer_dependency(dependency, range)?;
+        self.optional_peers.insert(dependency.into());
+        Ok(())
+    }
+
+    /// Optional integrations are loaded only through their explicit package subpath.
+    pub fn optional_integration(
+        &mut self,
+        module: &str,
+        dependency: &str,
+        range: &str,
+    ) -> Result<()> {
+        self.optional_peer_dependency(dependency, range)?;
+        let path = GeneratedFile::new(module, "")?.path;
+        self.optional_integrations
+            .insert(path.to_string_lossy().replace('\\', "/"), dependency.into());
+        Ok(())
     }
 
     /// Adds a public module to the package barrel before finalization.
@@ -209,6 +231,22 @@ pub(crate) fn finalize(cx: &mut FinalizeContext<'_, TypeScript>) -> Result<()> {
                 }
             }
             value[field][name] = serde_json::Value::String(range.clone());
+        }
+        *manifest = format!("{}\n", serde_json::to_string_pretty(&value)?);
+    }
+    if !cx.workspace.optional_peers.is_empty() {
+        let manifest = files.get_mut(Path::new("package.json")).ok_or_else(|| {
+            anyhow::anyhow!("optional integrations require a package manifest provider")
+        })?;
+        let mut value: serde_json::Value = serde_json::from_str(manifest)?;
+        for dependency in &cx.workspace.optional_peers {
+            value["peerDependenciesMeta"][dependency]["optional"] = true.into();
+        }
+        for module in cx.workspace.optional_integrations.keys() {
+            value["exports"][format!("./{module}")] = serde_json::json!({
+                "types": format!("./dist/{module}.d.ts"),
+                "import": format!("./dist/{module}.js")
+            });
         }
         *manifest = format!("{}\n", serde_json::to_string_pretty(&value)?);
     }
