@@ -1,11 +1,13 @@
 # Poolster plugin support matrix
 
-Implementation audited **12 October 2026**; alpha.2 published **13 October 2026**.
+Stable release: **0.5.0**, promoting the alpha.4 fixes. The capability audit
+below was performed **12 October 2026**; dated verification records retain their
+original versions. See the [0.5.0 release notes](releases/0.5.0.md).
 
 For runtime behavior and raw/flat/idiomatic examples, see the
 [per-language capability pages](reference/languages/README.md).
-Released **13 October 2026** as [`0.5.0-alpha.2`](https://github.com/rlvtapp/poolster/releases/tag/v0.5.0-alpha.2).
-All 33 npm packages and 24 public Rust crates are published; PyPI uses `0.5.0a2`.
+Install the stable `0.5.0` npm packages, Rust crates and Python launcher using
+the [quickstarts](README.md).
 This matrix describes implemented generation, not parser availability.
 The [generated SDK specification](specifications/generated-sdk.md) defines target
 requirements for capabilities, API styles, source layout, naming and formatting;

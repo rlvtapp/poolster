@@ -15,6 +15,8 @@ pub(crate) fn build(options: &Generate, input: &NativeInputConfig) -> Result<Pro
             let common = Common {
                 package_version: Some(version.unwrap_or(&options.version).to_owned()),
                 source_quality: package_config.and_then(|package| package.source_quality.clone()),
+                package_authors: package_config.and_then(|package| package.authors.clone()),
+                package_license: package_config.and_then(|package| package.license.clone()),
                 ..Default::default()
             };
             profiles =
@@ -43,6 +45,8 @@ pub(crate) fn build(options: &Generate, input: &NativeInputConfig) -> Result<Pro
         let common = Common {
             package_version: Some(version.unwrap_or(&options.version).to_owned()),
             source_quality: package_config.and_then(|package| package.source_quality.clone()),
+            package_authors: package_config.and_then(|package| package.authors.clone()),
+            package_license: package_config.and_then(|package| package.license.clone()),
             ..Default::default()
         };
         let old = std::mem::replace(&mut profiles, ProfileSet::new("."));

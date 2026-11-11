@@ -58,6 +58,22 @@ async function npmFixture(t, { published = false, filename = 'package.tgz', entr
   return { ...fixture_, bytes, manifest, state, dependencies: { run, fetch, sleep: async () => {} } };
 }
 
+test('successful npm uploads wait for asynchronous registry processing without uploading again', async t => {
+  const fixture_ = await npmFixture(t);
+  const plan = await preparePublish(fixture_.inputs, fixture_.dependencies);
+  let lookups = 0;
+  const delays = [];
+  const result = await publishPrepared(plan, {
+    ...fixture_.dependencies,
+    fetch: async url => ++lookups <= 4 ? response(404) : fixture_.dependencies.fetch(url),
+    sleep: async ms => delays.push(ms),
+  });
+  assert.equal(result.version, '1.2.3');
+  assert.equal(fixture_.state.publishCalls, 1);
+  assert.equal(lookups, 5);
+  assert.deepEqual(delays, [1000, 2000, 3000, 4000]);
+});
+
 test('npm packs and publishes exact bytes; shell characters in package path stay literal', async t => {
   const fixture_ = await npmFixture(t);
   const plan = await preparePublish(fixture_.inputs, fixture_.dependencies);

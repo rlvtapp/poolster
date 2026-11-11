@@ -2,15 +2,15 @@
 
 ← [Rust SDK](README.md)
 
-Add the published alpha.2 crates you use:
+Add the stable 0.5.0 crates you use:
 
 ```toml
 [dependencies]
 anyhow = "1"
-poolster = "=0.5.0-alpha.3"
-poolster-core = "=0.5.0-alpha.3"
-poolster-input-openapi = "=0.5.0-alpha.3"
-poolster-plugin-rust = "=0.5.0-alpha.3"
+poolster = "=0.5.0"
+poolster-core = "=0.5.0"
+poolster-input-openapi = "=0.5.0"
+poolster-plugin-rust = "=0.5.0"
 ```
 
 ## Generate a package

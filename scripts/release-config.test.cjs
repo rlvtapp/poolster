@@ -14,6 +14,12 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const config = JSON.parse(read('.github/release-please-config.json')).packages['.'];
 const version = Version.parse('0.5.1');
 
+test('stable releases use GitHub release metadata and the npm latest channel', () => {
+  assert.equal(config.prerelease, false);
+  const publish = read('.github/workflows/npm-publish.yml');
+  assert.match(publish, /\*\) echo "NPM_DIST_TAG=latest"/);
+});
+
 test('release updates inherited workspace and lock versions without changing dependencies', () => {
   assert.equal(config['release-type'], 'simple');
   assert.equal(read(config['version-file']).trim(), toml.parse(read('Cargo.toml')).workspace.package.version);

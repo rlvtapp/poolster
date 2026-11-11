@@ -1,6 +1,8 @@
 # Verify an SDK before shipping it
 
-Release status: **0.5.0-alpha.3 published 23 October 2026**. The dated records
+Release target: **0.5.0 stable**, based on the published alpha.4 release.
+The alpha.4 publication and four-platform clean-install workflows passed on
+24 October 2026. Stable publication is tracked by the release workflow. The dated records
 below preserve historical test counts, ignored tests and conditions. References
 to work being unreleased describe its status at the time of those checks.
 

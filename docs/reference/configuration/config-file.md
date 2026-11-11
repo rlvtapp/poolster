@@ -264,6 +264,8 @@ Every package contains:
 | `name` | No | Ecosystem package identity for SDK languages. |
 | `client_style` | No | Package-level `namespaced` or `flat` override. |
 | `version` | No | Independent SDK package version. |
+| `authors` | No | SDK author names for Ruby gems. Omission uses the buildable placeholder `SDK authors`; supply actual maintainers before distribution. |
+| `license` | No | Explicit SDK license expression for PHP Composer packages, e.g. your SPDX expression or `proprietary`. Omitted by default; neither the API license nor Poolster’s license is assumed to license your SDK. |
 | `release` | No | Optional build/test/publisher metadata; see [SDK automation](../automation/sdk-automation.md). |
 | `plugins` | Yes | Plugins emitted into this package. Names are validated; unknown names are errors. |
 
@@ -515,3 +517,21 @@ validates its RBS signatures. These are bounded audit fixtures, not a claim that
 every public API contract was formatted or that all SDK specification requirements
 are certified. The large HTTP corpus separately records size warnings and native
 checks; its 128 KiB warnings do not change compiler success into a failure.
+
+### Package publishing metadata
+
+Set `authors` on a Ruby package and `license` on a PHP package in `packages`.
+For example, `"authors": ["Your SDK team"]` supplies gem author metadata; set
+`license` to the SDK project's actual license expression. Empty author arrays,
+blank author names, and blank license values are rejected by these generators.
+Ruby defaults to the explicit placeholder `SDK authors` so `gem build` succeeds;
+replace it with the real maintainers. PHP leaves the license unspecified until
+supplied, so Composer may still warn for an unlicensed package.
+
+Embedded Node generation accepts the same `authors` and `license` options on
+`pluginRuby` and `pluginPhp`. Rust composition uses
+`Common::default().package_authors(["Your SDK team"])` and
+`Common::default().package_license(license_expression)`.
+Metadata applies to HTTP, GraphQL, and event/model packages of these languages.
+C# packages that generate a README include it in the NuGet archive and set
+`PackageReadmeFile` automatically; no author-supplied README setting is required.

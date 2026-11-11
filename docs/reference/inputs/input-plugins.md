@@ -21,7 +21,7 @@ Source -> InputPlugin -> InputContract -> InputProvider<C> -> Plugin<L> -> files
 All six bundled inputs publish native contracts and available building blocks.
 OpenAPI publishes `AdaptedApi` for existing HTTP generators. GraphQL operations,
 RPC services, events and workflows use their own owned contracts, retaining native
-documents for details outside them. Published alpha.2 supports GraphQL clients
+documents for details outside them. Stable 0.5.0 supports GraphQL clients
 in all ten SDK languages,
 Protobuf/gRPC in Go, Python and TypeScript, AsyncAPI models and Kafka clients in
 all ten SDK languages, and source-resolved Arazzo TypeScript runners. Each supports

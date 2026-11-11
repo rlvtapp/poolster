@@ -14,6 +14,8 @@ pub(super) fn append(
     let common = Common {
         package_version: package.version.clone(),
         source_quality: package.source_quality.clone(),
+        package_authors: package.authors.clone(),
+        package_license: package.license.clone(),
         ..Default::default()
     };
     if ["postman", "rust-cli", "typescript-cli"].contains(&package.language.as_str()) {

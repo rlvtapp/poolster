@@ -140,6 +140,7 @@ impl Plugin<Php> for Graphql {
             let manifest = tree.get("composer.json").unwrap().replace("0.0.0", version);
             tree.replace(GeneratedFile::new("composer.json", manifest)?)?;
         }
+        crate::package::apply_package_license(&mut tree, cx.common.package_license.as_deref())?;
         cx.files.append(tree)?;
         cx.publish(GraphqlClient { methods })
     }

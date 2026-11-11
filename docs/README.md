@@ -24,9 +24,8 @@ Generate packages from API contracts. Start with the interface you use.
 
 ## Support and reference
 
-These guides describe the published [0.5.0-alpha.3](https://github.com/rlvtapp/poolster/releases/tag/v0.5.0-alpha.3)
-features and their documented limits. Install the prerelease explicitly; alpha.1
-does not include every feature shown here.
+These guides describe the published [0.5.0](https://github.com/rlvtapp/poolster/releases/tag/v0.5.0)
+features and their documented limits. Use the stable packages shown in the quickstarts.
 
 [Generated SDK specification](specifications/generated-sdk.md) ·
 [Per-language features and API examples](reference/languages/README.md) ·

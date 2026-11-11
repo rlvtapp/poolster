@@ -21,6 +21,10 @@ pub(super) struct SdkPackage {
     #[serde(default)]
     pub(super) version: Option<String>,
     #[serde(default)]
+    pub(super) authors: Option<Vec<String>>,
+    #[serde(default)]
+    pub(super) license: Option<String>,
+    #[serde(default)]
     pub(super) style: Option<String>,
     #[serde(default)]
     pub(super) scalars: std::collections::BTreeMap<String, ts::GraphqlScalarMapping>,
@@ -99,6 +103,8 @@ impl QueryOptions {
 pub(super) fn package_common(package: &SdkPackage) -> AnyResult<Common> {
     let mut common = Common {
         source_quality: package.source_quality.clone(),
+        package_authors: package.authors.clone(),
+        package_license: package.license.clone(),
         ..Default::default()
     };
     if let Some(style) = package.style.as_deref() {

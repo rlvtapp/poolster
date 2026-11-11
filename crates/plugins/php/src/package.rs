@@ -65,14 +65,16 @@ impl Plugin<Php> for Sdk {
     }
     fn generate(&self, cx: &mut PluginContext<'_, Php>) -> Result<()> {
         self.http.run(cx, |cx| {
-            cx.files.append(crate::render_sdk(
+            let mut tree = crate::render_sdk(
                 cx.api,
                 ".",
                 cx.settings.package_name.as_deref(),
                 self.client_style
                     .or(cx.common.client_style)
                     .unwrap_or(SdkClientStyle::Namespaced),
-            )?)
+            )?;
+            apply_package_license(&mut tree, cx.common.package_license.as_deref())?;
+            cx.files.append(tree)
         })
     }
     fn requires(&self) -> Vec<poolster_core::engine::Requirement> {
@@ -111,4 +113,35 @@ impl Sdk {
         self.http = self.http.input_endpoints(endpoints);
         self
     }
+}
+
+/// Apply only the SDK author's explicit license; API licenses need not license the SDK.
+pub(crate) fn licensed_manifest(source: &str, license: Option<&str>) -> Result<String> {
+    let Some(license) = license else {
+        return Ok(source.to_owned());
+    };
+    anyhow::ensure!(
+        !license.trim().is_empty() && !license.contains('\0'),
+        "PHP package license must not be empty"
+    );
+    let mut manifest: serde_json::Value = serde_json::from_str(source)?;
+    manifest["license"] = license.into();
+    Ok(serde_json::to_string_pretty(&manifest)? + "\n")
+}
+
+pub(crate) fn apply_package_license(
+    tree: &mut poolster_core::GeneratedTree,
+    license: Option<&str>,
+) -> Result<()> {
+    if license.is_some() {
+        let source = tree
+            .get("composer.json")
+            .ok_or_else(|| anyhow::anyhow!("PHP package is missing composer.json"))?;
+        let manifest = licensed_manifest(source, license)?;
+        tree.replace(poolster_core::GeneratedFile::new(
+            "composer.json",
+            manifest,
+        )?)?;
+    }
+    Ok(())
 }

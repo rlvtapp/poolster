@@ -91,19 +91,26 @@ impl Plugin<Ruby> for Sdk {
         );
         cx.workspace.native_api = true;
         self.http.run(cx, |cx| {
-            cx.files.append(crate::render_sdk(
+            let mut tree = crate::render_sdk(
                 cx.api,
                 ".",
                 cx.settings.package_name.as_deref(),
                 self.client_style
                     .or(cx.common.client_style)
                     .unwrap_or(SdkClientStyle::Namespaced),
-            )?)?;
+            )?;
             let gem = cx
                 .settings
                 .package_name
                 .clone()
+                .filter(|name| !name.trim().is_empty())
                 .unwrap_or_else(|| format!("{}-sdk", crate::kebab_case(&cx.api.name)));
+            let authors = crate::author_literals(cx.common.package_authors.as_deref())?;
+            tree.replace(poolster_core::GeneratedFile::new(
+                format!("./{gem}.gemspec"),
+                crate::gemspec_with_authors(cx.api, &gem, &authors),
+            )?)?;
+            cx.files.append(tree)?;
             let symbols = crate::symbols::model_symbols(cx.api);
             cx.publish(RubyModels {
                 module: crate::pascal_case(&gem),

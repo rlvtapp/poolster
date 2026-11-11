@@ -67,16 +67,18 @@ function sdkPackage(options) {
   if (typeof options.language !== 'string' || !options.language) {
     throw new TypeError('sdk language is required');
   }
-  const allowed = new Set(['language', 'mode', 'path', 'name', 'version', 'style', 'transport', 'clientName', 'raw', 'jobs', 'scalars', 'groups', 'contracts', 'contractOptions', 'endpoint', 'commandName', 'subscriptions', 'sourceQuality']);
+  const allowed = new Set(['language', 'mode', 'path', 'name', 'version', 'style', 'transport', 'clientName', 'raw', 'jobs', 'scalars', 'groups', 'contracts', 'contractOptions', 'endpoint', 'commandName', 'subscriptions', 'sourceQuality', 'authors', 'license']);
   for (const key of Object.keys(options)) {
     if (!allowed.has(key)) throw new TypeError(`unknown sdk option ${key}`);
   }
   if (!['typescript', 'rust', 'go', 'python', 'php', 'symfony', 'java', 'csharp', 'elixir', 'ruby', 'swift', 'postman', 'rust-cli', 'typescript-cli'].includes(options.language)) {
     throw new TypeError(`unsupported SDK language ${options.language}`);
   }
+  if (options.authors != null && (!Array.isArray(options.authors) || !options.authors.length || options.authors.some(author => typeof author !== 'string' || !author.trim() || author.includes('\0')))) throw new TypeError('authors must contain nonempty author names');
+  if (options.license != null && (typeof options.license !== 'string' || !options.license.trim() || options.license.includes('\0'))) throw new TypeError('license must be a nonempty expression');
   if (options.mode != null && !['sdk','models'].includes(options.mode)) throw new TypeError('sdk mode must be sdk or models');
   if (options.mode === 'models') {
-    const supported = new Set(['language','path','name','version','mode','sourceQuality']);
+    const supported = new Set(['language','path','name','version','mode','sourceQuality','authors','license']);
     for (const [key,value] of Object.entries(options)) if (!supported.has(key) && value !== undefined) throw new TypeError(`models mode does not support ${key}; use mode sdk for styles, transports and runtime options`);
   }
   if (options.contractOptions != null) {
@@ -152,9 +154,9 @@ function sdkPackage(options) {
       }
     }
   }
-  const { language, path: outputPath = language, name, version, style, transport, clientName, raw, jobs, scalars, groups, contracts, contractOptions, endpoint, commandName, subscriptions, sourceQuality } = options;
+  const { language, path: outputPath = language, name, version, style, transport, clientName, raw, jobs, scalars, groups, contracts, contractOptions, endpoint, commandName, subscriptions, sourceQuality, authors, license } = options;
   if (typeof outputPath !== 'string' || !outputPath) throw new TypeError('sdk path must be a nonempty string');
-  return { language, ...(options.mode != null ? { mode: options.mode } : {}), path: outputPath, name, version, style, transport, clientName, raw, jobs, scalars, groups, contracts, contractOptions, endpoint, commandName, subscriptions, sourceQuality };
+  return { language, ...(options.mode != null ? { mode: options.mode } : {}), path: outputPath, name, version, style, transport, clientName, raw, jobs, scalars, groups, contracts, contractOptions, endpoint, commandName, subscriptions, sourceQuality, authors, license };
 }
 
 function normalizedPackagePath(value) {

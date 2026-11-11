@@ -5,7 +5,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const test = require('node:test');
 
-const { generate } = require('../index.cjs');
+const { generate, sdkPackage } = require('../index.cjs');
 const bundle = require('../../plugins-all/index.cjs');
 const { pluginTypeScript: individualTypeScript } = require('../../plugins/typescript/index.cjs');
 const { artifacts, config, temporary } = require('../test-support/helpers.cjs');
@@ -102,4 +102,20 @@ test('language plugin packages select native SDK renderers', async (t) => {
     }
     await assert.rejects(fs.stat(output), { code: 'ENOENT' });
   });
+});
+
+test('Ruby authors and explicit PHP license reach generated package manifests', async (t) => {
+  const compiled = await artifacts(t);
+  const dir = await temporary(t);
+  const result = await generate(config({ artifacts: compiled }, path.join(dir, 'metadata'), [
+    bundle.pluginRuby({ path: 'ruby', name: 'relevate_sdk', authors: ['Relevate Team'] }),
+    bundle.pluginPhp({ path: 'php', name: 'relevate/sdk', license: 'proprietary' }),
+    bundle.pluginPhp({ path: 'unspecified', name: 'relevate/unspecified' }),
+  ]), { write: false });
+  const source = (name) => result.files.find(file => file.path === name)?.contents;
+  assert.match(source('ruby/relevate_sdk.gemspec'), /spec\.authors = \["Relevate Team"\]/);
+  assert.equal(JSON.parse(source('php/composer.json')).license, 'proprietary');
+  assert.equal(JSON.parse(source('unspecified/composer.json')).license, undefined);
+  assert.throws(() => sdkPackage({ language: 'ruby', authors: [] }), /authors/);
+  assert.throws(() => sdkPackage({ language: 'php', license: ' ' }), /license/);
 });

@@ -104,6 +104,10 @@ export interface SdkPackageOptions {
   path?: string;
   name?: string;
   version?: string;
+  /** Actual SDK maintainers for Ruby gem metadata. */
+  authors?: string[];
+  /** Explicit SDK license expression for PHP Composer metadata; omitted by default. */
+  license?: string;
   style?: 'raw' | 'flat' | 'idiomatic' | 'namespaced' | 'grouped';
   /** GraphQL output wire types for this language. */
   scalars?: Record<string, GraphqlScalarMapping>;

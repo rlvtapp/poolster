@@ -3,7 +3,7 @@
 ← [JavaScript](README.md)
 
 Supply a complete schema and named operation documents. These additions are
-published in `0.5.0-alpha.2`; install the npm packages with `@alpha`.
+included in stable `0.5.0`; install the npm packages with `@latest`.
 
 ```graphql
 query ReadUser($id: ID!) {

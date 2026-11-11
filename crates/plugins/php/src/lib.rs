@@ -86,3 +86,6 @@ pub use events::{
     AsyncApi, KafkaClient, KafkaOperationSymbols, asyncapi, render_event_package,
     render_event_package_with_reference,
 };
+
+#[cfg(test)]
+mod packaging_tests;

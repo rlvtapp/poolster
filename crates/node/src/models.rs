@@ -50,6 +50,8 @@ fn generate(request: &str) -> AnyResult<String> {
             let common = Common {
                 package_version: $package.version.clone(),
                 source_quality: $package.source_quality.clone(),
+                package_authors: $package.authors.clone(),
+                package_license: $package.license.clone(),
                 ..Default::default()
             };
             let mut target = $language::package(&$package.path).common(common);

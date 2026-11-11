@@ -436,7 +436,7 @@ jobs:
             Java) mvn --batch-mode --no-transfer-progress -q -DskipTests compile ;;
             C#) dotnet build --configuration Release --disable-build-servers -p:UseSharedCompilation=false ;;
             Elixir) mix deps.get && mix compile --warnings-as-errors ;;
-            Ruby) find lib -name '*.rb' -print0 | xargs -0 -n1 ruby -c ;;
+            Ruby) find lib -name '*.rb' -print0 | xargs -0 -n1 ruby -c && gem build *.gemspec ;;
             Swift) swift build --disable-sandbox ;;
           esac
       - uses: dtolnay/rust-toolchain@stable
@@ -478,6 +478,7 @@ jobs:
         if: matrix.language == 'C#'
         run: |
           cargo test -p poolster-plugin-csharp generated_retry_parser_executes_with_dotnet -- --ignored
+          cargo test -p poolster-plugin-csharp nuget_pack_embeds_readme_and_nuspec_reference -- --ignored
           cargo test -p poolster-plugin-csharp generated_sse_framing_executes_with_dotnet -- --ignored
           cargo test -p poolster-plugin-csharp native_webhook_verification_executes_canonical_vectors -- --ignored
           cargo test -p poolster-plugin-csharp native_generated_operation_tests_execute -- --ignored

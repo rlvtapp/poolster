@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## [0.5.0](https://github.com/rlvtapp/poolster/compare/v0.5.0-alpha.4...v0.5.0) (2026-11-11)
+
+### Changed
+
+- Promote the alpha.4 generation pipelines and optional integration isolation to
+  the stable npm, PyPI and crates.io channels.
+- Update installation guides and package documentation for the stable release.
+
+### Fixed
+
+- Pass configured authors and licenses through native SDK package generation.
+- Include generated README files in C# NuGet packages and validate Ruby gem metadata.
+- Wait for registry propagation after successful SDK uploads while preserving
+  strict artifact verification.
+
 ## [0.5.0-alpha.4](https://github.com/rlvtapp/poolster/compare/v0.5.0-alpha.3...v0.5.0-alpha.4) (2026-10-24)
 
 
@@ -47,7 +62,7 @@
 This is an alpha release. The support matrix documents protocol restrictions and
 remaining pipelines; this release does not imply universal protocol parity.
 
-## 0.5.0 — 2026-10-08
+## 0.5.0 development — 2026-10-08
 
 ### Changed
 

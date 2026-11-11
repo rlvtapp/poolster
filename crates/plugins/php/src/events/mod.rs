@@ -23,12 +23,15 @@ impl Workspace {
         if cx.workspace.models {
             cx.files.emit(GeneratedFile::new(
                 "composer.json",
-                manifest(
-                    cx.settings
-                        .package_name
-                        .as_deref()
-                        .unwrap_or("poolster/models"),
-                    cx.workspace.events,
+                crate::package::licensed_manifest(
+                    &manifest(
+                        cx.settings
+                            .package_name
+                            .as_deref()
+                            .unwrap_or("poolster/models"),
+                        cx.workspace.events,
+                    )?,
+                    cx.common.package_license.as_deref(),
                 )?,
             )?)?;
         }

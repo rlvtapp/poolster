@@ -1,7 +1,7 @@
 # Help an AI help you with Poolster
 
 Poolster generates SDKs and API artifacts from HTTP, GraphQL, RPC, event and
-workflow contracts. This context describes published `0.5.0-alpha.2`; consult the
+workflow contracts. This context describes stable `0.5.0`; consult the
 support matrix for supported pipelines and match instructions to the installed version.
 
 ## Find the right guide

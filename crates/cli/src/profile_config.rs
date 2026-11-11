@@ -15,6 +15,8 @@ pub(super) fn package_common(style: SdkClientStyle) -> Common {
 pub(super) fn configured_common(style: SdkClientStyle, package: &PackageConfig) -> Common {
     let mut common = package_common(style);
     common.package_version = package.version.clone();
+    common.package_authors = package.authors.clone();
+    common.package_license = package.license.clone();
     common.layout = package.layout.clone();
     common.source_quality = package.source_quality.clone();
     common

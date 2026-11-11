@@ -259,6 +259,8 @@ fn json_config_generates_sdks_and_all_selected_artifacts() {
       ]
     },
     { "language": "go", "path": "go", "plugins": [{ "name": "sdk", "jobs": 2 }] },
+    { "language": "ruby", "path": "ruby", "name": "contacts_sdk", "authors": ["Contacts Team"], "plugins": [{ "name": "sdk" }] },
+    { "language": "php", "path": "php", "name": "acme/contacts", "license": "proprietary", "plugins": [{ "name": "sdk" }] },
     { "language": "csharp", "path": "csharp", "name": "acme-contacts", "plugins": [{ "name": "sdk" }] },
     {
       "language": "artifacts",
@@ -304,6 +306,17 @@ fn json_config_generates_sdks_and_all_selected_artifacts() {
     let manifest: serde_json::Value =
         serde_json::from_str(&fs::read_to_string(output.join("web/package.json")).unwrap())
             .unwrap();
+    assert!(
+        fs::read_to_string(output.join("ruby/contacts_sdk.gemspec"))
+            .unwrap()
+            .contains("spec.authors = [\"Contacts Team\"]")
+    );
+    let composer: serde_json::Value =
+        serde_json::from_str(&fs::read_to_string(output.join("php/composer.json")).unwrap())
+            .unwrap();
+    assert_eq!(composer["license"], "proprietary");
+    let project = fs::read_to_string(output.join("csharp/AcmeContacts.csproj")).unwrap();
+    assert!(project.contains("<PackageReadmeFile>README.md</PackageReadmeFile>"));
     assert_eq!(manifest["dependencies"]["zod"], "^4.0.0", "{manifest}");
     assert_eq!(
         manifest["peerDependencies"]["@tanstack/react-query"],

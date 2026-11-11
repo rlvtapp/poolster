@@ -174,6 +174,8 @@ pub(super) struct PackageConfig {
     pub(super) path: String,
     pub(super) name: Option<String>,
     pub(super) version: Option<String>,
+    pub(super) authors: Option<Vec<String>>,
+    pub(super) license: Option<String>,
     pub(super) release: Option<poolster_core::release::PackageMetadata>,
     pub(super) client_style: Option<String>,
     #[serde(default)]

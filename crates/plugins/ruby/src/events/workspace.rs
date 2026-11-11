@@ -31,8 +31,9 @@ impl Workspace {
         } else {
             ">= 3.1"
         };
+        let authors = crate::author_literals(cx.common.package_authors.as_deref())?;
         let manifest = format!(
-            "Gem::Specification.new do |spec|\n  spec.name = {package_literal}\n  spec.version = {version_literal}\n  spec.summary = 'Generated Poolster models'\n  spec.authors = ['Poolster']\n  spec.files = Dir['lib/**/*.rb']\n  spec.require_paths = ['lib']\n  spec.required_ruby_version = '{ruby}'\n{deps}end\n"
+            "Gem::Specification.new do |spec|\n  spec.name = {package_literal}\n  spec.version = {version_literal}\n  spec.summary = 'Generated Poolster models'\n  spec.authors = {authors}\n  spec.files = Dir['lib/**/*.rb']\n  spec.require_paths = ['lib']\n  spec.required_ruby_version = '{ruby}'\n{deps}end\n"
         );
         cx.files
             .emit(GeneratedFile::new(format!("{library}.gemspec"), manifest)?)?;

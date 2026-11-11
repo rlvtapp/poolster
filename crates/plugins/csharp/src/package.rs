@@ -19,7 +19,8 @@ impl Language for CSharp {
         crate::events::Workspace::finalize(cx)
     }
     fn finalize_files(tree: &mut poolster_core::GeneratedTree) -> Result<()> {
-        crate::operation_tests::finalize(tree)
+        crate::operation_tests::finalize(tree)?;
+        crate::packaging::finalize(tree)
     }
     fn bundle_middleware(
         tree: &mut poolster_core::GeneratedTree,

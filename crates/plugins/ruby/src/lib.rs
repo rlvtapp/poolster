@@ -51,3 +51,6 @@ pub use shared_models::shared_models;
 
 mod events;
 pub use events::{AsyncApi, KafkaClient, KafkaOperationSymbols, asyncapi};
+
+#[cfg(test)]
+mod packaging_tests;

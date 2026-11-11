@@ -8,6 +8,10 @@ pub struct Common {
     pub client_name: Option<String>,
     pub client_style: Option<SdkClientStyle>,
     pub package_version: Option<String>,
+    /// Explicit SDK package authors; distinct from the API contact.
+    pub package_authors: Option<Vec<String>>,
+    /// Explicit SDK license expression; never inferred from the generator license.
+    pub package_license: Option<String>,
     pub layout: Option<crate::SourceLayout>,
     pub source_quality: Option<crate::SourceQuality>,
 }
@@ -25,6 +29,14 @@ impl Common {
         self.package_version = Some(version.into());
         self
     }
+    pub fn package_authors(mut self, authors: impl IntoIterator<Item = impl Into<String>>) -> Self {
+        self.package_authors = Some(authors.into_iter().map(Into::into).collect());
+        self
+    }
+    pub fn package_license(mut self, license: impl Into<String>) -> Self {
+        self.package_license = Some(license.into());
+        self
+    }
     pub fn layout(mut self, layout: crate::SourceLayout) -> Self {
         self.layout = Some(layout);
         self
@@ -40,6 +52,14 @@ impl Common {
                 .clone()
                 .or_else(|| self.client_name.clone()),
             client_style: local.client_style.or(self.client_style),
+            package_authors: local
+                .package_authors
+                .clone()
+                .or_else(|| self.package_authors.clone()),
+            package_license: local
+                .package_license
+                .clone()
+                .or_else(|| self.package_license.clone()),
             layout: local.layout.clone().or_else(|| self.layout.clone()),
             source_quality: local
                 .source_quality
@@ -50,5 +70,23 @@ impl Common {
                 .clone()
                 .or_else(|| self.package_version.clone()),
         }
+    }
+}
+
+#[cfg(test)]
+mod metadata_tests {
+    use super::*;
+    #[test]
+    fn package_metadata_overlay_preserves_explicit_values() {
+        let base = Common::default()
+            .package_authors(["Default Team"])
+            .package_license("MIT");
+        assert_eq!(base.overlay(&Common::default()), base);
+        let local = Common::default()
+            .package_authors(Vec::<String>::new())
+            .package_license("proprietary");
+        let overlaid = base.overlay(&local);
+        assert_eq!(overlaid.package_authors, Some(vec![]));
+        assert_eq!(overlaid.package_license.as_deref(), Some("proprietary"));
     }
 }

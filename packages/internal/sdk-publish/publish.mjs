@@ -246,10 +246,10 @@ async function verifyLocalArtifacts(plan) {
     if (hash(await readFile(path.join(plan.distributionDirectory, file.filename))) !== file.checksum) throw new Error('PyPI artifact changed after preparation');
   }
 }
-async function confirmPublished(plan, dependencies) {
-  for (let attempt = 0; attempt < 3; attempt++) {
+async function confirmPublished(plan, dependencies, attempts = 3) {
+  for (let attempt = 0; attempt < attempts; attempt++) {
     if (await publishedState(plan, dependencies)) return true;
-    if (attempt < 2) await (dependencies.sleep ?? sleep)(1000 * (attempt + 1));
+    if (attempt < attempts - 1) await (dependencies.sleep ?? sleep)(1000 * Math.min(attempt + 1, 5));
   }
   return false;
 }
@@ -273,7 +273,9 @@ export async function publishPrepared(plan, dependencies = {}) {
   } catch (error) { failure = error; }
   // Only exact artifact verification can turn an uncertain/duplicate upload
   // into success. Authentication, network and unrelated errors stay failures.
-  if (!await confirmPublished(plan, dependencies)) {
+  // Successful uploads can remain invisible while the registry processes them.
+  // Keep uncertain/failed uploads on the short duplicate-race verification path.
+  if (!await confirmPublished(plan, dependencies, failure ? 3 : 60)) {
     if (failure) throw failure;
     throw new Error('Publication could not be confirmed by the registry');
   }

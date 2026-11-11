@@ -218,9 +218,34 @@ pub(crate) fn insert(
     tree.insert(GeneratedFile::new(format!("{root}/{path}"), contents)?)
 }
 
+pub(crate) fn author_literals(authors: Option<&[String]>) -> Result<String> {
+    let Some(authors) = authors else {
+        return Ok("[\"SDK authors\"]".into());
+    };
+    anyhow::ensure!(
+        !authors.is_empty()
+            && authors
+                .iter()
+                .all(|author| !author.trim().is_empty() && !author.contains('\0')),
+        "Ruby package authors must contain at least one nonempty author"
+    );
+    Ok(format!(
+        "[{}]",
+        authors
+            .iter()
+            .map(|author| ruby_string(author))
+            .collect::<Vec<_>>()
+            .join(", ")
+    ))
+}
+
 pub(crate) fn gemspec(api: &Api, gem: &str) -> String {
+    gemspec_with_authors(api, gem, "[\"SDK authors\"]")
+}
+
+pub(crate) fn gemspec_with_authors(api: &Api, gem: &str, authors: &str) -> String {
     format!(
-        "Gem::Specification.new do |spec|\n  spec.name = {}\n  spec.version = {}\n  spec.summary = {}\n  spec.required_ruby_version = \">= 3.1\"\n  spec.files = Dir[\"lib/**/*.rb\"]\n  spec.require_paths = [\"lib\"]\nend\n",
+        "Gem::Specification.new do |spec|\n  spec.name = {}\n  spec.version = {}\n  spec.summary = {}\n  spec.authors = {authors}\n  spec.required_ruby_version = \">= 3.1\"\n  spec.files = Dir[\"lib/**/*.rb\"]\n  spec.require_paths = [\"lib\"]\nend\n",
         ruby_string(gem),
         ruby_string(&ruby_version(&api.version)),
         ruby_string(&format!("Generated Ruby SDK for {}", api.name))
