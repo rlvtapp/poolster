@@ -344,7 +344,7 @@ jobs:
             runner: ubuntu-latest
           - language: Swift
             path: swift
-            runner: macos-14
+            runner: macos-15
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
     steps:
@@ -352,8 +352,8 @@ jobs:
       - name: Select Swift 6 toolchain for native probes
         if: matrix.language == 'Swift'
         run: |
-          echo "DEVELOPER_DIR=/Applications/Xcode_16.2.app/Contents/Developer" >> "$GITHUB_ENV"
-          DEVELOPER_DIR=/Applications/Xcode_16.2.app/Contents/Developer swift --version
+          echo "DEVELOPER_DIR=/Applications/Xcode_16.4.app/Contents/Developer" >> "$GITHUB_ENV"
+          DEVELOPER_DIR=/Applications/Xcode_16.4.app/Contents/Developer swift --version
       - uses: actions/setup-node@v7
         with:
           node-version: 22

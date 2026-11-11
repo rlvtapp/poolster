@@ -46,7 +46,7 @@ jobs:
             runner: ubuntu-latest
           - language: Swift
             path: swift
-            runner: macos-14
+            runner: macos-15
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v7
@@ -64,8 +64,8 @@ jobs:
       - name: Select Swift 6 toolchain
         if: matrix.language == 'Swift'
         run: |
-          echo "DEVELOPER_DIR=/Applications/Xcode_16.2.app/Contents/Developer" >> "$GITHUB_ENV"
-          DEVELOPER_DIR=/Applications/Xcode_16.2.app/Contents/Developer swift --version
+          echo "DEVELOPER_DIR=/Applications/Xcode_16.4.app/Contents/Developer" >> "$GITHUB_ENV"
+          DEVELOPER_DIR=/Applications/Xcode_16.4.app/Contents/Developer swift --version
       - name: Install explicit TypeScript compiler for the runtime probe
         if: matrix.language == 'TypeScript'
         run: |

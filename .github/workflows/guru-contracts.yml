@@ -29,14 +29,14 @@ jobs:
           target = os.environ['TARGET']
           selected = languages if target == 'all' else [target]
           assert all(language in languages for language in selected)
-          print('value=' + json.dumps({'include': [{'language': language, 'shard': shard, 'runner': 'macos-14' if language == 'swift' else 'ubuntu-latest', 'host': 'macos' if language == 'swift' else 'linux'} for language in selected for shard in range(5)]}))
+          print('value=' + json.dumps({'include': [{'language': language, 'shard': shard, 'runner': 'macos-15' if language == 'swift' else 'ubuntu-latest', 'host': 'macos' if language == 'swift' else 'linux'} for language in selected for shard in range(5)]}))
           PY
   build:
     strategy:
       matrix:
         include:
           - { runner: ubuntu-latest, host: linux }
-          - { runner: macos-14, host: macos }
+          - { runner: macos-15, host: macos }
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
     steps:
@@ -106,7 +106,7 @@ jobs:
           ruby-version: '3.3'
       - name: Select Swift 6
         if: matrix.language == 'swift'
-        run: echo "DEVELOPER_DIR=/Applications/Xcode_16.2.app/Contents/Developer" >> "$GITHUB_ENV"
+        run: echo "DEVELOPER_DIR=/Applications/Xcode_16.4.app/Contents/Developer" >> "$GITHUB_ENV"
       - name: Initialize Hex
         if: matrix.language == 'elixir'
         run: mix local.hex --force && mix local.rebar --force

@@ -160,7 +160,7 @@ jobs:
           - { language: C#, path: csharp, runner: ubuntu-latest }
           - { language: Elixir, path: elixir, runner: ubuntu-latest }
           - { language: Ruby, path: ruby, runner: ubuntu-latest }
-          - { language: Swift, path: swift, runner: macos-14 }
+          - { language: Swift, path: swift, runner: macos-15 }
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
     steps:
@@ -213,8 +213,8 @@ jobs:
       - name: Select Swift 6 toolchain
         if: matrix.language == 'Swift'
         run: |
-          echo "DEVELOPER_DIR=/Applications/Xcode_16.2.app/Contents/Developer" >> "$GITHUB_ENV"
-          DEVELOPER_DIR=/Applications/Xcode_16.2.app/Contents/Developer swift --version
+          echo "DEVELOPER_DIR=/Applications/Xcode_16.4.app/Contents/Developer" >> "$GITHUB_ENV"
+          DEVELOPER_DIR=/Applications/Xcode_16.4.app/Contents/Developer swift --version
       - name: Validate generated SDK
         working-directory: generated-sdk-fixture/${{ matrix.path }}
         env:
@@ -240,7 +240,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON(inputs.windows_only && '[{"runner":"windows-latest","platform":"win32-x64-msvc","target":"x86_64-pc-windows-msvc"}]' || '[{"runner":"macos-14","platform":"darwin-arm64","target":"aarch64-apple-darwin"},{"runner":"macos-15-intel","platform":"darwin-x64","target":"x86_64-apple-darwin"},{"runner":"ubuntu-22.04","platform":"linux-x64-gnu","target":"x86_64-unknown-linux-gnu"},{"runner":"windows-latest","platform":"win32-x64-msvc","target":"x86_64-pc-windows-msvc"}]') }}
+        include: ${{ fromJSON(inputs.windows_only && '[{"runner":"windows-latest","platform":"win32-x64-msvc","target":"x86_64-pc-windows-msvc"}]' || '[{"runner":"macos-15","platform":"darwin-arm64","target":"aarch64-apple-darwin"},{"runner":"macos-15-intel","platform":"darwin-x64","target":"x86_64-apple-darwin"},{"runner":"ubuntu-22.04","platform":"linux-x64-gnu","target":"x86_64-unknown-linux-gnu"},{"runner":"windows-latest","platform":"win32-x64-msvc","target":"x86_64-pc-windows-msvc"}]') }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
     steps:

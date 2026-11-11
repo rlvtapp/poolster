@@ -20,6 +20,13 @@ test('stable releases use GitHub release metadata and the npm latest channel', (
   assert.match(publish, /\*\) echo "NPM_DIST_TAG=latest"/);
 });
 
+test('macOS verification and publication avoid the retired macOS 14 image', () => {
+  for (const file of fs.readdirSync(path.join(root, '.github/workflows'))) {
+    if (file.endsWith('.yml')) assert.doesNotMatch(read(`.github/workflows/${file}`), /macos-14/);
+  }
+  assert.match(read('.github/workflows/npm-publish.yml'), /"runner":"macos-15","platform":"darwin-arm64"/);
+});
+
 test('release updates inherited workspace and lock versions without changing dependencies', () => {
   assert.equal(config['release-type'], 'simple');
   assert.equal(read(config['version-file']).trim(), toml.parse(read('Cargo.toml')).workspace.package.version);

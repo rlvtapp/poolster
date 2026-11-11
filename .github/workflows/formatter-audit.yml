@@ -19,7 +19,7 @@ jobs:
       matrix:
         include:
           - {runner: ubuntu-latest, host: linux}
-          - {runner: macos-14, host: macos}
+          - {runner: macos-15, host: macos}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
     steps:
@@ -53,7 +53,7 @@ jobs:
           - {language: java, runner: ubuntu-latest, host: linux}
           - {language: csharp, runner: ubuntu-latest, host: linux}
           - {language: ruby, runner: ubuntu-latest, host: linux}
-          - {language: swift, runner: macos-14, host: macos}
+          - {language: swift, runner: macos-15, host: macos}
           - {language: elixir, runner: ubuntu-latest, host: linux}
           - {language: symfony, runner: ubuntu-latest, host: linux}
     runs-on: ${{ matrix.runner }}
@@ -122,7 +122,7 @@ jobs:
             java) curl --fail --location --retry 3 https://github.com/google/google-java-format/releases/download/v1.28.0/google-java-format-1.28.0-all-deps.jar --output "$FORMAT_TOOLS/google-java-format.jar" ;;
             ruby) gem install rubocop --version 1.81.1 --no-document && gem install rbs --version 3.9.5 --no-document ;;
             elixir) mix local.hex --force && mix local.rebar --force ;;
-            swift) echo "DEVELOPER_DIR=/Applications/Xcode_16.2.app/Contents/Developer" >> "$GITHUB_ENV" ;;
+            swift) echo "DEVELOPER_DIR=/Applications/Xcode_16.4.app/Contents/Developer" >> "$GITHUB_ENV" ;;
           esac
       - name: Audit formatted bytes, deterministic regeneration and clean consumers
         shell: bash
