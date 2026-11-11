@@ -339,7 +339,7 @@ fn large_operation_layout_stays_split_and_bounded() {
 }
 
 #[test]
-fn shared_model_manifest_preserves_existing_standalone_bytes() {
+fn shared_model_manifest_uses_neutral_default_authors() {
     let source = Source::new();
     let blocks = model_blocks(Some(source.handle()), "events");
     let models = output::shared_models(None).input_shapes(blocks.handle());
@@ -359,7 +359,7 @@ fn shared_model_manifest_preserves_existing_standalone_bytes() {
         .1;
     assert_eq!(
         manifest,
-        "Gem::Specification.new do |spec|\n  spec.name = \"poolster_models\"\n  spec.version = \"0.1.0\"\n  spec.summary = 'Generated Poolster models'\n  spec.authors = ['Poolster']\n  spec.files = Dir['lib/**/*.rb']\n  spec.require_paths = ['lib']\n  spec.required_ruby_version = '>= 3.1'\nend\n"
+        "Gem::Specification.new do |spec|\n  spec.name = \"poolster_models\"\n  spec.version = \"0.1.0\"\n  spec.summary = 'Generated Poolster models'\n  spec.authors = [\"SDK authors\"]\n  spec.files = Dir['lib/**/*.rb']\n  spec.require_paths = ['lib']\n  spec.required_ruby_version = '>= 3.1'\nend\n"
     );
 }
 
